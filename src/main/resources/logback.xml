@@ -1,0 +1,14 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- Encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%date{dd MMM yyyy HH:mm:ss.SSSS} [%20thread] [%5level] %-50logger{32} line: %-5line - %msg%n%ex</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.lirezap.nex" level="INFO"/>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>
