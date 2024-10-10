@@ -4,7 +4,7 @@ import java.lang.foreign.Arena;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 
-import static com.lirezap.nex.binary.BinaryRepresentations.representationSize;
+import static com.lirezap.nex.binary.BinaryRepresentable.representationSize;
 
 /**
  * @author Alireza Pourtaghi

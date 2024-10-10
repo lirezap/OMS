@@ -5,8 +5,6 @@ import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static java.lang.foreign.ValueLayout.*;
-import static java.nio.ByteOrder.BIG_ENDIAN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -14,21 +12,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  *
  * @author Alireza Pourtaghi
  */
-public abstract class BinaryRepresentation<T> implements BinaryRepresentations, AutoCloseable {
-    private static final OfByte BYTE = JAVA_BYTE.withOrder(BIG_ENDIAN);
-    private static final OfShort SHORT = JAVA_SHORT_UNALIGNED.withOrder(BIG_ENDIAN);
-    private static final OfInt INT = JAVA_INT_UNALIGNED.withOrder(BIG_ENDIAN);
-    private static final OfLong LONG = JAVA_LONG_UNALIGNED.withOrder(BIG_ENDIAN);
-
-    // Representation's header size
-    private static final int RHS = 1 + 1 + 4 + 4;
-
-    // Representation's version
-    private static final byte RVR = 0b00000001;
-
-    // Flags; 8 flags can be used in a single byte
-    private static final byte FGS = 0b00000000;
-
+public abstract class BinaryRepresentation<T> implements BinaryRepresentable, AutoCloseable {
     private final Arena arena;
     private final MemorySegment segment;
     private final AtomicLong position;
@@ -76,7 +60,7 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentations, 
         var length = value.getBytes(UTF_8).length;
         if (length == Integer.MAX_VALUE) throw new IllegalArgumentException("size of string value is too big!");
 
-        // Null terminated length
+        // Null terminated
         length++;
         putInt(length);
         segment.setString(position.getAndAdd(length), value);
