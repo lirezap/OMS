@@ -14,6 +14,6 @@ public interface BinaryRepresentations {
     }
 
     static int representationSize(final byte[] value) {
-        return value.length + 8;
+        return value.length + 4;
     }
 }
