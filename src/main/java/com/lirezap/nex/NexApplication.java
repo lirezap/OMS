@@ -1,13 +1,17 @@
 package com.lirezap.nex;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@SpringBootApplication
-public class NexApplication {
+/**
+ * Main application class to be executed.
+ *
+ * @author Alireza Pourtaghi
+ */
+public final class NexApplication {
+    private static final Logger logger = LoggerFactory.getLogger(NexApplication.class);
 
-	public static void main(String[] args) {
-		SpringApplication.run(NexApplication.class, args);
-	}
-
+    public static void main(final String[] args) {
+        logger.info("Starting Nex; Version: {}", NexApplication.class.getPackage().getImplementationVersion());
+    }
 }
