@@ -19,7 +19,7 @@ public final class JsonBodyResponderHandler extends HTTPHandler {
         try {
             routingContext.response().putHeader(X_FRAME_OPTIONS, "nosniff");
 
-            var response = Json.encodeToBuffer(routingContext.get(RESPONSE_BODY));
+            final var response = Json.encodeToBuffer(routingContext.get(RESPONSE_BODY));
             routingContext.response()
                     .setStatusCode(OK.code())
                     .putHeader(CONTENT_TYPE, "application/json")

@@ -35,7 +35,7 @@ public final class HTTPServer {
     HTTPServer(final Configuration configuration, final Vertx vertx) {
         this.vertx = vertx;
 
-        var options = new HttpServerOptions()
+        final var options = new HttpServerOptions()
                 .setHost(configuration.loadString("http.server.host"))
                 .setPort(configuration.loadInt("http.server.port"))
                 .setIdleTimeout((int) configuration.loadDuration("http.server.idle_timeout").toSeconds()).setIdleTimeoutUnit(TimeUnit.SECONDS)
@@ -55,7 +55,7 @@ public final class HTTPServer {
     public void start() {
         setupRoutes();
 
-        var cause = httpServer.requestHandler(router).listen().cause();
+        final var cause = httpServer.requestHandler(router).listen().cause();
         if (cause != null) {
             throw new RuntimeException(cause.getMessage());
         }
@@ -69,9 +69,9 @@ public final class HTTPServer {
     private void setupRoutes() {
         setupBaseHandlers();
 
-        var jsonBodyResponderHandler = new JsonBodyResponderHandler();
-        var noContentResponderHandler = new NoContentResponderHandler();
-        var bodyHandler = BodyHandler.create(FALSE);
+        final var jsonBodyResponderHandler = new JsonBodyResponderHandler();
+        final var noContentResponderHandler = new NoContentResponderHandler();
+        final var bodyHandler = BodyHandler.create(FALSE);
 
         router.get("/ready").handler(new LiveNessHandler());
         router.get("/health*").handler(healthChecksHandler());
@@ -113,7 +113,7 @@ public final class HTTPServer {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Closing HTTP server ...");
 
-            var cause = vertx.close().cause();
+            final var cause = vertx.close().cause();
             if (cause != null) {
                 logger.error("{}", cause.getMessage());
             }

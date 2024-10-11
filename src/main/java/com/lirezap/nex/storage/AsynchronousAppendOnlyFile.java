@@ -23,8 +23,8 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author Alireza Pourtaghi
  */
-public final class AsynchronousAppendOnlyFileWriter implements AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(AsynchronousAppendOnlyFileWriter.class);
+public final class AsynchronousAppendOnlyFile implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(AsynchronousAppendOnlyFile.class);
 
     private final Semaphore guard;
     private final AtomicLong position;
@@ -34,7 +34,7 @@ public final class AsynchronousAppendOnlyFileWriter implements AutoCloseable {
     private final AtomicLong index;
     private final FileWriter[] writers;
 
-    public AsynchronousAppendOnlyFileWriter(final Path path, final int parallelism, final OpenOption... options)
+    public AsynchronousAppendOnlyFile(final Path path, final int parallelism, final OpenOption... options)
             throws IOException {
 
         this.guard = new Semaphore(1);
@@ -47,7 +47,7 @@ public final class AsynchronousAppendOnlyFileWriter implements AutoCloseable {
 
         for (int i = 0; i < parallelism; i++) {
             logger.info("Setting up a new writer at index {} for {} ...", i, path);
-            writers[i] = new FileWriter(path);
+            writers[i] = new FileWriter(path, options);
         }
 
         updateCurrentPosition();

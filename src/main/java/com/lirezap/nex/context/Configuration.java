@@ -30,56 +30,56 @@ public final class Configuration {
     }
 
     public boolean loadBoolean(final String key) {
-        var value = config.getBoolean(key);
+        final var value = config.getBoolean(key);
         logger.trace("{}: {}", key, value);
 
         return value;
     }
 
     public int loadInt(final String key) {
-        var value = config.getInt(key);
+        final var value = config.getInt(key);
         logger.trace("{}: {}", key, value);
 
         return value;
     }
 
     public long loadLong(final String key) {
-        var value = config.getLong(key);
+        final var value = config.getLong(key);
         logger.trace("{}: {}", key, value);
 
         return value;
     }
 
     public double loadDouble(final String key) {
-        var value = config.getDouble(key);
+        final var value = config.getDouble(key);
         logger.trace("{}: {}", key, value);
 
         return value;
     }
 
     public String loadString(final String key) {
-        var value = config.getString(key);
+        final var value = config.getString(key);
         logger.trace("{}: {}", key, value);
 
         return value;
     }
 
     public List<String> loadStringList(final String key) {
-        var value = config.getStringList(key);
+        final var value = config.getStringList(key);
         logger.trace("{}: {}", key, value);
 
         return value;
     }
 
     public Duration loadDuration(final String key) {
-        var value = config.getDuration(key);
+        final var value = config.getDuration(key);
         logger.trace("{}: {}", key, value);
 
         return value;
     }
 
     public long loadMemoryBytes(final String key) {
-        var value = config.getMemorySize(key).toBytes();
+        final var value = config.getMemorySize(key).toBytes();
         logger.trace("{}: {}", key, value);
 
         return value;

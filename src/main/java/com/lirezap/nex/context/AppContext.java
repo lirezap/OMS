@@ -1,5 +1,6 @@
 package com.lirezap.nex.context;
 
+import com.lirezap.nex.storage.AsynchronousAppendOnlyFile;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
@@ -8,10 +9,15 @@ import io.vertx.micrometer.VertxPrometheusOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * Singleton application context that contains main components.
@@ -27,11 +33,13 @@ public final class AppContext {
     private final Configuration configuration;
     private final Vertx vertx;
     private final HTTPServer httpServer;
+    private final AsynchronousAppendOnlyFile httpRequestsLogFile;
 
     private AppContext() {
         this.configuration = new Configuration();
-        this.vertx = Vertx.vertx(vertxOptions(this.configuration));
+        this.vertx = vertx(this.configuration);
         this.httpServer = new HTTPServer(this.configuration, this.vertx);
+        this.httpRequestsLogFile = httpRequestsLogFile(this.configuration);
     }
 
     /**
@@ -80,24 +88,45 @@ public final class AppContext {
         return httpServer;
     }
 
-    private static VertxOptions vertxOptions(final Configuration configuration) {
-        var metricsServerOptions = new HttpServerOptions()
+    public Optional<AsynchronousAppendOnlyFile> httpRequestsLogFile() {
+        return Optional.ofNullable(httpRequestsLogFile);
+    }
+
+    private static Vertx vertx(final Configuration configuration) {
+        final var metricsServerOptions = new HttpServerOptions()
                 .setHost(configuration.loadString("metrics.server.host"))
                 .setPort(configuration.loadInt("metrics.server.port"));
 
-        var prometheusOptions = new VertxPrometheusOptions()
+        final var prometheusOptions = new VertxPrometheusOptions()
                 .setEnabled(configuration.loadBoolean("metrics.server.enabled"))
                 .setStartEmbeddedServer(TRUE)
                 .setEmbeddedServerOptions(metricsServerOptions)
                 .setEmbeddedServerEndpoint("/metrics");
 
-        var micrometerOptions = new MicrometerMetricsOptions()
+        final var micrometerOptions = new MicrometerMetricsOptions()
                 .setEnabled(configuration.loadBoolean("metrics.server.enabled"))
                 .setPrometheusOptions(prometheusOptions)
                 .setJvmMetricsEnabled(TRUE);
 
-        return new VertxOptions()
+        final var options = new VertxOptions()
                 .setPreferNativeTransport(TRUE)
                 .setMetricsOptions(micrometerOptions);
+
+        return Vertx.vertx(options);
+    }
+
+    private static AsynchronousAppendOnlyFile httpRequestsLogFile(final Configuration configuration) {
+        if (!configuration.loadBoolean("http.server.request_logging_enabled"))
+            return null;
+
+        try {
+            return new AsynchronousAppendOnlyFile(
+                    Path.of(configuration.loadString("http.server.request_logging_file_path")),
+                    configuration.loadInt("http.server.request_logging_parallelism"),
+                    CREATE, WRITE);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
