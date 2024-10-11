@@ -18,14 +18,15 @@ public abstract sealed class Order permits BuyOrder, SellOrder {
 
         this.id = id;
         this.ts = ts;
-        this.symbol = symbol;
-        this.quantity = quantity;
-        this.price = price;
-        this.currency = currency;
+        this.symbol = symbol == null ? "" : symbol;
+        this.quantity = quantity == null ? "" : quantity;
+        this.price = price == null ? "" : price;
+        this.currency = currency == null ? "" : currency;
     }
 
     public final int size() {
-        return 8 + 8 + representationSize(symbol) + representationSize(quantity) + representationSize(price) + representationSize(currency);
+        return 8 + 8 + representationSize(symbol) + representationSize(quantity) + representationSize(price) +
+                representationSize(currency);
     }
 
     public abstract int representationId();

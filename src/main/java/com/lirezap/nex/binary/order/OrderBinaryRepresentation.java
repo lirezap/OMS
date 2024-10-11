@@ -27,6 +27,39 @@ public final class OrderBinaryRepresentation extends BinaryRepresentation<Order>
 
     @Override
     protected void encodeRecord() {
-        // TODO: Complete implementation.
+        try {
+            encodeId();
+            encodeTs();
+            encodeSymbol();
+            encodeQuantity();
+            encodePrice();
+            encodeCurrency();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private void encodeId() {
+        putLong(order.getId());
+    }
+
+    private void encodeTs() {
+        putLong(order.getTs());
+    }
+
+    private void encodeSymbol() {
+        putString(order.getSymbol());
+    }
+
+    private void encodeQuantity() {
+        putString(order.getQuantity());
+    }
+
+    private void encodePrice() {
+        putString(order.getPrice());
+    }
+
+    private void encodeCurrency() {
+        putString(order.getCurrency());
     }
 }
