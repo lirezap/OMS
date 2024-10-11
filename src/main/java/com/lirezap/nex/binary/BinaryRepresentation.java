@@ -80,12 +80,16 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
 
     protected abstract void encodeRecord();
 
-    protected final MemorySegment segment() {
+    public final MemorySegment segment() {
         return segment;
     }
 
-    protected final ByteBuffer buffer() {
+    public final ByteBuffer buffer() {
         return segment.asByteBuffer();
+    }
+
+    public final long position() {
+        return position.get();
     }
 
     @Override
