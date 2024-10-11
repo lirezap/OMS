@@ -3,7 +3,7 @@ package com.lirezap.nex.context;
 import com.lirezap.nex.http.handlers.JsonBodyResponderHandler;
 import com.lirezap.nex.http.handlers.LiveNessHandler;
 import com.lirezap.nex.http.handlers.NoContentResponderHandler;
-import com.lirezap.nex.http.handlers.RequestLoggingFormatter;
+import com.lirezap.nex.http.handlers.RequestLoggerHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
@@ -78,11 +78,10 @@ public final class HTTPServer {
     }
 
     private void setupBaseHandlers() {
-        router.route().handler(ResponseTimeHandler.create());
         router.route().handler(TimeoutHandler.create(context().config().loadDuration("http.server.request_timeout").toMillis(), GATEWAY_TIMEOUT.code()));
 
         if (context().config().loadBoolean("http.server.request_logging_enabled")) {
-            router.route().handler(LoggerHandler.create(LoggerFormat.CUSTOM).customFormatter(new RequestLoggingFormatter()));
+            router.route().handler(new RequestLoggerHandler());
         }
 
         if (context().config().loadBoolean("http.server.hsts_enabled")) {

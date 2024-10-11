@@ -1,6 +1,7 @@
 package com.lirezap.nex.http.handlers;
 
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,8 @@ import org.slf4j.LoggerFactory;
 public abstract class HTTPHandler implements Handler<RoutingContext> {
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    protected static final String X_FRAME_OPTIONS = "X-FRAME-OPTIONS";
+    protected static final CharSequence X_RESPONSE_TIME = HttpHeaders.createOptimized("x-response-time");
+    protected static final CharSequence X_FRAME_OPTIONS = HttpHeaders.createOptimized("x-frame-options");
+
     protected static final String RESPONSE_BODY = "RESPONSE_BODY";
 }
