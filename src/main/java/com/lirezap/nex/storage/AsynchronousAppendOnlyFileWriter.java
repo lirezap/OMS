@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.foreign.Arena;
 import java.nio.channels.AsynchronousFileChannel;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -17,16 +18,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.WRITE;
-
 /**
- * High performance, parallel, append-only and thread-safe file writer implementation.
+ * High performance, paralleled, append-only and thread-safe file writer implementation.
  *
  * @author Alireza Pourtaghi
  */
-public final class ParallelAppendOnlyFileWriter implements AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(ParallelAppendOnlyFileWriter.class);
+public final class AsynchronousAppendOnlyFileWriter implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(AsynchronousAppendOnlyFileWriter.class);
 
     private final Semaphore guard;
     private final AtomicLong position;
@@ -36,7 +34,9 @@ public final class ParallelAppendOnlyFileWriter implements AutoCloseable {
     private final AtomicLong index;
     private final FileWriter[] writers;
 
-    public ParallelAppendOnlyFileWriter(final Path path, final int parallelism) throws IOException {
+    public AsynchronousAppendOnlyFileWriter(final Path path, final int parallelism, final OpenOption... options)
+            throws IOException {
+
         this.guard = new Semaphore(1);
         this.position = new AtomicLong(0);
         this.fileSizePositionSetterLockHandler = new FileSizePositionSetterLockHandler(guard, position);
@@ -90,9 +90,9 @@ public final class ParallelAppendOnlyFileWriter implements AutoCloseable {
         private final ExecutorService executor;
         private final AsynchronousFileChannel file;
 
-        public FileWriter(final Path path) throws IOException {
+        public FileWriter(final Path path, final OpenOption... options) throws IOException {
             this.executor = Executors.newSingleThreadExecutor();
-            this.file = AsynchronousFileChannel.open(path, Set.of(CREATE, WRITE), executor);
+            this.file = AsynchronousFileChannel.open(path, Set.of(options), executor);
         }
 
         public ExecutorService getExecutor() {
