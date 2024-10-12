@@ -1,5 +1,7 @@
 package com.lirezap.nex.binary;
 
+import com.lirezap.nex.context.Compression;
+
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
@@ -15,6 +17,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public abstract class BinaryRepresentation<T> implements BinaryRepresentable, AutoCloseable {
     private final Arena arena;
     private final MemorySegment segment;
+    private final int size;
     private final AtomicLong position;
 
     protected BinaryRepresentation(final int size) {
@@ -24,6 +27,7 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
     protected BinaryRepresentation(final Arena arena, final int size) {
         this.arena = arena;
         this.segment = arena.allocate(RHS + size);
+        this.size = size;
         this.position = new AtomicLong(0);
     }
 
@@ -35,9 +39,37 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
         // Record's id
         segment.set(INT, position.getAndAdd(INT.byteSize()), id());
         // Record's size
-        segment.set(INT, position.getAndAdd(INT.byteSize()), (int) segment.byteSize() - RHS);
+        segment.set(INT, position.getAndAdd(INT.byteSize()), size);
         // Record
         encodeRecord();
+    }
+
+    public final MemorySegment compressLZ4(final Compression compression) {
+        try {
+            final var neededSpaceSize = compression.lz4().compressBound(size);
+            if (neededSpaceSize <= 0) {
+                throw new RuntimeException("could not compute compress bound!");
+            }
+
+            final var space = arena.allocate(RHS + neededSpaceSize);
+            final var compressionSize = compression.lz4().compressDefault(segment.asSlice(RHS), space.asSlice(RHS), size, neededSpaceSize);
+            if (compressionSize <= 0) {
+                throw new RuntimeException("could not compress content!");
+            }
+
+            // Version
+            space.set(BYTE, 0, RVR);
+            // Flags
+            space.set(BYTE, 1, FGS);
+            // Record's id
+            space.set(INT, 2, id());
+            // Record's size
+            space.set(INT, 6, compressionSize);
+
+            return space.reinterpret(RHS + compressionSize);
+        } catch (Throwable th) {
+            throw new RuntimeException(th);
+        }
     }
 
     public final void putByte(final byte value) {

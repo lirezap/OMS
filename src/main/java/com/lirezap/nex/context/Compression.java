@@ -18,6 +18,7 @@ public final class Compression {
 
     Compression(final Configuration configuration) {
         this.lz4 = new LZ4(Path.of(configuration.loadString("libraries.native.lz4.path")));
+        addShutdownHook();
     }
 
     public LZ4 lz4() {
