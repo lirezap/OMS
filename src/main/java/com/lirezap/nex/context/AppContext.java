@@ -34,12 +34,14 @@ public final class AppContext {
     private final Vertx vertx;
     private final HTTPServer httpServer;
     private final AsynchronousAppendOnlyFile httpRequestsLogFile;
+    private final Compression compression;
 
     private AppContext() {
         this.configuration = new Configuration();
         this.vertx = vertx(this.configuration);
         this.httpServer = new HTTPServer(this.configuration, this.vertx);
         this.httpRequestsLogFile = httpRequestsLogFile(this.configuration);
+        this.compression = new Compression(this.configuration);
     }
 
     /**
@@ -90,6 +92,10 @@ public final class AppContext {
 
     public Optional<AsynchronousAppendOnlyFile> httpRequestsLogFile() {
         return Optional.ofNullable(httpRequestsLogFile);
+    }
+
+    public Compression compression() {
+        return compression;
     }
 
     private static Vertx vertx(final Configuration configuration) {
