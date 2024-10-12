@@ -1,4 +1,4 @@
-package com.lirezap.nex.storage.handlers;
+package com.lirezap.nex.storage;
 
 import com.lirezap.nex.binary.BinaryRepresentation;
 import org.slf4j.Logger;

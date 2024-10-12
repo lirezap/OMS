@@ -2,8 +2,6 @@ package com.lirezap.nex.storage;
 
 import com.lirezap.nex.binary.http.HTTPRequest;
 import com.lirezap.nex.binary.http.HTTPRequestBinaryRepresentation;
-import com.lirezap.nex.storage.handlers.BinaryRepresentationWriteHandler;
-import com.lirezap.nex.storage.handlers.FileSizePositionSetterLockHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

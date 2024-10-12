@@ -1,4 +1,4 @@
-package com.lirezap.nex.storage.handlers;
+package com.lirezap.nex.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

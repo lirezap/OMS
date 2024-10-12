@@ -1,4 +1,4 @@
-package com.lirezap.nex.http.handlers;
+package com.lirezap.nex.http;
 
 import com.lirezap.nex.binary.http.HTTPRequest;
 import io.vertx.ext.web.RoutingContext;

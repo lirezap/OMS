@@ -1,4 +1,4 @@
-package com.lirezap.nex.http.handlers;
+package com.lirezap.nex.http;
 
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;

@@ -1,9 +1,9 @@
 package com.lirezap.nex.context;
 
-import com.lirezap.nex.http.handlers.JsonBodyResponderHandler;
-import com.lirezap.nex.http.handlers.LiveNessHandler;
-import com.lirezap.nex.http.handlers.NoContentResponderHandler;
-import com.lirezap.nex.http.handlers.RequestLoggerHandler;
+import com.lirezap.nex.http.JsonBodyResponderHandler;
+import com.lirezap.nex.http.LiveNessHandler;
+import com.lirezap.nex.http.NoContentResponderHandler;
+import com.lirezap.nex.http.RequestLoggerHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
