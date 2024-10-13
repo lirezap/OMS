@@ -46,27 +46,21 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
 
     public final MemorySegment compressLZ4(final Compression compression) {
         try {
-            final var neededSpaceSize = compression.lz4().compressBound(size);
-            if (neededSpaceSize <= 0) {
+            final var neededMemorySize = compression.lz4().compressBound(size);
+            if (neededMemorySize <= 0) {
                 throw new RuntimeException("could not compute compress bound!");
             }
 
-            final var space = arena.allocate(RHS + neededSpaceSize);
-            final var compressionSize = compression.lz4().compressDefault(segment.asSlice(RHS), space.asSlice(RHS), size, neededSpaceSize);
+            final var memory = arena.allocate(RHS + neededMemorySize);
+            final var compressionSize = compression.lz4().compressDefault(segment.asSlice(RHS), memory.asSlice(RHS), size, neededMemorySize);
             if (compressionSize <= 0) {
                 throw new RuntimeException("could not compress content!");
             }
 
-            // Version
-            space.set(BYTE, 0, VR1);
-            // Flags
-            space.set(BYTE, 1, FGS);
-            // Record's id
-            space.set(INT, 2, id());
-            // Record's size
-            space.set(INT, 6, compressionSize);
+            MemorySegment.copy(segment, 0, memory, 0, 6);
+            memory.set(INT, 6, compressionSize);
 
-            return space.reinterpret(RHS + compressionSize);
+            return memory.reinterpret(RHS + compressionSize);
         } catch (Throwable th) {
             throw new RuntimeException(th);
         }
@@ -120,8 +114,8 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
         return segment.asByteBuffer();
     }
 
-    public final long position() {
-        return position.get();
+    public int size() {
+        return size;
     }
 
     @Override
