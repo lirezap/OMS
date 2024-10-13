@@ -19,6 +19,7 @@ public final class LZ4 implements AutoCloseable {
     private final MethodHandle versionString;
     private final MethodHandle compressBound;
     private final MethodHandle compressDefault;
+    private final MethodHandle decompressSafe;
 
     public LZ4(final Path path) {
         this.memory = Arena.ofShared();
@@ -36,6 +37,9 @@ public final class LZ4 implements AutoCloseable {
 
         this.compressDefault =
                 linker.downcallHandle(lib.find(FUNCTION.LZ4_compress_default.name()).orElseThrow(), FUNCTION.LZ4_compress_default.fd);
+
+        this.decompressSafe =
+                linker.downcallHandle(lib.find(FUNCTION.LZ4_decompress_safe.name()).orElseThrow(), FUNCTION.LZ4_decompress_safe.fd);
     }
 
     public int versionNumber() throws Throwable {
@@ -57,6 +61,12 @@ public final class LZ4 implements AutoCloseable {
         return (int) compressDefault.invokeExact(src, dst, srcSize, dstCapacity);
     }
 
+    public int decompressSafe(final MemorySegment src, final MemorySegment dst, final int compressedSize,
+                              final int dstCapacity) throws Throwable {
+
+        return (int) decompressSafe.invokeExact(src, dst, compressedSize, dstCapacity);
+    }
+
     @Override
     public void close() throws Exception {
         memory.close();
@@ -71,7 +81,8 @@ public final class LZ4 implements AutoCloseable {
         LZ4_versionNumber(FunctionDescriptor.of(JAVA_INT)),
         LZ4_versionString(FunctionDescriptor.of(ADDRESS)),
         LZ4_compressBound(FunctionDescriptor.of(JAVA_INT, JAVA_INT)),
-        LZ4_compress_default(FunctionDescriptor.of(JAVA_INT, ADDRESS, ADDRESS, JAVA_INT, JAVA_INT));
+        LZ4_compress_default(FunctionDescriptor.of(JAVA_INT, ADDRESS, ADDRESS, JAVA_INT, JAVA_INT)),
+        LZ4_decompress_safe(FunctionDescriptor.of(JAVA_INT, ADDRESS, ADDRESS, JAVA_INT, JAVA_INT));
 
         public final FunctionDescriptor fd;
 
