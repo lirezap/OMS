@@ -63,7 +63,7 @@ public final class AsynchronousAppendOnlyFile implements AutoCloseable {
         final var writer = writers[(int) (index.getAndIncrement() % parallelism)];
         writer.getExecutor().submit(() -> {
             final var representation = new HTTPRequestBinaryRepresentation(Arena.ofConfined(), httpRequest);
-            representation.encode();
+            representation.encodeV1();
 
             writer.getFile().write(
                     representation.buffer(),

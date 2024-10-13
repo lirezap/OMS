@@ -19,21 +19,18 @@ public interface BinaryRepresentable {
     int RHS = 1 + 1 + 4 + 4;
 
     // Representation's version
-    byte RVR = 0b00000001;
+    byte VR1 = 0b00000001;
 
     // Flags; 8 flags can be used in a single byte
     byte FGS = 0b00000000;
 
     static int representationSize(final String value) {
         // TODO: Safe integer range checking required!
-
-        // Null terminated size
         return 4 + value.getBytes(UTF_8).length + 1;
     }
 
     static int representationSize(final byte[] value) {
         // TODO: Safe integer range checking required!
-
         return 4 + value.length;
     }
 }

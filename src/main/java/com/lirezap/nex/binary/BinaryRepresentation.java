@@ -31,9 +31,9 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
         this.position = new AtomicLong(0);
     }
 
-    public final void encode() {
+    public final void encodeV1() {
         // Version
-        segment.set(BYTE, position.getAndAdd(BYTE.byteSize()), RVR);
+        segment.set(BYTE, position.getAndAdd(BYTE.byteSize()), VR1);
         // Flags
         segment.set(BYTE, position.getAndAdd(BYTE.byteSize()), FGS);
         // Record's id
@@ -58,7 +58,7 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
             }
 
             // Version
-            space.set(BYTE, 0, RVR);
+            space.set(BYTE, 0, VR1);
             // Flags
             space.set(BYTE, 1, FGS);
             // Record's id
