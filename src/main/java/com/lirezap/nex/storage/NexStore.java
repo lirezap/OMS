@@ -24,19 +24,19 @@ import static java.nio.file.StandardOpenOption.*;
 public final class NexStore implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(NexStore.class);
 
-    private final Path path;
-    private final Path move;
+    private final Path source;
+    private final Path target;
     private final FileChannel file;
     private final Semaphore guard;
     private final AtomicLong position;
 
-    public NexStore(final Path path) {
+    public NexStore(final Path source) {
         try {
-            this.path = path;
-            this.move = path.resolveSibling(path.getFileName() + ".mv");
+            this.source = source;
+            this.target = source.resolveSibling(source.getFileName() + ".mv");
             // TODO: Check it is a file not a directory!
-            recover(move, path);
-            this.file = FileChannel.open(path, CREATE, WRITE, SYNC);
+            recover(target, source);
+            this.file = FileChannel.open(source, CREATE, WRITE, SYNC);
             this.guard = new Semaphore(1);
             this.position = new AtomicLong(0);
 
@@ -46,11 +46,11 @@ public final class NexStore implements Closeable {
         }
     }
 
-    private void recover(final Path move, final Path path) {
-        if (Files.exists(move)) {
+    private void recover(final Path target, final Path source) {
+        if (Files.exists(target)) {
             // System crash or non-graceful shutdown?!
             try {
-                Files.move(move, path, ATOMIC_MOVE);
+                Files.move(target, source, ATOMIC_MOVE);
             } catch (Exception ex) {
                 logger.error("could not recover file: {}!", ex.getMessage(), ex);
                 System.exit(-1);
@@ -77,14 +77,14 @@ public final class NexStore implements Closeable {
 
     public void write(final ByteBuffer buffer, final long position) {
         try {
-            Files.move(path, move, ATOMIC_MOVE);
-            try (final var moved = FileChannel.open(move, CREATE, WRITE, SYNC)) {
+            Files.move(source, target, ATOMIC_MOVE);
+            try (final var moved = FileChannel.open(target, CREATE, WRITE, SYNC)) {
                 moved.write(buffer, position);
             } catch (Exception ex) {
                 logger.error("move operation failed: {}!", ex.getMessage(), ex);
                 throw new RuntimeException(ex);
             } finally {
-                Files.move(move, path, ATOMIC_MOVE);
+                Files.move(target, source, ATOMIC_MOVE);
             }
         } catch (UnsupportedOperationException | IOException ex) {
             logger.error("file system operation not supported: {}!", ex.getMessage(), ex);
