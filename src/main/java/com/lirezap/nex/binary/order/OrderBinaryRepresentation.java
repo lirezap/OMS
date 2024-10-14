@@ -32,6 +32,7 @@ public final class OrderBinaryRepresentation extends BinaryRepresentation<Order>
             encodeTs();
             encodeSymbol();
             encodeQuantity();
+            encodeRemaining();
             encodePrice();
             encodeCurrency();
         } catch (Exception ex) {
@@ -53,6 +54,10 @@ public final class OrderBinaryRepresentation extends BinaryRepresentation<Order>
 
     private void encodeQuantity() {
         putString(order.getQuantity());
+    }
+
+    private void encodeRemaining() {
+        putString(order.getRemaining());
     }
 
     private void encodePrice() {

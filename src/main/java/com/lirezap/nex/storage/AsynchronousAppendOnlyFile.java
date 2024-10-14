@@ -5,6 +5,7 @@ import com.lirezap.nex.binary.http.HTTPRequestBinaryRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.foreign.Arena;
 import java.nio.channels.AsynchronousFileChannel;
@@ -21,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author Alireza Pourtaghi
  */
-public final class AsynchronousAppendOnlyFile implements AutoCloseable {
+public final class AsynchronousAppendOnlyFile implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(AsynchronousAppendOnlyFile.class);
 
     private final Semaphore guard;
@@ -74,7 +75,7 @@ public final class AsynchronousAppendOnlyFile implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         for (final var writer : writers) {
             writer.getFile().close();
             writer.getExecutor().close();
