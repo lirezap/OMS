@@ -114,7 +114,11 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
         return segment.asByteBuffer();
     }
 
-    public int size() {
+    public final long size() {
+        return RHS + size;
+    }
+
+    public final int recordSize() {
         return size;
     }
 

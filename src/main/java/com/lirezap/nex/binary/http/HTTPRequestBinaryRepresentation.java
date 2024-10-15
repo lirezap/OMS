@@ -31,15 +31,15 @@ public final class HTTPRequestBinaryRepresentation extends BinaryRepresentation<
     protected void encodeRecord() {
         try {
             encodeSourceIp();
-            encodeHttpMethod();
-            encodeUri();
-            encodeHttpVersion();
-            encodeCallerTrackId();
-            encodeResponseStatusCode();
-            encodeResponseTime();
-            encodeCallerType();
-            encodeCallerIdentifier();
-            encodeTimestamp();
+            putString(httpRequest.getHttpMethod());
+            putString(httpRequest.getUri());
+            putString(httpRequest.getHttpVersion());
+            putString(httpRequest.getCallerTrackId());
+            putInt(httpRequest.getResponseStatusCode());
+            putLong(httpRequest.getResponseTime());
+            putString(httpRequest.getCallerType());
+            putString(httpRequest.getCallerIdentifier());
+            putLong(httpRequest.getTs());
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -51,41 +51,5 @@ public final class HTTPRequestBinaryRepresentation extends BinaryRepresentation<
         putByte(ip.getAddress()[1]);
         putByte(ip.getAddress()[2]);
         putByte(ip.getAddress()[3]);
-    }
-
-    private void encodeHttpMethod() {
-        putString(httpRequest.getHttpMethod());
-    }
-
-    private void encodeUri() {
-        putString(httpRequest.getUri());
-    }
-
-    private void encodeHttpVersion() {
-        putString(httpRequest.getHttpVersion());
-    }
-
-    private void encodeCallerTrackId() {
-        putString(httpRequest.getCallerTrackId());
-    }
-
-    private void encodeResponseStatusCode() {
-        putInt(httpRequest.getResponseStatusCode());
-    }
-
-    private void encodeResponseTime() {
-        putLong(httpRequest.getResponseTime());
-    }
-
-    private void encodeCallerType() {
-        putString(httpRequest.getCallerType());
-    }
-
-    private void encodeCallerIdentifier() {
-        putString(httpRequest.getCallerIdentifier());
-    }
-
-    private void encodeTimestamp() {
-        putLong(httpRequest.getTs());
     }
 }

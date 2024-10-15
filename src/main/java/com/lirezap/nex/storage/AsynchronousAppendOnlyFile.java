@@ -17,6 +17,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * High performance, paralleled, append-only and thread-safe file writer implementation.
  *
@@ -25,8 +27,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class AsynchronousAppendOnlyFile implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(AsynchronousAppendOnlyFile.class);
 
-    private final Semaphore guard;
-    private final AtomicLong position;
+    private final Semaphore guard = new Semaphore(1);
+    private final AtomicLong position = new AtomicLong(0);
     private final FileSizePositionSetterLockHandler fileSizePositionSetterLockHandler;
     private final BinaryRepresentationWriteHandler binaryRepresentationWriteHandler;
     private final long parallelism;
@@ -36,8 +38,7 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
     public AsynchronousAppendOnlyFile(final Path path, final int parallelism, final OpenOption... options)
             throws IOException {
 
-        this.guard = new Semaphore(1);
-        this.position = new AtomicLong(0);
+        requireNonNull(path);
         this.fileSizePositionSetterLockHandler = new FileSizePositionSetterLockHandler(guard, position);
         this.binaryRepresentationWriteHandler = new BinaryRepresentationWriteHandler();
         this.parallelism = parallelism;
@@ -49,15 +50,7 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
             writers[i] = new FileWriter(path, options);
         }
 
-        updateCurrentPosition();
-    }
-
-    private void updateCurrentPosition() {
-        if (guard.tryAcquire()) {
-            // Only one thread can reach this block at a time for a specific file!
-            final var file = writers[0].getFile();
-            file.lock(file, fileSizePositionSetterLockHandler);
-        }
+        setPosition();
     }
 
     public void append(final HTTPRequest httpRequest) {
@@ -72,6 +65,14 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
                     representation,
                     binaryRepresentationWriteHandler);
         });
+    }
+
+    private void setPosition() {
+        if (guard.tryAcquire()) {
+            // Only one thread can reach this block at a time for a specific file!
+            final var file = writers[0].getFile();
+            file.lock(file, fileSizePositionSetterLockHandler);
+        }
     }
 
     @Override
