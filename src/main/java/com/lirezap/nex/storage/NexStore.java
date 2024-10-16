@@ -160,7 +160,7 @@ public final class NexStore implements Closeable {
             try (final var lock = file.lock()) {
                 if (file.size() == 0) {
                     header.incrementDurabilitySize(header.size());
-                    file.write(header.buffer(), 0);
+                    var _ = file.write(header.buffer(), 0);
                 } else {
                     file.read(header.buffer(), 0);
                 }
