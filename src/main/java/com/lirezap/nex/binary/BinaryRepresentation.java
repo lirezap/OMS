@@ -7,6 +7,7 @@ import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static java.lang.foreign.MemorySegment.copy;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -57,7 +58,7 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
                 throw new RuntimeException("could not compress content!");
             }
 
-            MemorySegment.copy(segment, 0, memory, 0, 6);
+            copy(segment, 0, memory, 0, 6);
             memory.set(INT, 6, compressionSize);
 
             return memory.reinterpret(RHS + compressionSize);
@@ -94,12 +95,9 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
 
     public final void putBytes(final byte[] bytes) {
         final var length = bytes.length;
-        putInt(length);
 
-        final var slice = segment.asSlice(position.getAndAdd(length), length);
-        for (int i = 0; i < length; i++) {
-            slice.set(BYTE, i, bytes[i]);
-        }
+        putInt(length);
+        copy(bytes, 0, segment, BYTE, position.getAndAdd(length), length);
     }
 
     protected abstract int id();
