@@ -16,7 +16,6 @@ public final class BinaryRepresentationWriteHandler implements CompletionHandler
 
     @Override
     public void completed(final Integer bytesWritten, final BinaryRepresentation<?> representation) {
-        // TODO: Does we need to check written bytes count?
         representation.close();
     }
 

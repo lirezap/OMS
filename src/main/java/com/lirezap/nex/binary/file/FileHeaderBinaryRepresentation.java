@@ -35,12 +35,11 @@ public final class FileHeaderBinaryRepresentation extends BinaryRepresentation<F
     }
 
     public long durabilitySize() {
-        // TODO: Safe?!
         return segment().get(LONG, RHS);
     }
 
     public void incrementDurabilitySize(final long inc) {
-        // TODO: Safe?!
+        // TODO: Safe long range checking required!
         LONG.varHandle().set(segment(), RHS, durabilitySize() + inc);
     }
 }
