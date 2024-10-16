@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static java.nio.channels.FileChannel.open;
 import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.move;
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
@@ -47,7 +48,7 @@ public final class NexStore implements Closeable {
         header.encodeV1();
         examineSource(source, target);
 
-        this.file = FileChannel.open(source, CREATE, READ, WRITE, SYNC);
+        this.file = open(source, CREATE, READ, WRITE, SYNC);
         examineFile(file);
         updateCurrentPosition(file);
     }
@@ -61,7 +62,7 @@ public final class NexStore implements Closeable {
         }
 
         var bytesWritten = 0;
-        try (final var moved = FileChannel.open(target, READ, WRITE, SYNC)) {
+        try (final var moved = open(target, READ, WRITE, SYNC)) {
             bytesWritten = moved.write(buffer, position);
             header.incrementDurabilitySize(bytesWritten);
             var _ = moved.write(header.buffer(), 0);
@@ -89,7 +90,7 @@ public final class NexStore implements Closeable {
         }
 
         var bytesWritten = 0;
-        try (final var moved = FileChannel.open(target, READ, WRITE, SYNC)) {
+        try (final var moved = open(target, READ, WRITE, SYNC)) {
             bytesWritten = moved.write(buffer, position.getAndAdd(buffer.limit()));
             header.incrementDurabilitySize(bytesWritten);
             var _ = moved.write(header.buffer(), 0);
@@ -138,7 +139,7 @@ public final class NexStore implements Closeable {
     }
 
     private void recover(final Path target, final Path source) {
-        try (final var moved = FileChannel.open(target, READ, WRITE, SYNC);
+        try (final var moved = open(target, READ, WRITE, SYNC);
              final var lock = moved.lock()) {
 
             moved.read(header.buffer(), 0);
