@@ -24,11 +24,11 @@ import static java.nio.file.StandardOpenOption.*;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Safe event/message store implementation.
+ * Event/message store implementation. This implementation is not thread safe; see {@link ThreadSafeNexStore}.
  *
  * @author Alireza Pourtaghi
  */
-public final class NexStore implements Closeable {
+public sealed class NexStore implements Closeable permits ThreadSafeNexStore {
     private static final Logger logger = LoggerFactory.getLogger(NexStore.class);
 
     private final Semaphore guard = new Semaphore(1);
@@ -195,5 +195,9 @@ public final class NexStore implements Closeable {
     @Override
     public void close() throws IOException {
         file.close();
+    }
+
+    protected final Semaphore guard() {
+        return guard;
     }
 }
