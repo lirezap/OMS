@@ -40,6 +40,8 @@ public final class HTTPRequestBinaryRepresentation extends BinaryRepresentation<
             putString(httpRequest.getCallerType());
             putString(httpRequest.getCallerIdentifier());
             putLong(httpRequest.getTs());
+            putByte(LFD);
+            putByte(CRT);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

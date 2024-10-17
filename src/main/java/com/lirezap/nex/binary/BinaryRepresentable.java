@@ -24,6 +24,12 @@ public interface BinaryRepresentable {
     // Flags; 8 flags can be used in a single byte
     byte FGS = 0b00000000;
 
+    // Line feed
+    byte LFD = 0x0A;
+
+    // Carriage Return
+    byte CRT = 0x0D;
+
     static int representationSize(final String value) {
         // TODO: Safe integer range checking required!
         return 4 + value.getBytes(UTF_8).length + 1;

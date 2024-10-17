@@ -36,7 +36,7 @@ public final class HTTPRequest {
     public int size() {
         return 4 + representationSize(httpMethod) + representationSize(uri) + representationSize(httpVersion) +
                 representationSize(callerTrackId) + 4 + 8 + representationSize(callerType) +
-                representationSize(callerIdentifier) + 8;
+                representationSize(callerIdentifier) + 8 + 1 + 1;
     }
 
     public String getSourceIp() {
