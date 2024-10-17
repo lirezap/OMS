@@ -1,11 +1,6 @@
 package com.lirezap.nex.context;
 
 import com.lirezap.nex.storage.AsynchronousAppendOnlyFile;
-import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
-import io.vertx.core.http.HttpServerOptions;
-import io.vertx.micrometer.MicrometerMetricsOptions;
-import io.vertx.micrometer.VertxPrometheusOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,16 +26,12 @@ public final class AppContext {
     private static AppContext context;
 
     private final Configuration configuration;
-    private final Vertx vertx;
-    private final HTTPServer httpServer;
-    private final AsynchronousAppendOnlyFile httpRequestsLogFile;
+    private final AsynchronousAppendOnlyFile messagesLogFile;
     private final Compression compression;
 
     private AppContext() {
         this.configuration = new Configuration();
-        this.vertx = vertx(this.configuration);
-        this.httpServer = new HTTPServer(this.configuration, this.vertx);
-        this.httpRequestsLogFile = httpRequestsLogFile(this.configuration);
+        this.messagesLogFile = messagesLogFile(this.configuration);
         this.compression = new Compression(this.configuration);
     }
 
@@ -82,53 +73,22 @@ public final class AppContext {
         return configuration;
     }
 
-    public Vertx vertx() {
-        return vertx;
-    }
-
-    public HTTPServer httpServer() {
-        return httpServer;
-    }
-
-    public Optional<AsynchronousAppendOnlyFile> httpRequestsLogFile() {
-        return Optional.ofNullable(httpRequestsLogFile);
+    public Optional<AsynchronousAppendOnlyFile> messagesLogFile() {
+        return Optional.ofNullable(messagesLogFile);
     }
 
     public Compression compression() {
         return compression;
     }
 
-    private static Vertx vertx(final Configuration configuration) {
-        final var metricsServerOptions = new HttpServerOptions()
-                .setHost(configuration.loadString("metrics.server.host"))
-                .setPort(configuration.loadInt("metrics.server.port"));
-
-        final var prometheusOptions = new VertxPrometheusOptions()
-                .setEnabled(configuration.loadBoolean("metrics.server.enabled"))
-                .setStartEmbeddedServer(TRUE)
-                .setEmbeddedServerOptions(metricsServerOptions)
-                .setEmbeddedServerEndpoint("/metrics");
-
-        final var micrometerOptions = new MicrometerMetricsOptions()
-                .setEnabled(configuration.loadBoolean("metrics.server.enabled"))
-                .setPrometheusOptions(prometheusOptions)
-                .setJvmMetricsEnabled(TRUE);
-
-        final var options = new VertxOptions()
-                .setPreferNativeTransport(TRUE)
-                .setMetricsOptions(micrometerOptions);
-
-        return Vertx.vertx(options);
-    }
-
-    private static AsynchronousAppendOnlyFile httpRequestsLogFile(final Configuration configuration) {
-        if (!configuration.loadBoolean("http.server.request_logging_enabled"))
+    private static AsynchronousAppendOnlyFile messagesLogFile(final Configuration configuration) {
+        if (!configuration.loadBoolean("logging.messages.enabled"))
             return null;
 
         try {
             return new AsynchronousAppendOnlyFile(
-                    Path.of(configuration.loadString("http.server.request_logging_file_path")),
-                    configuration.loadInt("http.server.request_logging_parallelism"),
+                    Path.of(configuration.loadString("logging.messages.file_path")),
+                    configuration.loadInt("logging.messages.parallelism"),
                     CREATE, WRITE);
 
         } catch (IOException e) {

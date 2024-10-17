@@ -3,7 +3,6 @@ package com.lirezap.nex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.lirezap.nex.context.AppContext.context;
 import static com.lirezap.nex.context.AppContext.initialize;
 
 /**
@@ -19,7 +18,6 @@ public final class NexApplication {
 
         try {
             initialize();
-            context().httpServer().start();
         } catch (Exception ex) {
             logger.error("Error on initializing application context: {}", ex.getMessage(), ex);
             System.exit(-1);

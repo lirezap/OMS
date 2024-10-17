@@ -1,7 +1,7 @@
 package com.lirezap.nex.storage;
 
-import com.lirezap.nex.binary.http.HTTPRequest;
-import com.lirezap.nex.binary.http.HTTPRequestBinaryRepresentation;
+import com.lirezap.nex.binary.order.Order;
+import com.lirezap.nex.binary.order.OrderBinaryRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,10 +53,10 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
         setPosition();
     }
 
-    public void append(final HTTPRequest httpRequest) {
+    public void append(final Order order) {
         final var writer = writers[(int) (index.getAndIncrement() % parallelism)];
         writer.getExecutor().submit(() -> {
-            final var representation = new HTTPRequestBinaryRepresentation(Arena.ofConfined(), httpRequest);
+            final var representation = new OrderBinaryRepresentation(Arena.ofConfined(), order);
             representation.encodeV1();
 
             writer.getFile().write(
