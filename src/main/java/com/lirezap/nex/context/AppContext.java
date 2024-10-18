@@ -1,5 +1,6 @@
 package com.lirezap.nex.context;
 
+import com.lirezap.nex.net.NexServer;
 import com.lirezap.nex.storage.AsynchronousAppendOnlyFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,11 +29,13 @@ public final class AppContext {
     private final Configuration configuration;
     private final AsynchronousAppendOnlyFile messagesLogFile;
     private final Compression compression;
+    private final NexServer nexServer;
 
     private AppContext() {
         this.configuration = new Configuration();
         this.messagesLogFile = messagesLogFile(this.configuration);
         this.compression = new Compression(this.configuration);
+        this.nexServer = nexServer(this.configuration);
     }
 
     /**
@@ -81,6 +84,10 @@ public final class AppContext {
         return compression;
     }
 
+    public NexServer nexServer() {
+        return nexServer;
+    }
+
     private static AsynchronousAppendOnlyFile messagesLogFile(final Configuration configuration) {
         if (!configuration.loadBoolean("logging.messages.enabled"))
             return null;
@@ -91,8 +98,16 @@ public final class AppContext {
                     configuration.loadInt("logging.messages.parallelism"),
                     CREATE, WRITE);
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private static NexServer nexServer(final Configuration configuration) {
+        try {
+            return new NexServer(configuration);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 }
