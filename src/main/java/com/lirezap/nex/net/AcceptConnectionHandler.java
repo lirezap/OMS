@@ -9,12 +9,14 @@ import java.nio.channels.CompletionHandler;
 import java.nio.channels.ShutdownChannelGroupException;
 
 /**
- * A completion handler that accepts incoming socket connections.
+ * Stateless completion handler that accepts incoming socket connections.
  *
  * @author Alireza Pourtaghi
  */
 public final class AcceptConnectionHandler implements CompletionHandler<AsynchronousSocketChannel, AppContext> {
     private static final Logger logger = LoggerFactory.getLogger(AcceptConnectionHandler.class);
+
+    private final ReadHandler readHandler = new ReadHandler();
 
     @Override
     public void completed(final AsynchronousSocketChannel socket, final AppContext context) {
@@ -24,7 +26,13 @@ public final class AcceptConnectionHandler implements CompletionHandler<Asynchro
             logger.error("listen call failed for next connection: {}", ex.getMessage());
         }
 
-        handle(socket, context);
+        final var connection = new Connection(socket, context.config().loadInt("server.read_buffer_size"));
+        try {
+            socket.read(connection.buffer(), connection, readHandler);
+        } catch (Exception ex) {
+            logger.error("read call failed: {}", ex.getMessage());
+            close(connection);
+        }
     }
 
     @Override
@@ -38,7 +46,11 @@ public final class AcceptConnectionHandler implements CompletionHandler<Asynchro
         }
     }
 
-    private void handle(final AsynchronousSocketChannel socket, final AppContext context) {
-        // TODO: Complete implementation!
+    private void close(final Connection connection) {
+        try {
+            connection.close();
+        } catch (Exception ex) {
+            logger.error("error while closing connection: {}", ex.getMessage());
+        }
     }
 }
