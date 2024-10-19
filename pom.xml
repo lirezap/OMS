@@ -16,7 +16,7 @@
     <artifactId>nex</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>nex</name>
-    <description>Seriously Fast Order Matching System</description>
+    <description>Seriously Safe, Efficient and Fast Order Matching System</description>
 
     <properties>
         <!-- Java Version -->
