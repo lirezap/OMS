@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.channels.CompletionHandler;
+import java.util.Arrays;
 
 /**
  * Stateless completion handler that reads bytes from a channel.
@@ -16,25 +17,10 @@ public final class ReadHandler implements CompletionHandler<Integer, Connection>
 
     @Override
     public void completed(final Integer bytes, final Connection connection) {
-        if (bytes == EOS) {
-            logger.trace("end of stream detected; closing connection ...");
-            close(connection);
-            return;
-        }
-
-        if (bytes == 0 && connection.buffer().position() == connection.buffer().limit()) {
-            logger.warn("full buffer loop detected; closing connection ...");
-            close(connection);
-            return;
-        }
-
-        if (bytes > 0) {
-            connection.buffer().flip();
-            // TODO: Handle buffer code here.
-            connection.socket().write(connection.buffer());
-
-            connection.buffer().clear();
-            connection.socket().read(connection.buffer(), connection, this);
+        switch (bytes) {
+            case EOS -> handleEOS(connection);
+            case 0 -> handleZeroBytesReceived(connection);
+            default -> handleMessage(connection);
         }
     }
 
@@ -42,6 +28,35 @@ public final class ReadHandler implements CompletionHandler<Integer, Connection>
     public void failed(final Throwable th, final Connection connection) {
         logger.error("read operation failed: {}", th.getMessage());
         close(connection);
+    }
+
+    private void handleEOS(final Connection connection) {
+        logger.trace("end of stream detected; closing connection ...");
+        close(connection);
+    }
+
+    private void handleZeroBytesReceived(final Connection connection) {
+        if (connection.buffer().position() == connection.buffer().limit()) {
+            logger.warn("full buffer loop detected; closing connection ...");
+            close(connection);
+        } else {
+            connection.socket().read(connection.buffer(), connection, this);
+        }
+    }
+
+    private void handleMessage(final Connection connection) {
+        connection.buffer().flip();
+
+        logger.trace("{}", connection.buffer());
+        logger.trace("{}", Arrays.toString(connection.buffer().array()));
+
+        if (connection.buffer().limit() < connection.buffer().capacity()) {
+            // TODO: Parse message and process it.
+        }
+
+        if (connection.buffer().limit() == connection.buffer().capacity()) {
+            // TODO: Make new buffer.
+        }
     }
 
     private void close(final Connection connection) {
