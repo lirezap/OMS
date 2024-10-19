@@ -31,6 +31,7 @@ public final class AppContext {
     private final Compression compression;
     private final NexServer nexServer;
     private final Dispatcher dispatcher;
+    private final Executors executors;
 
     private AppContext() {
         this.configuration = new Configuration();
@@ -38,6 +39,7 @@ public final class AppContext {
         this.compression = new Compression(this.configuration);
         this.nexServer = nexServer(this.configuration);
         this.dispatcher = new Dispatcher();
+        this.executors = new Executors(this.configuration);
     }
 
     /**
@@ -92,6 +94,10 @@ public final class AppContext {
 
     public Dispatcher dispatcher() {
         return dispatcher;
+    }
+
+    public Executors executors() {
+        return executors;
     }
 
     private static AsynchronousAppendOnlyFile messagesLogFile(final Configuration configuration) {
