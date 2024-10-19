@@ -20,19 +20,8 @@ public final class AcceptConnectionHandler implements CompletionHandler<Asynchro
 
     @Override
     public void completed(final AsynchronousSocketChannel socket, final AppContext context) {
-        try {
-            context.nexServer().listen();
-        } catch (Exception ex) {
-            logger.error("listen call failed for next connection: {}", ex.getMessage());
-        }
-
-        final var connection = new Connection(socket, context.config().loadInt("server.read_buffer_size"));
-        try {
-            socket.read(connection.buffer(), connection, readHandler);
-        } catch (Exception ex) {
-            logger.error("read call failed: {}", ex.getMessage());
-            close(connection);
-        }
+        listen(context);
+        read(new Connection(socket, context.config().loadInt("server.read_buffer_size")));
     }
 
     @Override
@@ -43,6 +32,23 @@ public final class AcceptConnectionHandler implements CompletionHandler<Asynchro
             logger.error("closed accepted connection because of security restricted accept call");
         } else {
             logger.error("accept connection failed: {}", th.getMessage());
+        }
+    }
+
+    private void listen(final AppContext context) {
+        try {
+            context.nexServer().listen();
+        } catch (Exception ex) {
+            logger.error("listen call failed for next connection: {}", ex.getMessage());
+        }
+    }
+
+    private void read(final Connection connection) {
+        try {
+            connection.socket().read(connection.buffer(), connection, readHandler);
+        } catch (Exception ex) {
+            logger.error("read call failed: {}", ex.getMessage());
+            close(connection);
         }
     }
 

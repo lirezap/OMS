@@ -4,7 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.channels.CompletionHandler;
-import java.util.Arrays;
+
+import static com.lirezap.nex.context.AppContext.context;
 
 /**
  * Stateless completion handler that reads bytes from a channel.
@@ -36,26 +37,31 @@ public final class ReadHandler implements CompletionHandler<Integer, Connection>
     }
 
     private void handleZeroBytesReceived(final Connection connection) {
-        if (connection.buffer().position() == connection.buffer().limit()) {
+        if (connection.buffer().position() < connection.buffer().limit()) {
+            read(connection);
+        } else {
             logger.warn("full buffer loop detected; closing connection ...");
             close(connection);
-        } else {
-            connection.socket().read(connection.buffer(), connection, this);
         }
     }
 
     private void handleMessage(final Connection connection) {
         connection.buffer().flip();
-
-        logger.trace("Buffer: {}", connection.buffer());
-        logger.trace("Content: {}", Arrays.toString(connection.buffer().array()));
-
         if (connection.buffer().limit() < connection.buffer().capacity()) {
-            // TODO: Parse message and process it.
+            context().dispatcher().dispatch(connection);
         }
 
         if (connection.buffer().limit() == connection.buffer().capacity()) {
-            // TODO: Make new buffer.
+            // TODO: Complete implementation.
+        }
+    }
+
+    private void read(final Connection connection) {
+        try {
+            connection.socket().read(connection.buffer(), connection, this);
+        } catch (Exception ex) {
+            logger.error("read call failed: {}", ex.getMessage());
+            close(connection);
         }
     }
 
