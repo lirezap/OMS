@@ -33,7 +33,8 @@ public final class Dispatcher {
 
     private void write(final Connection connection, final ErrorMessageBinaryRepresentation message) {
         try {
-            connection.socket().write(message.buffer(), connection, writeHandler);
+            final var buffer = message.buffer();
+            connection.socket().write(buffer, buffer, new WriteErrorHandler(connection));
         } catch (Exception ex) {
             logger.error("write call failed: {}", ex.getMessage());
 

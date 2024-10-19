@@ -3,26 +3,29 @@ package com.lirezap.nex.net;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
 
 /**
- * Stateless completion handler that write bytes into a channel.
+ * Completion handler that write error bytes into a channel.
  *
  * @author Alireza Pourtaghi
  */
-public final class WriteHandler implements CompletionHandler<Integer, Connection> {
-    private static final Logger logger = LoggerFactory.getLogger(WriteHandler.class);
+public final class WriteErrorHandler implements CompletionHandler<Integer, ByteBuffer> {
+    private static final Logger logger = LoggerFactory.getLogger(WriteErrorHandler.class);
 
     private final ReadHandler readHandler;
+    private final Connection connection;
 
-    public WriteHandler() {
+    public WriteErrorHandler(final Connection connection) {
         this.readHandler = new ReadHandler();
+        this.connection = connection;
     }
 
     @Override
-    public void completed(final Integer bytes, final Connection connection) {
-        if (connection.buffer().remaining() > 0) {
-            write(connection);
+    public void completed(final Integer bytes, final ByteBuffer buffer) {
+        if (buffer.remaining() > 0) {
+            write(buffer);
         } else {
             connection.buffer().clear();
             read(connection);
@@ -30,16 +33,16 @@ public final class WriteHandler implements CompletionHandler<Integer, Connection
     }
 
     @Override
-    public void failed(final Throwable th, final Connection connection) {
-        logger.error("write operation failed: {}", th.getMessage());
+    public void failed(final Throwable th, final ByteBuffer buffer) {
+        logger.error("write error operation failed: {}", th.getMessage());
 
         connection.buffer().clear();
         read(connection);
     }
 
-    private void write(final Connection connection) {
+    private void write(final ByteBuffer buffer) {
         try {
-            connection.socket().write(connection.buffer(), connection, this);
+            connection.socket().write(buffer, buffer, this);
         } catch (Exception ex) {
             logger.error("write call failed: {}", ex.getMessage());
 
