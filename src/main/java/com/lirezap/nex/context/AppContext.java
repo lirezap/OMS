@@ -1,5 +1,6 @@
 package com.lirezap.nex.context;
 
+import com.lirezap.nex.net.Dispatcher;
 import com.lirezap.nex.net.NexServer;
 import com.lirezap.nex.storage.AsynchronousAppendOnlyFile;
 import org.slf4j.Logger;

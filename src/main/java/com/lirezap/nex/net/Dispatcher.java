@@ -1,9 +1,6 @@
-package com.lirezap.nex.context;
+package com.lirezap.nex.net;
 
 import com.lirezap.nex.binary.base.ErrorMessageBinaryRepresentation;
-import com.lirezap.nex.net.Connection;
-import com.lirezap.nex.net.ReadHandler;
-import com.lirezap.nex.net.WriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
