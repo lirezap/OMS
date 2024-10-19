@@ -47,6 +47,8 @@ public final class ReadHandler implements CompletionHandler<Integer, Connection>
 
     private void handleMessage(final Connection connection) {
         connection.buffer().flip();
+        logger.trace("Buffer: {}", connection.buffer());
+
         if (connection.buffer().limit() < connection.buffer().capacity()) {
             context().dispatcher().dispatch(connection);
         }
