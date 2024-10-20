@@ -120,6 +120,22 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
         return size;
     }
 
+    public static byte version(final ByteBuffer buffer) {
+        return buffer.get(0);
+    }
+
+    public static byte flags(final ByteBuffer buffer) {
+        return buffer.get(1);
+    }
+
+    public static int id(final ByteBuffer buffer) {
+        return buffer.getInt(2);
+    }
+
+    public static int size(final ByteBuffer buffer) {
+        return buffer.getInt(6);
+    }
+
     @Override
     public final void close() {
         arena.close();

@@ -4,8 +4,10 @@ import com.lirezap.nex.binary.base.ErrorMessageBinaryRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.lirezap.nex.ErrorMessages.MESSAGE_VERSION_NOT_SUPPORTED;
-import static com.lirezap.nex.binary.BinaryRepresentable.VR1;
+import static com.lirezap.nex.ErrorMessages.*;
+import static com.lirezap.nex.binary.BinaryRepresentable.RHS;
+import static com.lirezap.nex.binary.BinaryRepresentation.*;
+import static com.lirezap.nex.context.AppContext.context;
 
 /**
  * Dispatcher implementation that dispatches incoming messages to appropriate handlers.
@@ -16,19 +18,44 @@ public final class Dispatcher {
     private static final Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
     private final ReadHandler readHandler;
-    private final WriteHandler writeHandler;
 
     public Dispatcher() {
         this.readHandler = new ReadHandler();
-        this.writeHandler = new WriteHandler();
     }
 
     public void dispatch(final Connection connection) {
-        if (connection.buffer().get() != VR1) {
-            write(connection, MESSAGE_VERSION_NOT_SUPPORTED);
+        if (isValid(connection)) {
+            context().executors().worker().submit(() -> {
+                switch (id(connection.buffer())) {
+                    case 101:
+                        write(connection, HANDLER_NOT_IMPLEMENTED);
+                    case 102:
+                        write(connection, HANDLER_NOT_IMPLEMENTED);
+
+                    default:
+                        write(connection, MESSAGE_NOT_SUPPORTED);
+                }
+            });
+        }
+    }
+
+    private boolean isValid(final Connection connection) {
+        if (connection.buffer().limit() <= RHS) {
+            write(connection, MESSAGE_FORMAT_NOT_VALID);
+            return false;
         }
 
-        // TODO: Complete implementation.
+        if (version(connection.buffer()) != 1) {
+            write(connection, MESSAGE_VERSION_NOT_SUPPORTED);
+            return false;
+        }
+
+        if (size(connection.buffer()) != (connection.buffer().limit() - RHS)) {
+            write(connection, MESSAGE_SIZE_NOT_VALID);
+            return false;
+        }
+
+        return true;
     }
 
     private void write(final Connection connection, final ErrorMessageBinaryRepresentation message) {
