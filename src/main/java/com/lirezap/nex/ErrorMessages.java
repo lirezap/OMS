@@ -15,17 +15,17 @@ public final class ErrorMessages {
     public static final ErrorMessageBinaryRepresentation MESSAGE_FORMAT_NOT_VALID =
             new ErrorMessageBinaryRepresentation(
                     Arena.global(),
-                    new ErrorMessage("message_format.not_valid", "message format is not valid"));
+                    new ErrorMessage("message_format.not_valid", "message's format is not valid"));
 
     public static final ErrorMessageBinaryRepresentation MESSAGE_VERSION_NOT_SUPPORTED =
             new ErrorMessageBinaryRepresentation(
                     Arena.global(),
-                    new ErrorMessage("message_version.not_supported", "message version not supported"));
+                    new ErrorMessage("message_version.not_supported", "message's version not supported"));
 
     public static final ErrorMessageBinaryRepresentation MESSAGE_SIZE_NOT_VALID =
             new ErrorMessageBinaryRepresentation(
                     Arena.global(),
-                    new ErrorMessage("message_size.not_valid", "message size is not valid"));
+                    new ErrorMessage("message_size.not_valid", "message's size is not valid"));
 
     public static final ErrorMessageBinaryRepresentation MESSAGE_NOT_SUPPORTED =
             new ErrorMessageBinaryRepresentation(
@@ -35,12 +35,12 @@ public final class ErrorMessages {
     public static final ErrorMessageBinaryRepresentation MESSAGE_LENGTH_TOO_BIG =
             new ErrorMessageBinaryRepresentation(
                     Arena.global(),
-                    new ErrorMessage("message_length.too_big", "message length is too big to handle"));
+                    new ErrorMessage("message_length.too_big", "message's length is too big to handle"));
 
     public static final ErrorMessageBinaryRepresentation HANDLER_NOT_IMPLEMENTED =
             new ErrorMessageBinaryRepresentation(
                     Arena.global(),
-                    new ErrorMessage("handler.not_implemented", "handler not implemented"));
+                    new ErrorMessage("handler.not_implemented", "handler is not implemented"));
 
     static {
         MESSAGE_FORMAT_NOT_VALID.encodeV1();
