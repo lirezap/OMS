@@ -13,12 +13,11 @@ import java.nio.channels.CompletionHandler;
  */
 public final class WriteErrorHandler implements CompletionHandler<Integer, ByteBuffer> {
     private static final Logger logger = LoggerFactory.getLogger(WriteErrorHandler.class);
+    private static final ReadHandler readHandler = new ReadHandler();
 
-    private final ReadHandler readHandler;
     private final Connection connection;
 
     public WriteErrorHandler(final Connection connection) {
-        this.readHandler = new ReadHandler();
         this.connection = connection;
     }
 

@@ -12,12 +12,7 @@ import java.nio.channels.CompletionHandler;
  */
 public final class WriteHandler implements CompletionHandler<Integer, Connection> {
     private static final Logger logger = LoggerFactory.getLogger(WriteHandler.class);
-
-    private final ReadHandler readHandler;
-
-    public WriteHandler() {
-        this.readHandler = new ReadHandler();
-    }
+    private static final ReadHandler readHandler = new ReadHandler();
 
     @Override
     public void completed(final Integer bytes, final Connection connection) {

@@ -15,8 +15,7 @@ import java.nio.channels.ShutdownChannelGroupException;
  */
 public final class AcceptConnectionHandler implements CompletionHandler<AsynchronousSocketChannel, AppContext> {
     private static final Logger logger = LoggerFactory.getLogger(AcceptConnectionHandler.class);
-
-    private final ReadHandler readHandler = new ReadHandler();
+    private static final ReadHandler readHandler = new ReadHandler();
 
     @Override
     public void completed(final AsynchronousSocketChannel socket, final AppContext context) {

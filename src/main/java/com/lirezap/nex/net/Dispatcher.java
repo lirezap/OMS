@@ -16,12 +16,7 @@ import static com.lirezap.nex.context.AppContext.context;
  */
 public final class Dispatcher {
     private static final Logger logger = LoggerFactory.getLogger(Dispatcher.class);
-
-    private final ReadHandler readHandler;
-
-    public Dispatcher() {
-        this.readHandler = new ReadHandler();
-    }
+    private static final ReadHandler readHandler = new ReadHandler();
 
     public void dispatch(final Connection connection) {
         if (isValid(connection)) {
