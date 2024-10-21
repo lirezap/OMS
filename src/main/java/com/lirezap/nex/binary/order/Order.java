@@ -12,10 +12,9 @@ public abstract sealed class Order permits BuyOrder, SellOrder {
     private final String quantity;
     private final String remaining;
     private final String price;
-    private final String currency;
 
     public Order(final long id, final long ts, final String symbol, final String quantity, final String remaining,
-                 final String price, final String currency) {
+                 final String price) {
 
         this.id = id;
         this.ts = ts;
@@ -23,12 +22,11 @@ public abstract sealed class Order permits BuyOrder, SellOrder {
         this.quantity = quantity == null ? "" : quantity;
         this.remaining = remaining == null ? "" : remaining;
         this.price = price == null ? "" : price;
-        this.currency = currency == null ? "" : currency;
     }
 
     public final int size() {
         return 8 + 8 + representationSize(symbol) + representationSize(quantity) + representationSize(remaining) +
-                representationSize(price) + representationSize(currency);
+                representationSize(price);
     }
 
     public abstract int representationId();
@@ -55,9 +53,5 @@ public abstract sealed class Order permits BuyOrder, SellOrder {
 
     public String getPrice() {
         return price;
-    }
-
-    public String getCurrency() {
-        return currency;
     }
 }

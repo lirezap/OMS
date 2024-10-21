@@ -1,11 +1,17 @@
 package com.lirezap.nex.net;
 
+import com.lirezap.nex.binary.base.ErrorMessageBinaryRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.channels.CompletionHandler;
 
+import static com.lirezap.nex.ErrorMessages.MESSAGE_FORMAT_NOT_VALID;
+import static com.lirezap.nex.ErrorMessages.MESSAGE_LENGTH_TOO_BIG;
+import static com.lirezap.nex.binary.BinaryRepresentable.RHS;
+import static com.lirezap.nex.binary.BinaryRepresentation.size;
 import static com.lirezap.nex.context.AppContext.context;
+import static com.lirezap.nex.net.Connection.extendSegment;
 
 /**
  * Stateless completion handler that reads bytes from a channel.
@@ -49,12 +55,41 @@ public final class ReadHandler implements CompletionHandler<Integer, Connection>
         connection.buffer().flip();
         logger.trace("Buffer: {}", connection.buffer());
 
+        if (connection.buffer().limit() <= RHS) {
+            write(connection, MESSAGE_FORMAT_NOT_VALID);
+            return;
+        }
+
+        if (connection.buffer().limit() > context().config().loadInt("server.max_message_size")) {
+            write(connection, MESSAGE_LENGTH_TOO_BIG);
+            return;
+        }
+
         if (connection.buffer().limit() < connection.buffer().capacity()) {
             context().dispatcher().dispatch(connection);
+            return;
         }
 
         if (connection.buffer().limit() == connection.buffer().capacity()) {
-            // TODO: Complete implementation.
+            if (connection.buffer().limit() == (RHS + size(connection.buffer()))) {
+                context().dispatcher().dispatch(connection);
+            } else {
+                // Extended buffer size remains for connection.
+                final var extendedSegmentConnection = extendSegment(connection, context().config().loadInt("server.read_buffer_size"));
+                read(extendedSegmentConnection);
+            }
+        }
+    }
+
+    private void write(final Connection connection, final ErrorMessageBinaryRepresentation message) {
+        try {
+            final var buffer = message.buffer();
+            connection.socket().write(buffer, buffer, new WriteErrorHandler(connection));
+        } catch (Exception ex) {
+            logger.error("write call failed: {}", ex.getMessage());
+
+            connection.buffer().clear();
+            read(connection);
         }
     }
 

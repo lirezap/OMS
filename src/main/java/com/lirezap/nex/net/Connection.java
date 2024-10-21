@@ -7,6 +7,8 @@ import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 
+import static java.lang.foreign.MemorySegment.copy;
+
 /**
  * An open connection abstraction and related fields.
  *
@@ -25,8 +27,24 @@ public final class Connection implements Closeable {
         this.buffer = this.segment.asByteBuffer();
     }
 
+    public static Connection extendSegment(final Connection connection, final int extendSize) {
+        final var size = connection.segment().byteSize();
+        final var newSize = size + extendSize;
+        final var newConnection = new Connection(connection.socket(), (int) newSize);
+
+        copy(connection.segment(), 0, newConnection.segment(), 0, size);
+        newConnection.buffer().position(connection.buffer().capacity());
+        connection.arena().close();
+
+        return newConnection;
+    }
+
     public AsynchronousSocketChannel socket() {
         return socket;
+    }
+
+    public Arena arena() {
+        return arena;
     }
 
     public MemorySegment segment() {

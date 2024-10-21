@@ -34,7 +34,6 @@ public final class OrderBinaryRepresentation extends BinaryRepresentation<Order>
             putString(order.getQuantity());
             putString(order.getRemaining());
             putString(order.getPrice());
-            putString(order.getCurrency());
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
