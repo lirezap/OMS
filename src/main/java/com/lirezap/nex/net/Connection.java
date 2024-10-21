@@ -57,7 +57,7 @@ public final class Connection implements Closeable {
 
     @Override
     public void close() throws IOException {
-        socket.close();
+        if (socket.isOpen()) socket.close();
         arena.close();
     }
 }
