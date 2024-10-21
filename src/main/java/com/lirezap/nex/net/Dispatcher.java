@@ -22,13 +22,8 @@ public final class Dispatcher {
         if (isValid(connection)) {
             context().executors().worker().submit(() -> {
                 switch (id(connection.buffer())) {
-                    case 101:
-                        write(connection, HANDLER_NOT_IMPLEMENTED);
-                    case 102:
-                        write(connection, HANDLER_NOT_IMPLEMENTED);
-
-                    default:
-                        write(connection, MESSAGE_NOT_SUPPORTED);
+                    case 101, 102 -> write(connection, HANDLER_NOT_IMPLEMENTED);
+                    default -> write(connection, MESSAGE_NOT_SUPPORTED);
                 }
             });
         }
