@@ -17,12 +17,15 @@ import static com.lirezap.nex.context.AppContext.context;
 public final class Dispatcher {
     private static final Logger logger = LoggerFactory.getLogger(Dispatcher.class);
     private static final ReadHandler readHandler = new ReadHandler();
+    private static final Handlers handlers = new Handlers();
 
     public void dispatch(final Connection connection) {
         if (isValid(connection)) {
             context().executors().worker().submit(() -> {
                 switch (id(connection.segment())) {
-                    case 101, 102 -> write(connection, HANDLER_NOT_IMPLEMENTED);
+                    case 101 -> handlers.handleBuyOrder(connection);
+                    case 102 -> handlers.handleSellOrder(connection);
+
                     default -> write(connection, MESSAGE_NOT_SUPPORTED);
                 }
             });
