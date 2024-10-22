@@ -21,7 +21,7 @@ public final class Dispatcher {
     public void dispatch(final Connection connection) {
         if (isValid(connection)) {
             context().executors().worker().submit(() -> {
-                switch (id(connection.buffer())) {
+                switch (id(connection.segment())) {
                     case 101, 102 -> write(connection, HANDLER_NOT_IMPLEMENTED);
                     default -> write(connection, MESSAGE_NOT_SUPPORTED);
                 }
@@ -35,12 +35,12 @@ public final class Dispatcher {
             return false;
         }
 
-        if (version(connection.buffer()) != 1) {
+        if (version(connection.segment()) != 1) {
             write(connection, MESSAGE_VERSION_NOT_SUPPORTED);
             return false;
         }
 
-        if (size(connection.buffer()) != (connection.buffer().limit() - RHS)) {
+        if (size(connection.segment()) != (connection.buffer().limit() - RHS)) {
             write(connection, MESSAGE_SIZE_NOT_VALID);
             return false;
         }

@@ -120,20 +120,20 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
         return size;
     }
 
-    public static byte version(final ByteBuffer buffer) {
-        return buffer.get(0);
+    public static byte version(final MemorySegment segment) {
+        return segment.get(BYTE, 0);
     }
 
-    public static byte flags(final ByteBuffer buffer) {
-        return buffer.get(1);
+    public static byte flags(final MemorySegment segment) {
+        return segment.get(BYTE, 1);
     }
 
-    public static int id(final ByteBuffer buffer) {
-        return buffer.getInt(2);
+    public static int id(final MemorySegment segment) {
+        return segment.get(INT, 2);
     }
 
-    public static int size(final ByteBuffer buffer) {
-        return buffer.getInt(6);
+    public static int size(final MemorySegment segment) {
+        return segment.get(INT, 6);
     }
 
     @Override

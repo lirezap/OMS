@@ -71,7 +71,7 @@ public final class ReadHandler implements CompletionHandler<Integer, Connection>
         }
 
         if (connection.buffer().limit() == connection.buffer().capacity()) {
-            if (connection.buffer().limit() == (RHS + size(connection.buffer()))) {
+            if (connection.buffer().limit() == (RHS + size(connection.segment()))) {
                 context().dispatcher().dispatch(connection);
             } else {
                 // Extended buffer size remains for connection.
