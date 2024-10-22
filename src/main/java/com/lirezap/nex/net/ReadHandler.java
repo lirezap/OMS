@@ -27,6 +27,7 @@ public final class ReadHandler implements CompletionHandler<Integer, Connection>
         switch (bytes) {
             case EOS -> handleEOS(connection);
             case 0 -> handleZeroBytesReceived(connection);
+
             default -> handleMessage(connection);
         }
     }
@@ -66,6 +67,7 @@ public final class ReadHandler implements CompletionHandler<Integer, Connection>
         }
 
         if (connection.buffer().limit() < connection.buffer().capacity()) {
+            // TODO: Check non complete read!
             context().dispatcher().dispatch(connection);
             return;
         }

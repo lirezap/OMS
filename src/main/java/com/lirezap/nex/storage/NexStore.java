@@ -61,11 +61,19 @@ public sealed class NexStore implements Closeable permits ThreadSafeNexStore {
             System.exit(-1);
         }
 
-        var bytesWritten = 0;
         try (final var moved = open(target, READ, WRITE, SYNC)) {
-            bytesWritten = moved.write(buffer, position);
+            var bytesWritten = 0;
+            while (buffer.remaining() > 0) {
+                bytesWritten += moved.write(buffer, position + bytesWritten);
+            }
+
             header.incrementDurabilitySize(bytesWritten);
-            var _ = moved.write(header.buffer(), 0);
+            final var headerAsBuffer = header.buffer();
+
+            bytesWritten = 0;
+            while (headerAsBuffer.remaining() > 0) {
+                bytesWritten += moved.write(headerAsBuffer, bytesWritten);
+            }
         } catch (Exception ex) {
             logger.error("write failed: {}!", ex.getMessage(), ex);
             throw new RuntimeException(ex);
@@ -89,11 +97,20 @@ public sealed class NexStore implements Closeable permits ThreadSafeNexStore {
             System.exit(-1);
         }
 
-        var bytesWritten = 0;
         try (final var moved = open(target, READ, WRITE, SYNC)) {
-            bytesWritten = moved.write(buffer, position.getAndAdd(buffer.limit()));
+            var bytesWritten = 0;
+            var localPosition = position.getAndAdd(buffer.limit());
+            while (buffer.remaining() > 0) {
+                bytesWritten += moved.write(buffer, localPosition + bytesWritten);
+            }
+
             header.incrementDurabilitySize(bytesWritten);
-            var _ = moved.write(header.buffer(), 0);
+            final var headerAsBuffer = header.buffer();
+
+            bytesWritten = 0;
+            while (headerAsBuffer.remaining() > 0) {
+                bytesWritten += moved.write(headerAsBuffer, bytesWritten);
+            }
         } catch (Exception ex) {
             logger.error("write failed: {}!", ex.getMessage(), ex);
             position.addAndGet(-buffer.limit());
