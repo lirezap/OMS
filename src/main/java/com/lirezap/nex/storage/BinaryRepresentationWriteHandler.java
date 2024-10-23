@@ -28,13 +28,8 @@ public final class BinaryRepresentationWriteHandler implements CompletionHandler
     @Override
     public void completed(final Integer bytesWritten, final BinaryRepresentation<?> representation) {
         if (buffer.remaining() > 0) {
-            writer.getExecutor().submit(() -> {
-                writer.getFile().write(
-                        buffer,
-                        localPosition + bytesWritten,
-                        representation,
-                        new BinaryRepresentationWriteHandler(writer, buffer, localPosition + bytesWritten));
-            });
+            localPosition += bytesWritten;
+            writer.getExecutor().submit(() -> writer.getFile().write(buffer, localPosition, representation, this));
         } else {
             representation.close();
         }
