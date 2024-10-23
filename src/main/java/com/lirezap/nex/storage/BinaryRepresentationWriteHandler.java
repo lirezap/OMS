@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 
 /**
@@ -15,12 +16,14 @@ import java.nio.channels.CompletionHandler;
 public final class BinaryRepresentationWriteHandler implements CompletionHandler<Integer, BinaryRepresentation<?>> {
     private static final Logger logger = LoggerFactory.getLogger(BinaryRepresentationWriteHandler.class);
 
-    final FileWriter writer;
+    final AsynchronousFileChannel file;
     final ByteBuffer buffer;
     long localPosition;
 
-    public BinaryRepresentationWriteHandler(final FileWriter writer, final ByteBuffer buffer, final long localPosition) {
-        this.writer = writer;
+    public BinaryRepresentationWriteHandler(final AsynchronousFileChannel file, final ByteBuffer buffer,
+                                            final long localPosition) {
+
+        this.file = file;
         this.buffer = buffer;
         this.localPosition = localPosition;
     }
@@ -29,7 +32,7 @@ public final class BinaryRepresentationWriteHandler implements CompletionHandler
     public void completed(final Integer bytesWritten, final BinaryRepresentation<?> representation) {
         if (buffer.remaining() > 0) {
             localPosition += bytesWritten;
-            writer.getExecutor().submit(() -> writer.getFile().write(buffer, localPosition, representation, this));
+            file.write(buffer, localPosition, representation, this);
         } else {
             representation.close();
         }

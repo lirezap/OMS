@@ -53,13 +53,10 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
             final var representation = new OrderBinaryRepresentation(Arena.ofConfined(), order);
             representation.encodeV1();
 
+            final var file = writer.getFile();
             final var buffer = representation.buffer();
             final var localPosition = position.getAndAdd(representation.segment().byteSize());
-            writer.getFile().write(
-                    buffer,
-                    localPosition,
-                    representation,
-                    new BinaryRepresentationWriteHandler(writer, buffer, localPosition));
+            file.write(buffer, localPosition, representation, new BinaryRepresentationWriteHandler(file, buffer, localPosition));
         });
     }
 
