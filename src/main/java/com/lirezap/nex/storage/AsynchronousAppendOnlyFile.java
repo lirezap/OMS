@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.foreign.Arena;
+import java.nio.ByteBuffer;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.util.concurrent.Semaphore;
@@ -47,8 +48,17 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
         setPosition();
     }
 
+    public void append(final ByteBuffer buffer) {
+        final var writer = writers[(int) (index.getAndIncrement() % parallelism)];
+
+        final var file = writer.getFile();
+        final var localPosition = position.getAndAdd(buffer.limit());
+        file.write(buffer, localPosition, buffer, new ByteBufferWriteHandler(file, buffer, localPosition));
+    }
+
     public void append(final Order order) {
         final var writer = writers[(int) (index.getAndIncrement() % parallelism)];
+
         writer.getExecutor().submit(() -> {
             final var representation = new OrderBinaryRepresentation(Arena.ofConfined(), order);
             representation.encodeV1();

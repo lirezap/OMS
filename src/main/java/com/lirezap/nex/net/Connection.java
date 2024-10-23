@@ -55,6 +55,13 @@ public final class Connection implements Closeable {
         return buffer;
     }
 
+    public MemorySegment copyMessage() {
+        final var copySegment = arena.allocate(buffer().limit());
+        copy(segment(), 0, copySegment, 0, copySegment.byteSize());
+
+        return copySegment;
+    }
+
     @Override
     public void close() throws IOException {
         if (socket.isOpen()) socket.close();
