@@ -4,6 +4,7 @@ import com.lirezap.nex.binary.BinaryRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
 
 /**
@@ -14,9 +15,29 @@ import java.nio.channels.CompletionHandler;
 public final class BinaryRepresentationWriteHandler implements CompletionHandler<Integer, BinaryRepresentation<?>> {
     private static final Logger logger = LoggerFactory.getLogger(BinaryRepresentationWriteHandler.class);
 
+    final FileWriter writer;
+    final ByteBuffer buffer;
+    long localPosition;
+
+    public BinaryRepresentationWriteHandler(final FileWriter writer, final ByteBuffer buffer, final long localPosition) {
+        this.writer = writer;
+        this.buffer = buffer;
+        this.localPosition = localPosition;
+    }
+
     @Override
     public void completed(final Integer bytesWritten, final BinaryRepresentation<?> representation) {
-        representation.close();
+        if (buffer.remaining() > 0) {
+            writer.getExecutor().submit(() -> {
+                writer.getFile().write(
+                        buffer,
+                        localPosition + bytesWritten,
+                        representation,
+                        new BinaryRepresentationWriteHandler(writer, buffer, localPosition + bytesWritten));
+            });
+        } else {
+            representation.close();
+        }
     }
 
     @Override

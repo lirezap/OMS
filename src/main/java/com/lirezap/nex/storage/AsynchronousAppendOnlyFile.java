@@ -8,12 +8,8 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.foreign.Arena;
-import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -30,7 +26,6 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
     private final Semaphore guard = new Semaphore(1);
     private final AtomicLong position = new AtomicLong(0);
     private final FileSizePositionSetterLockHandler fileSizePositionSetterLockHandler;
-    private final BinaryRepresentationWriteHandler binaryRepresentationWriteHandler;
     private final long parallelism;
     private final AtomicLong index;
     private final FileWriter[] writers;
@@ -40,7 +35,6 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
 
         requireNonNull(path);
         this.fileSizePositionSetterLockHandler = new FileSizePositionSetterLockHandler(guard, position);
-        this.binaryRepresentationWriteHandler = new BinaryRepresentationWriteHandler();
         this.parallelism = parallelism;
         this.index = new AtomicLong(0);
         this.writers = new FileWriter[parallelism];
@@ -59,11 +53,13 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
             final var representation = new OrderBinaryRepresentation(Arena.ofConfined(), order);
             representation.encodeV1();
 
+            final var buffer = representation.buffer();
+            final var localPosition = position.getAndAdd(representation.segment().byteSize());
             writer.getFile().write(
-                    representation.buffer(),
-                    position.getAndAdd(representation.segment().byteSize()),
+                    buffer,
+                    localPosition,
                     representation,
-                    binaryRepresentationWriteHandler);
+                    new BinaryRepresentationWriteHandler(writer, buffer, localPosition));
         });
     }
 
@@ -80,27 +76,6 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
         for (final var writer : writers) {
             writer.getFile().close();
             writer.getExecutor().close();
-        }
-    }
-
-    /**
-     * @author Alireza Pourtaghi
-     */
-    private static final class FileWriter {
-        private final ExecutorService executor;
-        private final AsynchronousFileChannel file;
-
-        public FileWriter(final Path path, final OpenOption... options) throws IOException {
-            this.executor = Executors.newSingleThreadExecutor();
-            this.file = AsynchronousFileChannel.open(path, Set.of(options), executor);
-        }
-
-        public ExecutorService getExecutor() {
-            return executor;
-        }
-
-        public AsynchronousFileChannel getFile() {
-            return file;
         }
     }
 }
