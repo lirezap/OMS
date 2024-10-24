@@ -15,6 +15,7 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.WRITE;
+import static java.util.Optional.ofNullable;
 
 /**
  * Singleton application context that contains main components.
@@ -28,19 +29,19 @@ public final class AppContext {
     private static AppContext context;
 
     private final Configuration configuration;
-    private final AsynchronousAppendOnlyFile messagesLogFile;
     private final Compression compression;
-    private final NexServer nexServer;
-    private final Dispatcher dispatcher;
+    private final AsynchronousAppendOnlyFile messagesLogFile;
     private final Executors executors;
+    private final Dispatcher dispatcher;
+    private final NexServer nexServer;
 
     private AppContext() {
         this.configuration = new Configuration();
-        this.messagesLogFile = messagesLogFile(this.configuration);
         this.compression = new Compression(this.configuration);
-        this.nexServer = nexServer(this.configuration);
-        this.dispatcher = new Dispatcher();
+        this.messagesLogFile = messagesLogFile(this.configuration);
         this.executors = new Executors(this.configuration);
+        this.dispatcher = new Dispatcher();
+        this.nexServer = nexServer(this.configuration);
     }
 
     /**
@@ -81,24 +82,24 @@ public final class AppContext {
         return configuration;
     }
 
-    public Optional<AsynchronousAppendOnlyFile> messagesLogFile() {
-        return Optional.ofNullable(messagesLogFile);
-    }
-
     public Compression compression() {
         return compression;
     }
 
-    public NexServer nexServer() {
-        return nexServer;
+    public Optional<AsynchronousAppendOnlyFile> messagesLogFile() {
+        return ofNullable(messagesLogFile);
+    }
+
+    public Executors executors() {
+        return executors;
     }
 
     public Dispatcher dispatcher() {
         return dispatcher;
     }
 
-    public Executors executors() {
-        return executors;
+    public NexServer nexServer() {
+        return nexServer;
     }
 
     private static AsynchronousAppendOnlyFile messagesLogFile(final Configuration configuration) {
