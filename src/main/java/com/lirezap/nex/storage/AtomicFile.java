@@ -24,12 +24,13 @@ import static java.nio.file.StandardOpenOption.*;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Event/message store implementation. This implementation is not thread safe; see {@link ThreadSafeNexStore}.
+ * Atomic guaranteed event/message store implementation. This implementation is not thread safe; see
+ * {@link ThreadSafeAtomicFile} implementation for use by multiple threads.
  *
  * @author Alireza Pourtaghi
  */
-public sealed class NexStore implements Closeable permits ThreadSafeNexStore {
-    private static final Logger logger = LoggerFactory.getLogger(NexStore.class);
+public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile {
+    private static final Logger logger = LoggerFactory.getLogger(AtomicFile.class);
 
     private final Semaphore guard = new Semaphore(1);
     private final AtomicLong position = new AtomicLong(0);
@@ -39,7 +40,7 @@ public sealed class NexStore implements Closeable permits ThreadSafeNexStore {
     private final FileHeaderBinaryRepresentation header =
             new FileHeaderBinaryRepresentation(Arena.global(), new FileHeader(0));
 
-    public NexStore(final Path source) throws IOException {
+    public AtomicFile(final Path source) throws IOException {
         requireNonNull(source);
         checkSource(source);
         this.source = source;
@@ -176,7 +177,7 @@ public sealed class NexStore implements Closeable permits ThreadSafeNexStore {
 
             try (final var lock = file.lock()) {
                 if (file.size() == 0) {
-                    header.incrementDurabilitySize(header.size());
+                    header.incrementDurabilitySize(header.representationSize());
                     var _ = file.write(header.buffer(), 0);
                 } else {
                     file.read(header.buffer(), 0);

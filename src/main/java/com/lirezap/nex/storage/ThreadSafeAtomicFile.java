@@ -8,14 +8,14 @@ import java.nio.file.Path;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
- * Thread safe event/message store implementation.
+ * Thread safe implementation of {@link AtomicFile}.
  *
  * @author Alireza Pourtaghi
  */
-public final class ThreadSafeNexStore extends NexStore {
+public final class ThreadSafeAtomicFile extends AtomicFile {
     private final int timeoutMillis;
 
-    public ThreadSafeNexStore(final Path source, final int timeoutMillis) throws IOException {
+    public ThreadSafeAtomicFile(final Path source, final int timeoutMillis) throws IOException {
         super(source);
         this.timeoutMillis = timeoutMillis;
     }

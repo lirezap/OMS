@@ -15,8 +15,12 @@ public final class Handlers {
     private static final Runnable doNothing = () -> {};
 
     public void handleBuyOrder(final Connection connection) {
+        // TODO: Validate incoming message.
+        // TODO: Check existence.
         logMessage(connection);
-        // TODO: Complete implementation.
+        // TODO: Persist incoming message.
+        // TODO: Add into matching engine.
+        // TODO: Send back response.
     }
 
     public void handleSellOrder(final Connection connection) {
