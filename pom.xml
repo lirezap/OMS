@@ -24,6 +24,22 @@
 
         <!-- Dependencies Versioning -->
         <lightbend.config.version>1.4.3</lightbend.config.version>
+        <postgresql.jdbc.driver.version>42.7.3</postgresql.jdbc.driver.version>
+        <hikaricp.version>5.1.0</hikaricp.version>
+        <flyway.version>9.22.3</flyway.version>
+        <jooq.version>3.19.10</jooq.version>
+
+        <!-- Plugins Versioning -->
+        <docker.maven.plugin.version>0.43.1</docker.maven.plugin.version>
+
+        <!-- Plugins Properties -->
+        <postgresql.image>postgres:16</postgresql.image>
+        <postgresql.host>localhost</postgresql.host>
+        <!--suppress UnresolvedMavenProperty -->
+        <db.url>jdbc:postgresql://${postgresql.host}:${db.port}/${db.name}</db.url>
+        <db.name>nex</db.name>
+        <db.username>nex</db.username>
+        <db.password>nex</db.password>
     </properties>
 
     <dependencies>
@@ -31,6 +47,42 @@
             <groupId>com.typesafe</groupId>
             <artifactId>config</artifactId>
             <version>${lightbend.config.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.jdbc.driver.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>${hikaricp.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
+            <version>${jooq.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-meta</artifactId>
+            <version>${jooq.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-codegen</artifactId>
+            <version>${jooq.version}</version>
         </dependency>
 
         <dependency>
@@ -47,6 +99,136 @@
 
     <build>
         <plugins>
+            <!-- Flyway Maven Plugin -->
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway.version}</version>
+
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>migrate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+                    <url>${db.url}</url>
+                    <user>${db.username}</user>
+                    <password>${db.password}</password>
+                    <locations>
+                        <location>filesystem:src/main/resources/db/migration/postgresql</location>
+                    </locations>
+                </configuration>
+            </plugin>
+
+            <!-- jOOQ Maven Plugin -->
+            <plugin>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-codegen-maven</artifactId>
+                <version>${jooq.version}</version>
+
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+                    <jdbc>
+                        <url>${db.url}</url>
+                        <username>${db.username}</username>
+                        <password>${db.password}</password>
+                    </jdbc>
+
+                    <generator>
+                        <name>org.jooq.codegen.JavaGenerator</name>
+
+                        <database>
+                            <name>org.jooq.meta.postgres.PostgresDatabase</name>
+                            <includes>.*</includes>
+                            <inputSchema>public</inputSchema>
+
+                            <forcedTypes>
+                                <forcedType>
+                                    <objectType>COLUMN</objectType>
+                                    <nullability>ALL</nullability>
+                                    <includeTypes>(?i:TIMESTAMPTZ)</includeTypes>
+                                    <name>INSTANT</name>
+                                </forcedType>
+                            </forcedTypes>
+                        </database>
+
+                        <generate>
+                            <fluentSetters>true</fluentSetters>
+                            <daos>true</daos>
+                        </generate>
+
+                        <target>
+                            <packageName>ir.jibit.nex.models</packageName>
+                            <directory>target/generated-sources/jooq</directory>
+                            <encoding>UTF-8</encoding>
+                        </target>
+                    </generator>
+                </configuration>
+            </plugin>
+
+            <!-- Docker Maven Plugin -->
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker.maven.plugin.version}</version>
+
+                <executions>
+                    <execution>
+                        <id>start-after-initialize</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop-after-generate-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+                    <images>
+                        <image>
+                            <name>${postgresql.image}</name>
+                            <alias>postgresql</alias>
+                            <run>
+                                <ports>
+                                    <port>db.port:5432</port>
+                                </ports>
+                                <env>
+                                    <POSTGRES_DB>${db.name}</POSTGRES_DB>
+                                    <POSTGRES_USER>${db.username}</POSTGRES_USER>
+                                    <POSTGRES_PASSWORD>${db.password}</POSTGRES_PASSWORD>
+                                </env>
+                                <log>
+                                    <enabled>true</enabled>
+                                    <prefix>POSTGRESQL |</prefix>
+                                    <color>cyan</color>
+                                </log>
+                                <wait>
+                                    <time>4000</time>
+                                </wait>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

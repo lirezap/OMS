@@ -19,6 +19,7 @@ public final class NexApplication {
 
         try {
             initialize();
+            context().databaseMigrator().migrate();
             context().nexServer().listen();
         } catch (Exception ex) {
             logger.error("Error on initializing application context: {}", ex.getMessage(), ex);

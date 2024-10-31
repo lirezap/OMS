@@ -29,6 +29,9 @@ public final class AppContext {
     private static AppContext context;
 
     private final Configuration configuration;
+    private final DatabaseMigrator databaseMigrator;
+    private final DataSource dataSource;
+    private final DataBase dataBase;
     private final Compression compression;
     private final AsynchronousAppendOnlyFile messagesLogFile;
     private final Executors executors;
@@ -37,6 +40,9 @@ public final class AppContext {
 
     private AppContext() {
         this.configuration = new Configuration();
+        this.databaseMigrator = new DatabaseMigrator(this.configuration);
+        this.dataSource = new DataSource(this.configuration);
+        this.dataBase = new DataBase(this.configuration, this.dataSource);
         this.compression = new Compression(this.configuration);
         this.messagesLogFile = messagesLogFile(this.configuration);
         this.executors = new Executors(this.configuration);
@@ -80,6 +86,18 @@ public final class AppContext {
 
     public Configuration config() {
         return configuration;
+    }
+
+    public DatabaseMigrator databaseMigrator() {
+        return databaseMigrator;
+    }
+
+    public DataSource dataSource() {
+        return dataSource;
+    }
+
+    public DataBase dataBase() {
+        return dataBase;
     }
 
     public Compression compression() {
