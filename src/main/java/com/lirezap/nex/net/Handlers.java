@@ -23,7 +23,6 @@ import static java.time.Instant.ofEpochMilli;
  */
 public final class Handlers implements Responder {
     private static final Logger logger = LoggerFactory.getLogger(Handlers.class);
-    private static final Runnable doNothing = () -> {};
 
     public void handleBuyOrder(final Connection connection) {
         try {

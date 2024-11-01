@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
  */
 public interface Responder {
     Logger logger = LoggerFactory.getLogger(Responder.class);
+
     ReadHandler readHandler = new ReadHandler();
+    Runnable doNothing = () -> {};
 
     default void write(final Connection connection, final ErrorMessageBinaryRepresentation message) {
         try {
