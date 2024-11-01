@@ -24,6 +24,7 @@ public final class NexServer {
     private final AcceptConnectionHandler acceptConnectionHandler;
 
     public NexServer(final Configuration configuration) throws IOException {
+        logger.info("Binding server socket {}:{}", configuration.loadString("server.host"), configuration.loadInt("server.port"));
         this.server = bind(setOptions(open(), configuration), configuration);
         this.acceptConnectionHandler = new AcceptConnectionHandler();
 
@@ -32,6 +33,7 @@ public final class NexServer {
 
     public void listen() {
         server.accept(context(), acceptConnectionHandler);
+        logger.info("Successfully started server socket and listening ...");
     }
 
     private static AsynchronousServerSocketChannel open() throws IOException {

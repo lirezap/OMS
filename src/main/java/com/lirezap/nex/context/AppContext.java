@@ -121,8 +121,7 @@ public final class AppContext {
     }
 
     private static AsynchronousAppendOnlyFile messagesLogFile(final Configuration configuration) {
-        if (!configuration.loadBoolean("logging.messages.enabled"))
-            return null;
+        if (!configuration.loadBoolean("logging.messages.enabled")) return null;
 
         try {
             return new AsynchronousAppendOnlyFile(
