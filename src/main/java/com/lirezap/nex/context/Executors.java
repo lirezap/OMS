@@ -3,6 +3,8 @@ package com.lirezap.nex.context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 
@@ -15,7 +17,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  *
  * @author Alireza Pourtaghi
  */
-public final class Executors {
+public final class Executors implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(Executors.class);
 
     private final ExecutorService workerExecutor;
@@ -25,31 +27,25 @@ public final class Executors {
                 configuration.loadBoolean("executors.worker.virtual_threads_enabled") ?
                         newVirtualThreadPerTaskExecutor() :
                         newFixedThreadPool(configuration.loadInt("executors.worker.threads"));
-
-        addShutdownHook();
     }
 
     public ExecutorService worker() {
         return workerExecutor;
     }
 
-    /**
-     * Adds a shutdown hook for current component.
-     */
-    private void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                logger.info("Closing executors ...");
-                workerExecutor.shutdown();
+    @Override
+    public void close() throws IOException {
+        logger.info("Closing executors ...");
 
-                var timeout = Duration.ofSeconds(60);
-                if (!workerExecutor.awaitTermination(timeout.toSeconds(), SECONDS)) {
-                    // Safe to ignore runnable list!
-                    workerExecutor.shutdownNow();
-                }
-            } catch (Exception ex) {
-                logger.error("{}", ex.getMessage());
+        try {
+            workerExecutor.shutdown();
+            var timeout = Duration.ofSeconds(60);
+            if (!workerExecutor.awaitTermination(timeout.toSeconds(), SECONDS)) {
+                // Safe to ignore runnable list!
+                workerExecutor.shutdownNow();
             }
-        }));
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+        }
     }
 }

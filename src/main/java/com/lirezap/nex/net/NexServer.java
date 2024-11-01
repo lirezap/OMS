@@ -4,6 +4,7 @@ import com.lirezap.nex.context.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousServerSocketChannel;
@@ -17,7 +18,7 @@ import static java.net.StandardSocketOptions.SO_REUSEADDR;
  *
  * @author Alireza Pourtaghi
  */
-public final class NexServer {
+public final class NexServer implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(NexServer.class);
 
     private final AsynchronousServerSocketChannel server;
@@ -27,13 +28,10 @@ public final class NexServer {
         logger.info("Binding server socket {}:{}", configuration.loadString("server.host"), configuration.loadInt("server.port"));
         this.server = bind(setOptions(open(), configuration), configuration);
         this.acceptConnectionHandler = new AcceptConnectionHandler();
-
-        addShutdownHook();
     }
 
     public void listen() {
         server.accept(context(), acceptConnectionHandler);
-        logger.info("Successfully started server socket and listening ...");
     }
 
     private static AsynchronousServerSocketChannel open() throws IOException {
@@ -59,18 +57,14 @@ public final class NexServer {
         return new InetSocketAddress(configuration.loadString("server.host"), configuration.loadInt("server.port"));
     }
 
-    /**
-     * Adds a shutdown hook for current component.
-     */
-    private void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.info("Shutting down the socket server ...");
+    @Override
+    public void close() throws IOException {
+        logger.info("Shutting down the socket server ...");
 
-            try {
-                server.close();
-            } catch (Exception ex) {
-                logger.error("{}", ex.getMessage());
-            }
-        }));
+        try {
+            server.close();
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+        }
     }
 }

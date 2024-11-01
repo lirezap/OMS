@@ -39,6 +39,8 @@ public final class AppContext {
     private final NexServer nexServer;
 
     private AppContext() {
+        addShutdownHook();
+
         this.configuration = new Configuration();
         this.databaseMigrator = new DatabaseMigrator(this.configuration);
         this.dataSource = new DataSource(this.configuration);
@@ -140,5 +142,22 @@ public final class AppContext {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    /**
+     * Adds a shutdown hook for context.
+     */
+    private void addShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                if (nexServer != null) nexServer.close();
+                if (executors != null) executors.close();
+                if (messagesLogFile != null) messagesLogFile.close();
+                if (compression != null) compression.close();
+                if (dataSource != null) dataSource.close();
+            } catch (Exception ex) {
+                logger.error("{}", ex.getMessage());
+            }
+        }));
     }
 }

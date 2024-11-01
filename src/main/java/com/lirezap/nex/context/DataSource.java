@@ -5,12 +5,15 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.io.IOException;
+
 /**
  * JDBC DataSource wrapper class to be used for database access or in jOOQ.
  *
  * @author Alireza Pourtaghi
  */
-public final class DataSource {
+public final class DataSource implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(DataSource.class);
 
     private final HikariDataSource hikariDataSource;
@@ -27,26 +30,22 @@ public final class DataSource {
         config.setMaxLifetime(configuration.loadDuration("db.postgresql.max_life_time").toMillis());
 
         this.hikariDataSource = new HikariDataSource(config);
-        addShutdownHook();
     }
 
     public HikariDataSource postgresql() {
         return hikariDataSource;
     }
 
-    /**
-     * Adds a shutdown hook for current component.
-     */
-    private void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                if (!hikariDataSource.isClosed()) {
-                    logger.info("Closing database connection pool ...");
-                    hikariDataSource.close();
-                }
-            } catch (Exception ex) {
-                logger.error("{}", ex.getMessage());
+    @Override
+    public void close() throws IOException {
+        logger.info("Closing database connection pool ...");
+
+        try {
+            if (!hikariDataSource.isClosed()) {
+                hikariDataSource.close();
             }
-        }));
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+        }
     }
 }

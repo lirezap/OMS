@@ -80,6 +80,8 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
 
     @Override
     public void close() throws IOException {
+        logger.info("Closing file writers ...");
+
         for (final var writer : writers) {
             writer.getFile().close();
             writer.getExecutor().close();
