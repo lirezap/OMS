@@ -34,7 +34,8 @@ public final class Handlers implements Responder {
                 return;
             }
             // TODO: Add into matching engine.
-            // TODO: Send back response.
+            // Write the same received message.
+            write(connection);
         } catch (DataAccessException ex) {
             if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
                 write(connection, ORDER_ALREADY_EXISTS);
@@ -59,7 +60,8 @@ public final class Handlers implements Responder {
                 return;
             }
             // TODO: Add into matching engine.
-            // TODO: Send back response.
+            // Write the same received message.
+            write(connection);
         } catch (DataAccessException ex) {
             if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
                 write(connection, ORDER_ALREADY_EXISTS);
