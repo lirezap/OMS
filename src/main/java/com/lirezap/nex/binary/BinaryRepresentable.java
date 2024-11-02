@@ -31,12 +31,10 @@ public interface BinaryRepresentable {
     byte CRT = 0x0D;
 
     static int representationSize(final String value) {
-        // TODO: Safe integer range checking required!
         return 4 + value.getBytes(UTF_8).length + 1;
     }
 
     static int representationSize(final byte[] value) {
-        // TODO: Safe integer range checking required!
         return 4 + value.length;
     }
 }
