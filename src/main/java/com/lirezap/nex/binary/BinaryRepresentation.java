@@ -120,22 +120,6 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
         return RHS + size;
     }
 
-    public static byte version(final MemorySegment segment) {
-        return segment.get(BYTE, 0);
-    }
-
-    public static byte flags(final MemorySegment segment) {
-        return segment.get(BYTE, 1);
-    }
-
-    public static int id(final MemorySegment segment) {
-        return segment.get(INT, 2);
-    }
-
-    public static int size(final MemorySegment segment) {
-        return segment.get(INT, 6);
-    }
-
     @Override
     public final void close() {
         arena.close();

@@ -1,8 +1,7 @@
 package com.lirezap.nex.net;
 
 import static com.lirezap.nex.ErrorMessages.*;
-import static com.lirezap.nex.binary.BinaryRepresentable.RHS;
-import static com.lirezap.nex.binary.BinaryRepresentation.*;
+import static com.lirezap.nex.binary.BinaryRepresentable.*;
 import static com.lirezap.nex.context.AppContext.context;
 
 /**

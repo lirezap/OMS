@@ -1,5 +1,7 @@
 package com.lirezap.nex.binary;
 
+import java.lang.foreign.MemorySegment;
+
 import static java.lang.foreign.ValueLayout.*;
 import static java.nio.ByteOrder.BIG_ENDIAN;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -29,6 +31,22 @@ public interface BinaryRepresentable {
 
     // Carriage Return
     byte CRT = 0x0D;
+
+    static byte version(final MemorySegment segment) {
+        return segment.get(BYTE, 0);
+    }
+
+    static byte flags(final MemorySegment segment) {
+        return segment.get(BYTE, 1);
+    }
+
+    static int id(final MemorySegment segment) {
+        return segment.get(INT, 2);
+    }
+
+    static int size(final MemorySegment segment) {
+        return segment.get(INT, 6);
+    }
 
     static int representationSize(final String value) {
         return 4 + value.getBytes(UTF_8).length + 1;
