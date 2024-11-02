@@ -10,8 +10,8 @@ public final class ErrorMessage {
     private final String message;
 
     public ErrorMessage(final String code, final String message) {
-        this.code = code;
-        this.message = message;
+        this.code = code == null ? "" : code;
+        this.message = message == null ? "" : message;
     }
 
     public int size() {
