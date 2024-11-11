@@ -26,23 +26,23 @@ public abstract sealed class Order permits BuyOrder, SellOrder {
 
     public abstract int representationId();
 
-    public long getId() {
+    public final long getId() {
         return id;
     }
 
-    public long getTs() {
+    public final long getTs() {
         return ts;
     }
 
-    public String getSymbol() {
+    public final String getSymbol() {
         return symbol;
     }
 
-    public String getQuantity() {
+    public final String getQuantity() {
         return quantity;
     }
 
-    public String getPrice() {
+    public final String getPrice() {
         return price;
     }
 }

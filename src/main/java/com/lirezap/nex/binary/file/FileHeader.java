@@ -10,11 +10,11 @@ public final class FileHeader {
         this.durabilitySize = durabilitySize;
     }
 
-    public long getDurabilitySize() {
-        return durabilitySize;
-    }
-
     public int size() {
         return 8;
+    }
+
+    public long getDurabilitySize() {
+        return durabilitySize;
     }
 }

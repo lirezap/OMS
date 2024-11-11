@@ -1,8 +1,8 @@
 package com.lirezap.nex.net;
 
-import static com.lirezap.nex.ErrorMessages.*;
 import static com.lirezap.nex.binary.BinaryRepresentable.*;
 import static com.lirezap.nex.context.AppContext.context;
+import static com.lirezap.nex.net.ErrorMessages.*;
 
 /**
  * Dispatcher implementation that dispatches incoming messages to appropriate handlers.

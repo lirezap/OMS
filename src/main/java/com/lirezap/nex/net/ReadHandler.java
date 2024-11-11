@@ -6,12 +6,12 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.channels.CompletionHandler;
 
-import static com.lirezap.nex.ErrorMessages.MESSAGE_FORMAT_NOT_VALID;
-import static com.lirezap.nex.ErrorMessages.MESSAGE_LENGTH_TOO_BIG;
 import static com.lirezap.nex.binary.BinaryRepresentable.RHS;
 import static com.lirezap.nex.binary.BinaryRepresentable.size;
 import static com.lirezap.nex.context.AppContext.context;
 import static com.lirezap.nex.net.Connection.extendSegment;
+import static com.lirezap.nex.net.ErrorMessages.MESSAGE_FORMAT_NOT_VALID;
+import static com.lirezap.nex.net.ErrorMessages.MESSAGE_LENGTH_TOO_BIG;
 
 /**
  * Stateless completion handler that reads bytes from a channel.

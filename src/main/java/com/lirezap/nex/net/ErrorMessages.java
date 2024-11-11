@@ -1,4 +1,4 @@
-package com.lirezap.nex;
+package com.lirezap.nex.net;
 
 import com.lirezap.nex.binary.base.ErrorMessage;
 import com.lirezap.nex.binary.base.ErrorMessageBinaryRepresentation;

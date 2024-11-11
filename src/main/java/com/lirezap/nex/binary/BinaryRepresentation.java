@@ -7,6 +7,7 @@ import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static java.lang.foreign.Arena.ofShared;
 import static java.lang.foreign.MemorySegment.copy;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -22,7 +23,7 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
     private final AtomicLong position;
 
     protected BinaryRepresentation(final int size) {
-        this(Arena.ofShared(), size);
+        this(ofShared(), size);
     }
 
     protected BinaryRepresentation(final Arena arena, final int size) {

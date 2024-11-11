@@ -8,9 +8,9 @@ import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.lirezap.nex.ErrorMessages.INTERNAL_SERVER_ERROR;
-import static com.lirezap.nex.ErrorMessages.ORDER_ALREADY_EXISTS;
 import static com.lirezap.nex.context.AppContext.context;
+import static com.lirezap.nex.net.ErrorMessages.INTERNAL_SERVER_ERROR;
+import static com.lirezap.nex.net.ErrorMessages.ORDER_ALREADY_EXISTS;
 import static ir.jibit.nex.models.Tables.ORDER_REQUEST;
 import static ir.jibit.nex.models.enums.OrderRequestType.BUY;
 import static ir.jibit.nex.models.enums.OrderRequestType.SELL;
