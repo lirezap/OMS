@@ -1,10 +1,16 @@
 package com.lirezap.nex.lib.lz4;
 
-import java.lang.foreign.*;
+import java.lang.foreign.Arena;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.MemorySegment;
 import java.lang.invoke.MethodHandle;
 import java.nio.file.Path;
 
 import static com.lirezap.nex.lib.std.CString.strlen;
+import static java.lang.foreign.Arena.ofShared;
+import static java.lang.foreign.FunctionDescriptor.of;
+import static java.lang.foreign.Linker.nativeLinker;
+import static java.lang.foreign.SymbolLookup.libraryLookup;
 import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_INT;
 
@@ -22,9 +28,9 @@ public final class LZ4 implements AutoCloseable {
     private final MethodHandle decompressSafe;
 
     public LZ4(final Path path) {
-        this.memory = Arena.ofShared();
-        final var linker = Linker.nativeLinker();
-        final var lib = SymbolLookup.libraryLookup(path, memory);
+        this.memory = ofShared();
+        final var linker = nativeLinker();
+        final var lib = libraryLookup(path, memory);
 
         this.versionNumber =
                 linker.downcallHandle(lib.find(FUNCTION.LZ4_versionNumber.name()).orElseThrow(), FUNCTION.LZ4_versionNumber.fd);
@@ -78,11 +84,11 @@ public final class LZ4 implements AutoCloseable {
      * @author Alireza Pourtaghi
      */
     private enum FUNCTION {
-        LZ4_versionNumber(FunctionDescriptor.of(JAVA_INT)),
-        LZ4_versionString(FunctionDescriptor.of(ADDRESS)),
-        LZ4_compressBound(FunctionDescriptor.of(JAVA_INT, JAVA_INT)),
-        LZ4_compress_default(FunctionDescriptor.of(JAVA_INT, ADDRESS, ADDRESS, JAVA_INT, JAVA_INT)),
-        LZ4_decompress_safe(FunctionDescriptor.of(JAVA_INT, ADDRESS, ADDRESS, JAVA_INT, JAVA_INT));
+        LZ4_versionNumber(of(JAVA_INT)),
+        LZ4_versionString(of(ADDRESS)),
+        LZ4_compressBound(of(JAVA_INT, JAVA_INT)),
+        LZ4_compress_default(of(JAVA_INT, ADDRESS, ADDRESS, JAVA_INT, JAVA_INT)),
+        LZ4_decompress_safe(of(JAVA_INT, ADDRESS, ADDRESS, JAVA_INT, JAVA_INT));
 
         public final FunctionDescriptor fd;
 

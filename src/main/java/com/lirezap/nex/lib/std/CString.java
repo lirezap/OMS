@@ -1,11 +1,12 @@
 package com.lirezap.nex.lib.std;
 
 import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.Linker;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SymbolLookup;
 import java.lang.invoke.MethodHandle;
 
+import static java.lang.foreign.FunctionDescriptor.of;
+import static java.lang.foreign.Linker.nativeLinker;
 import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_LONG;
 
@@ -15,11 +16,10 @@ import static java.lang.foreign.ValueLayout.JAVA_LONG;
  * @author Alireza Pourtaghi
  */
 public final class CString {
-    private static final Linker linker = Linker.nativeLinker();
-    private static final SymbolLookup lib = linker.defaultLookup();
+    private static final SymbolLookup lib = nativeLinker().defaultLookup();
 
     private static final MethodHandle strlenHandle =
-            linker.downcallHandle(lib.find(FUNCTION.strlen.name()).orElseThrow(), FUNCTION.strlen.fd);
+            nativeLinker().downcallHandle(lib.find(FUNCTION.strlen.name()).orElseThrow(), FUNCTION.strlen.fd);
 
     public static long strlen(final MemorySegment string) throws Throwable {
         return (long) strlenHandle.invokeExact(string);
@@ -31,7 +31,7 @@ public final class CString {
      * @author Alireza Pourtaghi
      */
     private enum FUNCTION {
-        strlen(FunctionDescriptor.of(JAVA_LONG, ADDRESS));
+        strlen(of(JAVA_LONG, ADDRESS));
 
         public final FunctionDescriptor fd;
 
