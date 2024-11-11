@@ -1,13 +1,14 @@
 package com.lirezap.nex.context;
 
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.List;
+
+import static com.typesafe.config.ConfigFactory.load;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Configuration loading component.
@@ -15,7 +16,7 @@ import java.util.List;
  * @author Alireza Pourtaghi
  */
 public final class Configuration {
-    private static final Logger logger = LoggerFactory.getLogger(Configuration.class);
+    private static final Logger logger = getLogger(Configuration.class);
 
     private final Config config;
 
@@ -26,7 +27,7 @@ public final class Configuration {
         // application.json (all resources on classpath with this name)
         // application.properties (all resources on classpath with this name)
         // reference.conf (all resources on classpath with this name)
-        this.config = ConfigFactory.load();
+        this.config = load();
     }
 
     public boolean loadBoolean(final String key) {

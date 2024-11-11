@@ -3,10 +3,11 @@ package com.lirezap.nex.context;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * JDBC DataSource wrapper class to be used for database access or in jOOQ.
@@ -14,12 +15,12 @@ import java.io.IOException;
  * @author Alireza Pourtaghi
  */
 public final class DataSource implements Closeable {
-    private static final Logger logger = LoggerFactory.getLogger(DataSource.class);
+    private static final Logger logger = getLogger(DataSource.class);
 
     private final HikariDataSource hikariDataSource;
 
     DataSource(final Configuration configuration) {
-        var config = new HikariConfig();
+        final var config = new HikariConfig();
         config.setJdbcUrl(configuration.loadString("db.postgresql.url"));
         config.setUsername(configuration.loadString("db.postgresql.username"));
         config.setPassword(configuration.loadString("db.postgresql.password"));

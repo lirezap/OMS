@@ -4,18 +4,19 @@ import com.lirezap.nex.net.Dispatcher;
 import com.lirezap.nex.net.NexServer;
 import com.lirezap.nex.storage.AsynchronousAppendOnlyFile;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static java.lang.Runtime.getRuntime;
+import static java.nio.file.Path.of;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.WRITE;
 import static java.util.Optional.ofNullable;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Singleton application context that contains main components.
@@ -23,7 +24,7 @@ import static java.util.Optional.ofNullable;
  * @author Alireza Pourtaghi
  */
 public final class AppContext {
-    private static final Logger logger = LoggerFactory.getLogger(AppContext.class);
+    private static final Logger logger = getLogger(AppContext.class);
 
     private static final AtomicBoolean initialized = new AtomicBoolean(FALSE);
     private static AppContext context;
@@ -127,7 +128,7 @@ public final class AppContext {
 
         try {
             return new AsynchronousAppendOnlyFile(
-                    Path.of(configuration.loadString("logging.messages.file_path")),
+                    of(configuration.loadString("logging.messages.file_path")),
                     configuration.loadInt("logging.messages.parallelism"),
                     CREATE, WRITE);
 
@@ -148,7 +149,7 @@ public final class AppContext {
      * Adds a shutdown hook for context.
      */
     private void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 if (nexServer != null) nexServer.close();
                 if (executors != null) executors.close();

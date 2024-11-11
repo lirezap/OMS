@@ -1,11 +1,12 @@
 package com.lirezap.nex.context;
 
 import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
 import org.jooq.conf.Settings;
-import org.jooq.impl.DSL;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.jooq.SQLDialect.POSTGRES;
+import static org.jooq.impl.DSL.using;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Database access class.
@@ -13,15 +14,15 @@ import org.slf4j.LoggerFactory;
  * @author Alireza Pourtaghi
  */
 public final class DataBase {
-    private static final Logger logger = LoggerFactory.getLogger(DataBase.class);
+    private static final Logger logger = getLogger(DataBase.class);
 
     private final DSLContext dslContext;
 
     DataBase(final Configuration configuration, final DataSource dataSource) {
-        var settings = new Settings();
+        final var settings = new Settings();
         settings.setQueryTimeout((int) configuration.loadDuration("db.postgresql.query_timeout").toSeconds());
 
-        this.dslContext = DSL.using(dataSource.postgresql(), SQLDialect.POSTGRES, settings);
+        this.dslContext = using(dataSource.postgresql(), POSTGRES, settings);
     }
 
     public DSLContext postgresql() {
