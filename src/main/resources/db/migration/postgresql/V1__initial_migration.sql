@@ -9,6 +9,7 @@ CREATE TABLE order_request (
     price     VARCHAR(64) NOT NULL,
     remaining VARCHAR(32) NOT NULL,
     canceled  BOOLEAN NOT NULL DEFAULT FALSE,
+    metadata  VARCHAR(1024),
     ts        TIMESTAMPTZ NOT NULL,
 
     PRIMARY KEY (id, symbol)
@@ -28,6 +29,7 @@ CREATE TABLE trade (
     sell_order_id BIGINT NOT NULL,
     symbol        VARCHAR(16) NOT NULL,
     quantity      VARCHAR(32) NOT NULL,
+    metadata      VARCHAR(1024),
     ts            TIMESTAMPTZ NOT NULL
 ) PARTITION BY RANGE (ts);
 
