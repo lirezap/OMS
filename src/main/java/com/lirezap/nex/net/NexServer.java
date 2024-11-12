@@ -2,7 +2,6 @@ package com.lirezap.nex.net;
 
 import com.lirezap.nex.context.Configuration;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -12,6 +11,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import static com.lirezap.nex.context.AppContext.context;
 import static java.net.StandardSocketOptions.SO_RCVBUF;
 import static java.net.StandardSocketOptions.SO_REUSEADDR;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * An asynchronous server socket implementation.
@@ -19,14 +19,14 @@ import static java.net.StandardSocketOptions.SO_REUSEADDR;
  * @author Alireza Pourtaghi
  */
 public final class NexServer implements Closeable {
-    private static final Logger logger = LoggerFactory.getLogger(NexServer.class);
+    private static final Logger logger = getLogger(NexServer.class);
 
     private final AsynchronousServerSocketChannel server;
     private final AcceptConnectionHandler acceptConnectionHandler;
 
     public NexServer(final Configuration configuration) throws IOException {
-        logger.info("Binding server socket {}:{}", configuration.loadString("server.host"), configuration.loadInt("server.port"));
-        this.server = bind(setOptions(open(), configuration), configuration);
+        logger.info("Binding server socket {}:{} ...", configuration.loadString("server.host"), configuration.loadInt("server.port"));
+        this.server = setOptions(open(), configuration).bind(address(configuration));
         this.acceptConnectionHandler = new AcceptConnectionHandler();
     }
 
@@ -43,13 +43,6 @@ public final class NexServer implements Closeable {
 
         server.setOption(SO_RCVBUF, configuration.loadInt("server.receive_buffer_size"));
         server.setOption(SO_REUSEADDR, configuration.loadBoolean("server.reuse_address"));
-        return server;
-    }
-
-    private static AsynchronousServerSocketChannel bind(final AsynchronousServerSocketChannel server,
-                                                        final Configuration configuration) throws IOException {
-
-        server.bind(address(configuration));
         return server;
     }
 

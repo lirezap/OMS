@@ -7,6 +7,7 @@ import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 
+import static java.lang.foreign.Arena.ofShared;
 import static java.lang.foreign.MemorySegment.copy;
 
 /**
@@ -22,7 +23,7 @@ public final class Connection implements Closeable {
 
     public Connection(final AsynchronousSocketChannel socket, final int size) {
         this.socket = socket;
-        this.arena = Arena.ofShared();
+        this.arena = ofShared();
         this.segment = this.arena.allocate(size);
         this.buffer = this.segment.asByteBuffer();
     }
@@ -39,6 +40,13 @@ public final class Connection implements Closeable {
         return newConnection;
     }
 
+    public MemorySegment copyMessage() {
+        final var copySegment = arena.allocate(buffer().limit());
+        copy(segment(), 0, copySegment, 0, copySegment.byteSize());
+
+        return copySegment;
+    }
+
     public AsynchronousSocketChannel socket() {
         return socket;
     }
@@ -53,13 +61,6 @@ public final class Connection implements Closeable {
 
     public ByteBuffer buffer() {
         return buffer;
-    }
-
-    public MemorySegment copyMessage() {
-        final var copySegment = arena.allocate(buffer().limit());
-        copy(segment(), 0, copySegment, 0, copySegment.byteSize());
-
-        return copySegment;
     }
 
     @Override

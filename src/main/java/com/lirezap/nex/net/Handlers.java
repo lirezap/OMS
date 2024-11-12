@@ -6,7 +6,6 @@ import com.lirezap.nex.binary.order.SellOrder;
 import ir.jibit.nex.models.enums.OrderRequestType;
 import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.lirezap.nex.context.AppContext.context;
 import static com.lirezap.nex.net.ErrorMessages.INTERNAL_SERVER_ERROR;
@@ -15,6 +14,7 @@ import static ir.jibit.nex.models.Tables.ORDER_REQUEST;
 import static ir.jibit.nex.models.enums.OrderRequestType.BUY;
 import static ir.jibit.nex.models.enums.OrderRequestType.SELL;
 import static java.time.Instant.ofEpochMilli;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Methods that handle incoming messages, dispatched by dispatcher.
@@ -22,7 +22,7 @@ import static java.time.Instant.ofEpochMilli;
  * @author Alireza Pourtaghi
  */
 public final class Handlers implements Responder {
-    private static final Logger logger = LoggerFactory.getLogger(Handlers.class);
+    private static final Logger logger = getLogger(Handlers.class);
 
     public void handleBuyOrder(final Connection connection) {
         try {

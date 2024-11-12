@@ -1,10 +1,11 @@
 package com.lirezap.nex.net;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Completion handler that write error bytes into a channel.
@@ -12,7 +13,7 @@ import java.nio.channels.CompletionHandler;
  * @author Alireza Pourtaghi
  */
 public final class WriteErrorHandler implements CompletionHandler<Integer, ByteBuffer> {
-    private static final Logger logger = LoggerFactory.getLogger(WriteErrorHandler.class);
+    private static final Logger logger = getLogger(WriteErrorHandler.class);
     private static final ReadHandler readHandler = new ReadHandler();
 
     private final Connection connection;

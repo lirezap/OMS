@@ -2,11 +2,12 @@ package com.lirezap.nex.net;
 
 import com.lirezap.nex.context.AppContext;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.channels.ShutdownChannelGroupException;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Stateless completion handler that accepts incoming socket connections.
@@ -14,7 +15,7 @@ import java.nio.channels.ShutdownChannelGroupException;
  * @author Alireza Pourtaghi
  */
 public final class AcceptConnectionHandler implements CompletionHandler<AsynchronousSocketChannel, AppContext> {
-    private static final Logger logger = LoggerFactory.getLogger(AcceptConnectionHandler.class);
+    private static final Logger logger = getLogger(AcceptConnectionHandler.class);
     private static final ReadHandler readHandler = new ReadHandler();
 
     @Override

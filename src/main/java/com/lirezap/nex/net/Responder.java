@@ -2,7 +2,8 @@ package com.lirezap.nex.net;
 
 import com.lirezap.nex.binary.base.ErrorMessageBinaryRepresentation;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Base responder interface that includes read and write methods for TCP connections.
@@ -11,11 +12,12 @@ import org.slf4j.LoggerFactory;
  * @author Alireza Pourtaghi
  */
 public interface Responder {
-    Logger logger = LoggerFactory.getLogger(Responder.class);
+    Logger logger = getLogger(Responder.class);
 
     ReadHandler readHandler = new ReadHandler();
     WriteHandler writeHandler = new WriteHandler();
-    Runnable doNothing = () -> {};
+    Runnable doNothing = () -> {
+    };
 
     default void write(final Connection connection, final ErrorMessageBinaryRepresentation message) {
         try {

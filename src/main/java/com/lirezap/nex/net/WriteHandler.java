@@ -1,9 +1,10 @@
 package com.lirezap.nex.net;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.channels.CompletionHandler;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Stateless completion handler that write bytes into a channel.
@@ -11,7 +12,7 @@ import java.nio.channels.CompletionHandler;
  * @author Alireza Pourtaghi
  */
 public final class WriteHandler implements CompletionHandler<Integer, Connection> {
-    private static final Logger logger = LoggerFactory.getLogger(WriteHandler.class);
+    private static final Logger logger = getLogger(WriteHandler.class);
     private static final ReadHandler readHandler = new ReadHandler();
 
     @Override

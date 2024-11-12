@@ -2,7 +2,6 @@ package com.lirezap.nex.net;
 
 import com.lirezap.nex.binary.base.ErrorMessageBinaryRepresentation;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.channels.CompletionHandler;
 
@@ -12,6 +11,7 @@ import static com.lirezap.nex.context.AppContext.context;
 import static com.lirezap.nex.net.Connection.extendSegment;
 import static com.lirezap.nex.net.ErrorMessages.MESSAGE_FORMAT_NOT_VALID;
 import static com.lirezap.nex.net.ErrorMessages.MESSAGE_LENGTH_TOO_BIG;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Stateless completion handler that reads bytes from a channel.
@@ -19,7 +19,7 @@ import static com.lirezap.nex.net.ErrorMessages.MESSAGE_LENGTH_TOO_BIG;
  * @author Alireza Pourtaghi
  */
 public final class ReadHandler implements CompletionHandler<Integer, Connection> {
-    private static final Logger logger = LoggerFactory.getLogger(ReadHandler.class);
+    private static final Logger logger = getLogger(ReadHandler.class);
     private static final int EOS = -1;
 
     @Override
