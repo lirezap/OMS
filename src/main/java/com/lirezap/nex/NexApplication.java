@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 
 import static com.lirezap.nex.context.AppContext.context;
 import static com.lirezap.nex.context.AppContext.initialize;
+import static java.lang.System.exit;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -23,7 +24,7 @@ public final class NexApplication {
             context().nexServer().listen();
         } catch (Exception ex) {
             logger.error("error on initializing application context: {}", ex.getMessage(), ex);
-            System.exit(-1);
+            exit(-1);
         }
     }
 }

@@ -1,11 +1,12 @@
 package com.lirezap.nex.storage;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * A handler that is called after the content of a {@link ByteBuffer} has been written into a file.
@@ -13,23 +14,20 @@ import java.nio.channels.CompletionHandler;
  * @author Alireza Pourtaghi
  */
 public final class ByteBufferWriteHandler implements CompletionHandler<Integer, ByteBuffer> {
-    private static final Logger logger = LoggerFactory.getLogger(ByteBufferWriteHandler.class);
+    private static final Logger logger = getLogger(ByteBufferWriteHandler.class);
 
-    final AsynchronousFileChannel file;
-    final ByteBuffer buffer;
-    long localPosition;
+    private final AsynchronousFileChannel file;
+    private final long localPosition;
 
-    public ByteBufferWriteHandler(final AsynchronousFileChannel file, final ByteBuffer buffer, final long localPosition) {
+    public ByteBufferWriteHandler(final AsynchronousFileChannel file, final long localPosition) {
         this.file = file;
-        this.buffer = buffer;
         this.localPosition = localPosition;
     }
 
     @Override
     public void completed(final Integer bytesWritten, final ByteBuffer buffer) {
         if (buffer.remaining() > 0) {
-            localPosition += bytesWritten;
-            file.write(buffer, localPosition, buffer, this);
+            file.write(buffer, localPosition + bytesWritten, buffer, this);
         }
     }
 

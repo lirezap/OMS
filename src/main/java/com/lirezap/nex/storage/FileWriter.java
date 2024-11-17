@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
+import static java.nio.channels.AsynchronousFileChannel.open;
+import static java.util.Set.of;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 /**
  * Encapsulated file and its assigned thread.
@@ -18,8 +20,8 @@ public final class FileWriter {
     private final AsynchronousFileChannel file;
 
     public FileWriter(final Path path, final OpenOption... options) throws IOException {
-        this.executor = Executors.newSingleThreadExecutor();
-        this.file = AsynchronousFileChannel.open(path, Set.of(options), executor);
+        this.executor = newSingleThreadExecutor();
+        this.file = open(path, of(options), executor);
     }
 
     public ExecutorService getExecutor() {
