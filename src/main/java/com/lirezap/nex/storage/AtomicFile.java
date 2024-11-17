@@ -3,25 +3,24 @@ package com.lirezap.nex.storage;
 import com.lirezap.nex.binary.file.FileHeader;
 import com.lirezap.nex.binary.file.FileHeaderBinaryRepresentation;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static java.lang.System.exit;
+import static java.lang.foreign.Arena.global;
 import static java.nio.channels.FileChannel.open;
-import static java.nio.file.Files.isDirectory;
-import static java.nio.file.Files.move;
+import static java.nio.file.Files.*;
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardOpenOption.*;
 import static java.util.Objects.requireNonNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Atomic guaranteed event/message store implementation. This implementation is not thread safe; see
@@ -30,28 +29,30 @@ import static java.util.Objects.requireNonNull;
  * @author Alireza Pourtaghi
  */
 public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile {
-    private static final Logger logger = LoggerFactory.getLogger(AtomicFile.class);
+    private static final Logger logger = getLogger(AtomicFile.class);
 
-    private final Semaphore guard = new Semaphore(1);
-    private final AtomicLong position = new AtomicLong(0);
+    private final Semaphore guard;
+    private final AtomicLong position;
     private final Path source;
     private final Path target;
+    private final FileHeaderBinaryRepresentation header;
     private final FileChannel file;
-    private final FileHeaderBinaryRepresentation header =
-            new FileHeaderBinaryRepresentation(Arena.global(), new FileHeader(0));
 
     public AtomicFile(final Path source) throws IOException {
         requireNonNull(source);
         checkSource(source);
+
+        this.guard = new Semaphore(1);
+        this.position = new AtomicLong(0);
         this.source = source;
-        this.target = source.resolveSibling(source.getFileName() + ".mv");
-
+        this.target = source.resolveSibling(this.source.getFileName() + ".mv");
+        this.header = new FileHeaderBinaryRepresentation(global(), new FileHeader(0));
         header.encodeV1();
-        examineSource(source, target);
 
-        this.file = open(source, CREATE, READ, WRITE, SYNC);
-        examineFile(file);
-        updateCurrentPosition(file);
+        examineSource(this.source, this.target);
+        this.file = open(this.source, CREATE, READ, WRITE, SYNC);
+        examineFile(this.file);
+        updateCurrentPosition(this.file);
     }
 
     public void write(final ByteBuffer buffer, final long position) {
@@ -59,7 +60,7 @@ public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile
             move(source, target, ATOMIC_MOVE);
         } catch (Exception ex) {
             logger.error("file system operation not supported: {}!", ex.getMessage(), ex);
-            System.exit(-1);
+            exit(-1);
         }
 
         try (final var moved = open(target, READ, WRITE, SYNC)) {
@@ -95,7 +96,7 @@ public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile
             move(source, target, ATOMIC_MOVE);
         } catch (Exception ex) {
             logger.error("file system operation not supported: {}!", ex.getMessage(), ex);
-            System.exit(-1);
+            exit(-1);
         }
 
         try (final var moved = open(target, READ, WRITE, SYNC)) {
@@ -139,9 +140,9 @@ public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile
         if (guard.tryAcquire()) {
             // Only one thread can reach this block at a time for a specific file!
 
-            if (Files.notExists(source)) {
+            if (notExists(source)) {
                 // Source not exists!
-                if (Files.exists(target)) {
+                if (exists(target)) {
                     // System crash or non-graceful shutdown?!
                     recover(target, source);
                 } else {
@@ -211,7 +212,7 @@ public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile
     }
 
     @Override
-    public void close() throws IOException {
+    public final void close() throws IOException {
         file.close();
     }
 
