@@ -29,6 +29,8 @@ CREATE TABLE trade (
     sell_order_id BIGINT NOT NULL,
     symbol        VARCHAR(16) NOT NULL,
     quantity      VARCHAR(32) NOT NULL,
+    buy_price     VARCHAR(64) NOT NULL,
+    sell_price    VARCHAR(64) NOT NULL,
     metadata      VARCHAR(1024),
     ts            TIMESTAMPTZ NOT NULL
 ) PARTITION BY RANGE (ts);
