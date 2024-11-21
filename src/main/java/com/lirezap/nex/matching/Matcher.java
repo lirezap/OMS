@@ -114,7 +114,7 @@ public final class Matcher implements Runnable {
 
             block.dsl().insertInto(TRADE)
                     .columns(TRADE.BUY_ORDER_ID, TRADE.SELL_ORDER_ID, TRADE.SYMBOL, TRADE.QUANTITY, TRADE.BUY_PRICE, TRADE.SELL_PRICE, TRADE.TS)
-                    .values(buyOrder.getId(), sellOrder.getId(), buyOrder.getSymbol(), sellOrder.getQuantity(), buyOrder.getPrice(), sellOrder.getPrice(), now)
+                    .values(buyOrder.getId(), sellOrder.getId(), buyOrder.getSymbol(), sellOrder.get_remaining().toPlainString(), buyOrder.getPrice(), sellOrder.getPrice(), now)
                     .execute();
         });
 
@@ -145,7 +145,7 @@ public final class Matcher implements Runnable {
 
             block.dsl().insertInto(TRADE)
                     .columns(TRADE.BUY_ORDER_ID, TRADE.SELL_ORDER_ID, TRADE.SYMBOL, TRADE.QUANTITY, TRADE.BUY_PRICE, TRADE.SELL_PRICE, TRADE.TS)
-                    .values(buyOrder.getId(), sellOrder.getId(), buyOrder.getSymbol(), buyOrder.getQuantity(), buyOrder.getPrice(), sellOrder.getPrice(), now)
+                    .values(buyOrder.getId(), sellOrder.getId(), buyOrder.getSymbol(), buyOrder.get_remaining().toPlainString(), buyOrder.getPrice(), sellOrder.getPrice(), now)
                     .execute();
         });
 
