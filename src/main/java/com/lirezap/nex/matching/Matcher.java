@@ -2,14 +2,17 @@ package com.lirezap.nex.matching;
 
 import com.lirezap.nex.binary.order.BuyOrder;
 import com.lirezap.nex.binary.order.SellOrder;
+import com.lirezap.nex.binary.trade.Trade;
+import com.lirezap.nex.binary.trade.TradeBinaryRepresentation;
+import com.lirezap.nex.storage.AtomicFile;
 import org.slf4j.Logger;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.PriorityQueue;
 import java.util.concurrent.ExecutorService;
 
-import static com.lirezap.nex.context.AppContext.context;
-import static ir.jibit.nex.models.Tables.ORDER_REQUEST;
-import static ir.jibit.nex.models.Tables.TRADE;
+import static java.lang.foreign.Arena.ofConfined;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -25,13 +28,15 @@ public final class Matcher implements Runnable {
     private final ExecutorService executor;
     private final PriorityQueue<BuyOrder> buyOrders;
     private final PriorityQueue<SellOrder> sellOrders;
+    private final AtomicFile tradesFile;
 
-    public Matcher(final ExecutorService executor, final PriorityQueue<BuyOrder> buyOrders,
-                   final PriorityQueue<SellOrder> sellOrders) {
+    public Matcher(final String symbol, final ExecutorService executor, final PriorityQueue<BuyOrder> buyOrders,
+                   final PriorityQueue<SellOrder> sellOrders, final Path dataDirectoryPath) {
 
         this.executor = executor;
         this.buyOrders = buyOrders;
         this.sellOrders = sellOrders;
+        this.tradesFile = tradesFile(symbol, dataDirectoryPath);
     }
 
     @Override
@@ -65,26 +70,17 @@ public final class Matcher implements Runnable {
     private void handleEquality(final BuyOrder buyOrder, final SellOrder sellOrder) {
         // Both orders must be polled.
         final var now = now();
+        final var trade = new Trade(
+                buyOrder.getId(),
+                sellOrder.getId(),
+                buyOrder.getSymbol(),
+                buyOrder.get_remaining().toPlainString(),
+                buyOrder.getPrice(),
+                sellOrder.getPrice(),
+                "",
+                now.toEpochMilli());
 
-        context().dataBase().postgresql().transaction(block -> {
-            block.dsl().update(ORDER_REQUEST)
-                    .set(ORDER_REQUEST.REMAINING, ZERO.toPlainString())
-                    .where(ORDER_REQUEST.ID.eq(buyOrder.getId()))
-                    .and(ORDER_REQUEST.SYMBOL.eq(buyOrder.getSymbol()))
-                    .execute();
-
-            block.dsl().update(ORDER_REQUEST)
-                    .set(ORDER_REQUEST.REMAINING, ZERO.toPlainString())
-                    .where(ORDER_REQUEST.ID.eq(sellOrder.getId()))
-                    .and(ORDER_REQUEST.SYMBOL.eq(sellOrder.getSymbol()))
-                    .execute();
-
-            block.dsl().insertInto(TRADE)
-                    .columns(TRADE.BUY_ORDER_ID, TRADE.SELL_ORDER_ID, TRADE.SYMBOL, TRADE.QUANTITY, TRADE.BUY_PRICE, TRADE.SELL_PRICE, TRADE.TS)
-                    .values(buyOrder.getId(), sellOrder.getId(), buyOrder.getSymbol(), buyOrder.getQuantity(), buyOrder.getPrice(), sellOrder.getPrice(), now)
-                    .execute();
-        });
-
+        append(trade);
         buyOrder.set_remaining(ZERO);
         sellOrder.set_remaining(ZERO);
         buyOrders.poll();
@@ -98,26 +94,17 @@ public final class Matcher implements Runnable {
         // Sell order must be polled.
         final var now = now();
         final var remaining = buyOrder.get_remaining().subtract(sellOrder.get_remaining());
+        final var trade = new Trade(
+                buyOrder.getId(),
+                sellOrder.getId(),
+                buyOrder.getSymbol(),
+                sellOrder.get_remaining().toPlainString(),
+                buyOrder.getPrice(),
+                sellOrder.getPrice(),
+                "",
+                now.getEpochSecond());
 
-        context().dataBase().postgresql().transaction(block -> {
-            block.dsl().update(ORDER_REQUEST)
-                    .set(ORDER_REQUEST.REMAINING, remaining.toPlainString())
-                    .where(ORDER_REQUEST.ID.eq(buyOrder.getId()))
-                    .and(ORDER_REQUEST.SYMBOL.eq(buyOrder.getSymbol()))
-                    .execute();
-
-            block.dsl().update(ORDER_REQUEST)
-                    .set(ORDER_REQUEST.REMAINING, ZERO.toPlainString())
-                    .where(ORDER_REQUEST.ID.eq(sellOrder.getId()))
-                    .and(ORDER_REQUEST.SYMBOL.eq(sellOrder.getSymbol()))
-                    .execute();
-
-            block.dsl().insertInto(TRADE)
-                    .columns(TRADE.BUY_ORDER_ID, TRADE.SELL_ORDER_ID, TRADE.SYMBOL, TRADE.QUANTITY, TRADE.BUY_PRICE, TRADE.SELL_PRICE, TRADE.TS)
-                    .values(buyOrder.getId(), sellOrder.getId(), buyOrder.getSymbol(), sellOrder.get_remaining().toPlainString(), buyOrder.getPrice(), sellOrder.getPrice(), now)
-                    .execute();
-        });
-
+        append(trade);
         buyOrder.set_remaining(remaining);
         sellOrder.set_remaining(ZERO);
         sellOrders.poll();
@@ -129,30 +116,38 @@ public final class Matcher implements Runnable {
         // Buy order must be polled.
         final var now = now();
         final var remaining = sellOrder.get_remaining().subtract(buyOrder.get_remaining());
+        final var trade = new Trade(
+                buyOrder.getId(),
+                sellOrder.getId(),
+                buyOrder.getSymbol(),
+                buyOrder.get_remaining().toPlainString(),
+                buyOrder.getPrice(),
+                sellOrder.getPrice(),
+                "",
+                now.getEpochSecond());
 
-        context().dataBase().postgresql().transaction(block -> {
-            block.dsl().update(ORDER_REQUEST)
-                    .set(ORDER_REQUEST.REMAINING, ZERO.toPlainString())
-                    .where(ORDER_REQUEST.ID.eq(buyOrder.getId()))
-                    .and(ORDER_REQUEST.SYMBOL.eq(buyOrder.getSymbol()))
-                    .execute();
-
-            block.dsl().update(ORDER_REQUEST)
-                    .set(ORDER_REQUEST.REMAINING, remaining.toPlainString())
-                    .where(ORDER_REQUEST.ID.eq(sellOrder.getId()))
-                    .and(ORDER_REQUEST.SYMBOL.eq(sellOrder.getSymbol()))
-                    .execute();
-
-            block.dsl().insertInto(TRADE)
-                    .columns(TRADE.BUY_ORDER_ID, TRADE.SELL_ORDER_ID, TRADE.SYMBOL, TRADE.QUANTITY, TRADE.BUY_PRICE, TRADE.SELL_PRICE, TRADE.TS)
-                    .values(buyOrder.getId(), sellOrder.getId(), buyOrder.getSymbol(), buyOrder.get_remaining().toPlainString(), buyOrder.getPrice(), sellOrder.getPrice(), now)
-                    .execute();
-        });
-
+        append(trade);
         buyOrder.set_remaining(ZERO);
         sellOrder.set_remaining(remaining);
         buyOrders.poll();
 
         logger.trace("poll: buy: {}", buyOrder);
+    }
+
+    private AtomicFile tradesFile(final String symbol, final Path dataDirectoryPath) {
+        try {
+            return new AtomicFile(dataDirectoryPath.resolve(symbol + ".trades"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void append(final Trade trade) {
+        try (final var arena = ofConfined()) {
+            final var binary = new TradeBinaryRepresentation(arena, trade);
+            binary.encodeV1();
+
+            tradesFile.append(binary.segment());
+        }
     }
 }

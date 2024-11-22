@@ -6,10 +6,13 @@ import org.slf4j.Logger;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
+import static com.lirezap.nex.context.AppContext.context;
+import static java.nio.file.Path.of;
 import static java.time.Duration.ofSeconds;
 import static java.util.Comparator.reverseOrder;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -29,11 +32,11 @@ public final class Engine implements Closeable {
     private final PriorityQueue<SellOrder> sellOrders;
     private final Matcher matcher;
 
-    public Engine(final int initialCapacity) {
+    public Engine(final String symbol, final int initialCapacity) {
         this.executor = newSingleThreadExecutor();
         this.buyOrders = new PriorityQueue<>(initialCapacity, reverseOrder());
         this.sellOrders = new PriorityQueue<>(initialCapacity, reverseOrder());
-        this.matcher = new Matcher(this.executor, this.buyOrders, this.sellOrders);
+        this.matcher = new Matcher(symbol.replace("/", "_"), this.executor, this.buyOrders, this.sellOrders, dataDirectory());
 
         match();
     }
@@ -68,6 +71,10 @@ public final class Engine implements Closeable {
         });
 
         return future;
+    }
+
+    private Path dataDirectory() {
+        return of(context().config().loadString("matching.engine.data_directory_path"));
     }
 
     @Override

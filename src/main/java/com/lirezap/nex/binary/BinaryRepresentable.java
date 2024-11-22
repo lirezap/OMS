@@ -48,6 +48,14 @@ public interface BinaryRepresentable {
         return segment.get(INT, 6);
     }
 
+    default void setCompressed(final MemorySegment segment) {
+        segment.set(BYTE, 1, (byte) (flags(segment) | 0b000000001));
+    }
+
+    default boolean isCompressed(final MemorySegment segment) {
+        return (flags(segment) & 0b00000001) == 1;
+    }
+
     static int representationSize(final String value) {
         return 4 + value.getBytes(UTF_8).length + 1;
     }

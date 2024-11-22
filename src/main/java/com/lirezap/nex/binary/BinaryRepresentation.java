@@ -61,6 +61,7 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
 
             copy(segment, 0, memory, 0, 6);
             memory.set(INT, 6, compressionSize);
+            setCompressed(memory);
 
             return memory.reinterpret(RHS + compressionSize);
         } catch (Throwable th) {
