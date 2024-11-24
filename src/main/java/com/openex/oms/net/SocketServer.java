@@ -14,7 +14,7 @@ import static java.net.StandardSocketOptions.SO_REUSEADDR;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * An asynchronous server socket implementation.
+ * An asynchronous socket server implementation.
  *
  * @author Alireza Pourtaghi
  */
