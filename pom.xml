@@ -12,10 +12,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>com.lirezap</groupId>
-    <artifactId>nex</artifactId>
+    <groupId>com.openex</groupId>
+    <artifactId>oms</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>nex</name>
+    <name>oms</name>
     <description>Seriously Safe, Efficient and Fast Order Matching System</description>
 
     <properties>
@@ -37,9 +37,9 @@
         <postgresql.host>localhost</postgresql.host>
         <!--suppress UnresolvedMavenProperty -->
         <db.url>jdbc:postgresql://${postgresql.host}:${db.port}/${db.name}</db.url>
-        <db.name>nex</db.name>
-        <db.username>nex</db.username>
-        <db.password>nex</db.password>
+        <db.name>oms</db.name>
+        <db.username>oms</db.username>
+        <db.password>oms</db.password>
     </properties>
 
     <dependencies>
@@ -170,7 +170,7 @@
                         </generate>
 
                         <target>
-                            <packageName>ir.jibit.nex.models</packageName>
+                            <packageName>com.openex.oms.models</packageName>
                             <directory>target/generated-sources/jooq</directory>
                             <encoding>UTF-8</encoding>
                         </target>

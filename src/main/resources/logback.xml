@@ -6,7 +6,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.lirezap.nex" level="INFO"/>
+    <logger name="com.openex.oms" level="INFO"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

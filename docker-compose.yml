@@ -6,6 +6,6 @@ services:
     ports:
       - 127.0.0.1:5432:5432
     environment:
-      - POSTGRES_DB=nex
-      - POSTGRES_USER=nex
-      - POSTGRES_PASSWORD=nex
+      - POSTGRES_DB=oms
+      - POSTGRES_USER=oms
+      - POSTGRES_PASSWORD=oms
