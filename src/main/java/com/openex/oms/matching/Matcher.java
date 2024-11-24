@@ -7,8 +7,6 @@ import com.openex.oms.binary.trade.TradeBinaryRepresentation;
 import com.openex.oms.storage.AtomicFile;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.PriorityQueue;
 import java.util.concurrent.ExecutorService;
 
@@ -30,13 +28,13 @@ public final class Matcher implements Runnable {
     private final PriorityQueue<SellOrder> sellOrders;
     private final AtomicFile tradesFile;
 
-    public Matcher(final String symbol, final ExecutorService executor, final PriorityQueue<BuyOrder> buyOrders,
-                   final PriorityQueue<SellOrder> sellOrders, final Path dataDirectoryPath) {
+    public Matcher(final ExecutorService executor, final PriorityQueue<BuyOrder> buyOrders,
+                   final PriorityQueue<SellOrder> sellOrders, final AtomicFile atomicFile) {
 
         this.executor = executor;
         this.buyOrders = buyOrders;
         this.sellOrders = sellOrders;
-        this.tradesFile = tradesFile(symbol, dataDirectoryPath);
+        this.tradesFile = atomicFile;
     }
 
     @Override
@@ -132,14 +130,6 @@ public final class Matcher implements Runnable {
         buyOrders.poll();
 
         logger.trace("poll: buy: {}", buyOrder);
-    }
-
-    private AtomicFile tradesFile(final String symbol, final Path dataDirectoryPath) {
-        try {
-            return new AtomicFile(dataDirectoryPath.resolve(symbol + ".trades"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private void append(final Trade trade) {

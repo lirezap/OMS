@@ -2,11 +2,11 @@ package com.openex.oms.matching;
 
 import com.openex.oms.binary.order.BuyOrder;
 import com.openex.oms.binary.order.SellOrder;
+import com.openex.oms.storage.AtomicFile;
 import org.slf4j.Logger;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -30,13 +30,15 @@ public final class Engine implements Closeable {
     private final ExecutorService executor;
     private final PriorityQueue<BuyOrder> buyOrders;
     private final PriorityQueue<SellOrder> sellOrders;
+    private final AtomicFile tradesFile;
     private final Matcher matcher;
 
     public Engine(final String symbol, final int initialCapacity) {
         this.executor = newSingleThreadExecutor();
         this.buyOrders = new PriorityQueue<>(initialCapacity, reverseOrder());
         this.sellOrders = new PriorityQueue<>(initialCapacity, reverseOrder());
-        this.matcher = new Matcher(symbol.replace("/", "_"), this.executor, this.buyOrders, this.sellOrders, dataDirectory());
+        this.tradesFile = tradesFile(symbol.strip().replace("/", ""));
+        this.matcher = new Matcher(this.executor, this.buyOrders, this.sellOrders, this.tradesFile);
 
         match();
     }
@@ -73,8 +75,13 @@ public final class Engine implements Closeable {
         return future;
     }
 
-    private Path dataDirectory() {
-        return of(context().config().loadString("matching.engine.data_directory_path"));
+    private AtomicFile tradesFile(final String symbol) {
+        try {
+            final var dataDirectoryPath = of(context().config().loadString("matching.engine.data_directory_path"));
+            return new AtomicFile(dataDirectoryPath.resolve(symbol + ".trades"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -88,6 +95,8 @@ public final class Engine implements Closeable {
                 // Safe to ignore runnable list!
                 executor.shutdownNow();
             }
+
+            tradesFile.close();
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
         }
