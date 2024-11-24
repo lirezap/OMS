@@ -35,6 +35,7 @@ public final class AppContext {
     private final DataBase dataBase;
     private final Compression compression;
     private final AsynchronousAppendOnlyFile messagesLogFile;
+    private final MatchingEngines matchingEngines;
     private final Executors executors;
     private final Dispatcher dispatcher;
     private final SocketServer socketServer;
@@ -48,6 +49,7 @@ public final class AppContext {
         this.dataBase = new DataBase(this.configuration, this.dataSource);
         this.compression = new Compression(this.configuration);
         this.messagesLogFile = messagesLogFile(this.configuration);
+        this.matchingEngines = new MatchingEngines();
         this.executors = new Executors(this.configuration);
         this.dispatcher = new Dispatcher();
         this.socketServer = socketServer(this.configuration);
@@ -111,6 +113,10 @@ public final class AppContext {
         return ofNullable(messagesLogFile);
     }
 
+    public MatchingEngines matchingEngines() {
+        return matchingEngines;
+    }
+
     public Executors executors() {
         return executors;
     }
@@ -153,6 +159,7 @@ public final class AppContext {
             try {
                 if (socketServer != null) socketServer.close();
                 if (executors != null) executors.close();
+                if (matchingEngines != null) matchingEngines.close();
                 if (messagesLogFile != null) messagesLogFile.close();
                 if (compression != null) compression.close();
                 if (dataSource != null) dataSource.close();

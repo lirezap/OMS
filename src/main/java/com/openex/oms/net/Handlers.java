@@ -33,9 +33,17 @@ public final class Handlers implements Responder {
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
-            // TODO: Add into matching engine.
-            // Write the same received message.
-            write(connection);
+
+            context().matchingEngines().offer(buyOrder)
+                    .thenAccept(v -> {
+                        // Write the same received message.
+                        write(connection);
+                    }).exceptionally(ex -> {
+                        logger.error("{}", ex.getMessage());
+                        write(connection, INTERNAL_SERVER_ERROR);
+
+                        return null;
+                    });
         } catch (DataAccessException ex) {
             if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
                 write(connection, ORDER_ALREADY_EXISTS);
@@ -59,9 +67,17 @@ public final class Handlers implements Responder {
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
-            // TODO: Add into matching engine.
-            // Write the same received message.
-            write(connection);
+
+            context().matchingEngines().offer(sellOrder)
+                    .thenAccept(v -> {
+                        // Write the same received message.
+                        write(connection);
+                    }).exceptionally(ex -> {
+                        logger.error("{}", ex.getMessage());
+                        write(connection, INTERNAL_SERVER_ERROR);
+
+                        return null;
+                    });
         } catch (DataAccessException ex) {
             if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
                 write(connection, ORDER_ALREADY_EXISTS);
