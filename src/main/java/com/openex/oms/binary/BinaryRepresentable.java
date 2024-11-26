@@ -49,11 +49,19 @@ public interface BinaryRepresentable {
     }
 
     default void setCompressed(final MemorySegment segment) {
-        segment.set(BYTE, 1, (byte) (flags(segment) | 0b000000001));
+        segment.set(BYTE, 1, (byte) (flags(segment) | 0b00000001));
     }
 
     default boolean isCompressed(final MemorySegment segment) {
-        return (flags(segment) & 0b00000001) == 1;
+        return (flags(segment) & 0b00000001) == 0b00000001;
+    }
+
+    default void setProcessed(final MemorySegment segment) {
+        segment.set(BYTE, 1, (byte) (flags(segment) | 0b10000000));
+    }
+
+    default boolean isProcessed(final MemorySegment segment) {
+        return (flags(segment) & 0b10000000) == 0b10000000;
     }
 
     static int representationSize(final String value) {
