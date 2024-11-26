@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -130,6 +131,13 @@ public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile
         append(segment.asByteBuffer());
     }
 
+    public MemorySegment read(final Arena arena, final long position, final int size) throws IOException {
+        final var segment = arena.allocate(size);
+        file.read(segment.asByteBuffer().clear(), position);
+
+        return segment;
+    }
+
     private void checkSource(final Path source) {
         if (isDirectory(source)) {
             throw new RuntimeException("provided path does not represent a file!");
@@ -218,5 +226,9 @@ public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile
 
     protected final Semaphore guard() {
         return guard;
+    }
+
+    public final Path source() {
+        return source;
     }
 }

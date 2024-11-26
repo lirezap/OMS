@@ -2,7 +2,7 @@ package com.openex.oms.matching;
 
 import com.openex.oms.binary.order.BuyOrder;
 import com.openex.oms.binary.order.SellOrder;
-import com.openex.oms.storage.AtomicFile;
+import com.openex.oms.storage.ThreadSafeAtomicFile;
 import org.slf4j.Logger;
 
 import java.io.Closeable;
@@ -28,23 +28,32 @@ public final class Engine implements Closeable {
     private static final Logger logger = getLogger(Engine.class);
 
     private final ExecutorService executor;
+    private final ExecutorService importerExecutor;
     private final PriorityQueue<BuyOrder> buyOrders;
     private final PriorityQueue<SellOrder> sellOrders;
-    private final AtomicFile tradesFile;
+    private final ThreadSafeAtomicFile tradesFile;
     private final Matcher matcher;
+    private final Importer importer;
 
     public Engine(final String symbol, final int initialCapacity) {
         this.executor = newSingleThreadExecutor();
+        this.importerExecutor = newSingleThreadExecutor();
         this.buyOrders = new PriorityQueue<>(initialCapacity, reverseOrder());
         this.sellOrders = new PriorityQueue<>(initialCapacity, reverseOrder());
         this.tradesFile = tradesFile(symbol.strip().replace("/", ""));
         this.matcher = new Matcher(this.executor, this.buyOrders, this.sellOrders, this.tradesFile);
+        this.importer = new Importer(this.importerExecutor, this.tradesFile);
 
         match();
+        doImport();
     }
 
     private void match() {
         executor.submit(matcher);
+    }
+
+    private void doImport() {
+        importerExecutor.submit(importer);
     }
 
     public CompletableFuture<Void> offer(final BuyOrder order) {
@@ -75,10 +84,10 @@ public final class Engine implements Closeable {
         return future;
     }
 
-    private AtomicFile tradesFile(final String symbol) {
+    private ThreadSafeAtomicFile tradesFile(final String symbol) {
         try {
             final var dataDirectoryPath = of(context().config().loadString("matching.engine.data_directory_path"));
-            return new AtomicFile(dataDirectoryPath.resolve(symbol + ".trades"));
+            return new ThreadSafeAtomicFile(dataDirectoryPath.resolve(symbol + ".trades"), 1000);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -94,6 +103,12 @@ public final class Engine implements Closeable {
             if (!executor.awaitTermination(timeout.toSeconds(), SECONDS)) {
                 // Safe to ignore runnable list!
                 executor.shutdownNow();
+            }
+
+            importerExecutor.shutdown();
+            if (!importerExecutor.awaitTermination(timeout.toSeconds(), SECONDS)) {
+                // Safe to ignore runnable list!
+                importerExecutor.shutdownNow();
             }
 
             tradesFile.close();

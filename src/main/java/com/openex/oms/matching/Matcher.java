@@ -4,7 +4,7 @@ import com.openex.oms.binary.order.BuyOrder;
 import com.openex.oms.binary.order.SellOrder;
 import com.openex.oms.binary.trade.Trade;
 import com.openex.oms.binary.trade.TradeBinaryRepresentation;
-import com.openex.oms.storage.AtomicFile;
+import com.openex.oms.storage.ThreadSafeAtomicFile;
 import org.slf4j.Logger;
 
 import java.util.PriorityQueue;
@@ -26,15 +26,15 @@ public final class Matcher implements Runnable {
     private final ExecutorService executor;
     private final PriorityQueue<BuyOrder> buyOrders;
     private final PriorityQueue<SellOrder> sellOrders;
-    private final AtomicFile tradesFile;
+    private final ThreadSafeAtomicFile tradesFile;
 
     public Matcher(final ExecutorService executor, final PriorityQueue<BuyOrder> buyOrders,
-                   final PriorityQueue<SellOrder> sellOrders, final AtomicFile atomicFile) {
+                   final PriorityQueue<SellOrder> sellOrders, final ThreadSafeAtomicFile tradesFile) {
 
         this.executor = executor;
         this.buyOrders = buyOrders;
         this.sellOrders = sellOrders;
-        this.tradesFile = atomicFile;
+        this.tradesFile = tradesFile;
     }
 
     @Override

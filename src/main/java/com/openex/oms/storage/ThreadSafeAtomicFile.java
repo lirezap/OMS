@@ -1,6 +1,7 @@
 package com.openex.oms.storage;
 
 import java.io.IOException;
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
@@ -82,6 +83,23 @@ public final class ThreadSafeAtomicFile extends AtomicFile {
                 }
             } else {
                 throw new RuntimeException("append operation timed out!");
+            }
+        } catch (InterruptedException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    @Override
+    public MemorySegment read(final Arena arena, final long position, final int size) throws IOException {
+        try {
+            if (guard().tryAcquire(timeoutMillis, MILLISECONDS)) {
+                try {
+                    return super.read(arena, position, size);
+                } finally {
+                    guard().release();
+                }
+            } else {
+                throw new RuntimeException("read operation timed out!");
             }
         } catch (InterruptedException ex) {
             throw new RuntimeException(ex);
