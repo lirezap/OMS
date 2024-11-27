@@ -22,7 +22,7 @@ public final class TradeBinaryRepresentation extends BinaryRepresentation<Trade>
 
     @Override
     protected int id() {
-        return 201;
+        return 103;
     }
 
     @Override

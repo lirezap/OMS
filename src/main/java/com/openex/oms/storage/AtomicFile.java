@@ -131,7 +131,7 @@ public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile
         append(segment.asByteBuffer());
     }
 
-    public MemorySegment read(final Arena arena, final long position, final int size) throws IOException {
+    public MemorySegment read(final Arena arena, final long position, final long size) throws IOException {
         final var segment = arena.allocate(size);
         file.read(segment.asByteBuffer().clear(), position);
 

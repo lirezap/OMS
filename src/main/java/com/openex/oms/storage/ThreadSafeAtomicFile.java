@@ -90,7 +90,7 @@ public final class ThreadSafeAtomicFile extends AtomicFile {
     }
 
     @Override
-    public MemorySegment read(final Arena arena, final long position, final int size) throws IOException {
+    public MemorySegment read(final Arena arena, final long position, final long size) throws IOException {
         try {
             if (guard().tryAcquire(timeoutMillis, MILLISECONDS)) {
                 try {

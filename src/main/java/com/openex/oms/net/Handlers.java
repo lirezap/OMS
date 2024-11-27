@@ -98,7 +98,7 @@ public final class Handlers implements Responder {
     }
 
     private boolean insertOrder(final Order order, final OrderRequestType type) {
-        var count = context().dataBase().postgresql().insertInto(ORDER_REQUEST)
+        final var count = context().dataBase().postgresql().insertInto(ORDER_REQUEST)
                 .columns(ORDER_REQUEST.ID, ORDER_REQUEST.SYMBOL, ORDER_REQUEST.TYPE, ORDER_REQUEST.QUANTITY, ORDER_REQUEST.PRICE, ORDER_REQUEST.REMAINING, ORDER_REQUEST.TS)
                 .values(order.getId(), order.getSymbol(), type, order.getQuantity(), order.getPrice(), order.getQuantity(), ofEpochMilli(order.getTs()))
                 .execute();

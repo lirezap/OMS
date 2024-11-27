@@ -100,7 +100,7 @@ public final class Matcher implements Runnable {
                 buyOrder.getPrice(),
                 sellOrder.getPrice(),
                 "",
-                now.getEpochSecond());
+                now.toEpochMilli());
 
         append(trade);
         buyOrder.set_remaining(remaining);
@@ -122,7 +122,7 @@ public final class Matcher implements Runnable {
                 buyOrder.getPrice(),
                 sellOrder.getPrice(),
                 "",
-                now.getEpochSecond());
+                now.toEpochMilli());
 
         append(trade);
         buyOrder.set_remaining(ZERO);
