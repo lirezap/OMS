@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.openex.oms.context.AppContext.context;
 import static java.lang.Boolean.FALSE;
@@ -88,12 +89,28 @@ public final class Engine implements Closeable {
 
     public CompletableFuture<Boolean> cancel(final CancelOrder order) {
         final var future = new CompletableFuture<Boolean>();
+        final var found = new AtomicBoolean(FALSE);
+
         executor.submit(() -> {
-            if (buyOrders.remove(order)) {
-                buyOrderCanceled(future, order);
-            } else if (sellOrders.remove(order)) {
-                sellOrderCanceled(future, order);
-            } else {
+            buyOrders.forEach(buyOrder -> {
+                if (buyOrder.equals(order)) {
+                    found.set(TRUE);
+                    buyOrders.remove(buyOrder);
+                    buyOrderCanceled(future, order, buyOrder);
+                }
+            });
+
+            if (!found.get()) {
+                sellOrders.forEach(sellOrder -> {
+                    if (sellOrder.equals(order)) {
+                        found.set(TRUE);
+                        sellOrders.remove(sellOrder);
+                        sellOrderCanceled(future, order, sellOrder);
+                    }
+                });
+            }
+
+            if (!found.get()) {
                 future.complete(FALSE);
             }
         });
@@ -101,26 +118,26 @@ public final class Engine implements Closeable {
         return future;
     }
 
-    private void buyOrderCanceled(final CompletableFuture<Boolean> future, final CancelOrder order) {
+    private void buyOrderCanceled(final CompletableFuture<Boolean> future, final CancelOrder order, final Order buyOrder) {
         try {
             append(order);
             future.complete(TRUE);
             logger.trace("cancel: buy: {}", order);
         } catch (RuntimeException ex) {
-            // Re-offer the same order at previous index.
-            offer(new BuyOrder(order.getId(), order.getTs(), order.getSymbol(), order.getQuantity(), order.getPrice()));
+            // Re-offer the buy order at previous index.
+            offer((BuyOrder) buyOrder);
             future.completeExceptionally(ex);
         }
     }
 
-    private void sellOrderCanceled(final CompletableFuture<Boolean> future, final CancelOrder order) {
+    private void sellOrderCanceled(final CompletableFuture<Boolean> future, final CancelOrder order, final Order sellOrder) {
         try {
             append(order);
             future.complete(TRUE);
             logger.trace("cancel: sell: {}", order);
         } catch (RuntimeException ex) {
-            // Re-offer the same order at previous index.
-            offer(new SellOrder(order.getId(), order.getTs(), order.getSymbol(), order.getQuantity(), order.getPrice()));
+            // Re-offer the sell order at previous index.
+            offer((SellOrder) sellOrder);
             future.completeExceptionally(ex);
         }
     }
