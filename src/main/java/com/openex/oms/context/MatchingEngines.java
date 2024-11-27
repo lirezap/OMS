@@ -1,6 +1,7 @@
 package com.openex.oms.context;
 
 import com.openex.oms.binary.order.BuyOrder;
+import com.openex.oms.binary.order.CancelOrder;
 import com.openex.oms.binary.order.SellOrder;
 import com.openex.oms.matching.Engine;
 import org.slf4j.Logger;
@@ -27,15 +28,18 @@ public final class MatchingEngines implements Closeable {
     }
 
     public CompletableFuture<Void> offer(final BuyOrder order) {
-        // TODO: Should we use hard code initial cap?
-        return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, 1000))
+        return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, 10000))
                 .offer(order);
     }
 
     public CompletableFuture<Void> offer(final SellOrder order) {
-        // TODO: Should we use hard code initial cap?
-        return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, 1000))
+        return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, 10000))
                 .offer(order);
+    }
+
+    public CompletableFuture<Boolean> cancel(final CancelOrder order) {
+        return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, 10000))
+                .cancel(order);
     }
 
     @Override

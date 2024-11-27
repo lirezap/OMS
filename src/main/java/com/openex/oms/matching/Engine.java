@@ -1,7 +1,6 @@
 package com.openex.oms.matching;
 
-import com.openex.oms.binary.order.BuyOrder;
-import com.openex.oms.binary.order.SellOrder;
+import com.openex.oms.binary.order.*;
 import com.openex.oms.storage.ThreadSafeAtomicFile;
 import org.slf4j.Logger;
 
@@ -12,6 +11,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 import static com.openex.oms.context.AppContext.context;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+import static java.lang.foreign.Arena.ofConfined;
 import static java.nio.file.Path.of;
 import static java.time.Duration.ofSeconds;
 import static java.util.Comparator.reverseOrder;
@@ -29,8 +31,8 @@ public final class Engine implements Closeable {
 
     private final ExecutorService executor;
     private final ExecutorService importerExecutor;
-    private final PriorityQueue<BuyOrder> buyOrders;
-    private final PriorityQueue<SellOrder> sellOrders;
+    private final PriorityQueue<Order> buyOrders;
+    private final PriorityQueue<Order> sellOrders;
     private final ThreadSafeAtomicFile tradesFile;
     private final Matcher matcher;
     private final Importer importer;
@@ -82,6 +84,54 @@ public final class Engine implements Closeable {
         });
 
         return future;
+    }
+
+    public CompletableFuture<Boolean> cancel(final CancelOrder order) {
+        final var future = new CompletableFuture<Boolean>();
+        executor.submit(() -> {
+            if (buyOrders.remove(order)) {
+                buyOrderCanceled(future, order);
+            } else if (sellOrders.remove(order)) {
+                sellOrderCanceled(future, order);
+            } else {
+                future.complete(FALSE);
+            }
+        });
+
+        return future;
+    }
+
+    private void buyOrderCanceled(final CompletableFuture<Boolean> future, final CancelOrder order) {
+        try {
+            append(order);
+            future.complete(TRUE);
+            logger.trace("cancel: buy: {}", order);
+        } catch (RuntimeException ex) {
+            // Re-offer the same order at previous index.
+            offer(new BuyOrder(order.getId(), order.getTs(), order.getSymbol(), order.getQuantity(), order.getPrice()));
+            future.completeExceptionally(ex);
+        }
+    }
+
+    private void sellOrderCanceled(final CompletableFuture<Boolean> future, final CancelOrder order) {
+        try {
+            append(order);
+            future.complete(TRUE);
+            logger.trace("cancel: sell: {}", order);
+        } catch (RuntimeException ex) {
+            // Re-offer the same order at previous index.
+            offer(new SellOrder(order.getId(), order.getTs(), order.getSymbol(), order.getQuantity(), order.getPrice()));
+            future.completeExceptionally(ex);
+        }
+    }
+
+    private void append(final CancelOrder cancelOrder) {
+        try (final var arena = ofConfined()) {
+            final var binary = new OrderBinaryRepresentation(arena, cancelOrder);
+            binary.encodeV1();
+
+            tradesFile.append(binary.segment());
+        }
     }
 
     private ThreadSafeAtomicFile tradesFile(final String symbol) {

@@ -1,6 +1,7 @@
 package com.openex.oms.net;
 
 import com.openex.oms.binary.order.BuyOrder;
+import com.openex.oms.binary.order.CancelOrder;
 import com.openex.oms.binary.order.Order;
 import com.openex.oms.binary.order.SellOrder;
 import com.openex.oms.models.enums.OrderRequestType;
@@ -11,8 +12,7 @@ import static com.openex.oms.context.AppContext.context;
 import static com.openex.oms.models.Tables.ORDER_REQUEST;
 import static com.openex.oms.models.enums.OrderRequestType.BUY;
 import static com.openex.oms.models.enums.OrderRequestType.SELL;
-import static com.openex.oms.net.ErrorMessages.INTERNAL_SERVER_ERROR;
-import static com.openex.oms.net.ErrorMessages.ORDER_ALREADY_EXISTS;
+import static com.openex.oms.net.ErrorMessages.*;
 import static java.time.Instant.ofEpochMilli;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -86,6 +86,30 @@ public final class Handlers implements Responder {
 
             logger.error("{}", ex.getMessage());
             write(connection, INTERNAL_SERVER_ERROR);
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public void handleCancelOrder(final Connection connection) {
+        try {
+            // TODO: Validate incoming message.
+            logMessage(connection);
+            final var cancelOrder = CancelOrder.decode(connection.segment());
+            context().matchingEngines().cancel(cancelOrder)
+                    .thenAccept(canceled -> {
+                        if (canceled) {
+                            write(connection);
+                        } else {
+                            write(connection, ORDER_NOT_FOUND);
+                        }
+                    }).exceptionally(ex -> {
+                        logger.error("{}", ex.getMessage());
+                        write(connection, INTERNAL_SERVER_ERROR);
+
+                        return null;
+                    });
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
             write(connection, INTERNAL_SERVER_ERROR);

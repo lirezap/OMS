@@ -8,7 +8,7 @@ import static java.lang.Long.compare;
 /**
  * @author Alireza Pourtaghi
  */
-public abstract sealed class Order implements Comparable<Order> permits BuyOrder, SellOrder {
+public abstract sealed class Order implements Comparable<Order> permits BuyOrder, SellOrder, CancelOrder {
     private final long id;
     private final long ts;
     private final String symbol;
@@ -84,12 +84,14 @@ public abstract sealed class Order implements Comparable<Order> permits BuyOrder
         if (this == o) return true;
         if (!(o instanceof Order order)) return false;
 
-        return getId() == order.getId();
+        return getId() == order.getId() && getSymbol().equals(order.getSymbol());
     }
 
     @Override
     public final int hashCode() {
-        return Long.hashCode(getId());
+        var result = Long.hashCode(getId());
+        result = 31 * result + getSymbol().hashCode();
+        return result;
     }
 
     @Override

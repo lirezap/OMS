@@ -42,6 +42,11 @@ public final class ErrorMessages {
                     global(),
                     new ErrorMessage("order.already_exists", "order already exists"));
 
+    public static final ErrorMessageBinaryRepresentation ORDER_NOT_FOUND =
+            new ErrorMessageBinaryRepresentation(
+                    global(),
+                    new ErrorMessage("order.not_found", "order not found"));
+
     public static final ErrorMessageBinaryRepresentation INTERNAL_SERVER_ERROR =
             new ErrorMessageBinaryRepresentation(
                     global(),
@@ -54,6 +59,7 @@ public final class ErrorMessages {
         MESSAGE_SIZE_NOT_VALID.encodeV1();
         MESSAGE_NOT_SUPPORTED.encodeV1();
         ORDER_ALREADY_EXISTS.encodeV1();
+        ORDER_NOT_FOUND.encodeV1();
         INTERNAL_SERVER_ERROR.encodeV1();
     }
 }

@@ -18,6 +18,7 @@ public final class Dispatcher implements Responder {
                 switch (id(connection.segment())) {
                     case 101 -> handlers.handleBuyOrder(connection);
                     case 102 -> handlers.handleSellOrder(connection);
+                    case 104 -> handlers.handleCancelOrder(connection);
 
                     default -> write(connection, MESSAGE_NOT_SUPPORTED);
                 }
