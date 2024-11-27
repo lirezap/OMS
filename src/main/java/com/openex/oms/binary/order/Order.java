@@ -57,30 +57,43 @@ public abstract sealed class Order implements Comparable<Order> permits BuyOrder
         return price;
     }
 
-    public BigDecimal get_quantity() {
+    public final BigDecimal get_quantity() {
         return _quantity;
     }
 
-    public BigDecimal get_price() {
+    public final BigDecimal get_price() {
         return _price;
     }
 
-    public BigDecimal get_remaining() {
+    public final BigDecimal get_remaining() {
         return _remaining;
     }
 
-    public void set_remaining(final BigDecimal _remaining) {
+    public final void set_remaining(final BigDecimal _remaining) {
         this._remaining = _remaining;
     }
 
     @Override
-    public int compareTo(final Order o) {
+    public final int compareTo(final Order o) {
         final var compare = _price.compareTo(o._price);
         return compare == 0 ? -compare(ts, o.ts) : compare;
     }
 
     @Override
-    public String toString() {
+    public final boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Order order)) return false;
+
+        return getId() == order.getId();
+    }
+
+    @Override
+    public final int hashCode() {
+        return Long.hashCode(getId());
+    }
+
+    @Override
+    public final String toString() {
         return "Order{" +
                 "id=" + id +
                 ", ts=" + ts +

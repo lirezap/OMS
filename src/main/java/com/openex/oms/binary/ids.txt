@@ -5,3 +5,4 @@ FileHeader:1
 BuyOrder:101
 SellOrder:102
 Trade: 103
+CancelOrder: 104
