@@ -29,7 +29,7 @@ public final class Handlers implements Responder {
             // TODO: Validate incoming message.
             logMessage(connection);
             final var buyOrder = BuyOrder.decode(connection.segment());
-            if (!insertOrder(buyOrder, BUY)) {
+            if (context().config().loadBoolean("matching.engine.store_orders") && !insertOrder(buyOrder, BUY)) {
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
@@ -63,7 +63,7 @@ public final class Handlers implements Responder {
             // TODO: Validate incoming message.
             logMessage(connection);
             final var sellOrder = SellOrder.decode(connection.segment());
-            if (!insertOrder(sellOrder, SELL)) {
+            if (context().config().loadBoolean("matching.engine.store_orders") && !insertOrder(sellOrder, SELL)) {
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
