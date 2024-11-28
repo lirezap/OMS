@@ -6,6 +6,7 @@ import com.openex.oms.binary.trade.TradeBinaryRepresentation;
 import com.openex.oms.storage.ThreadSafeAtomicFile;
 import org.slf4j.Logger;
 
+import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.concurrent.ExecutorService;
 
@@ -46,11 +47,35 @@ public final class Matcher implements Runnable {
                     // If the price of the head of buy orders is greater than or equal to that of the head of sell orders.
                     if (buyOrdersHead.get_price().compareTo(sellOrdersHead.get_price()) >= 0) {
                         trade(buyOrdersHead, sellOrdersHead);
+                    } else {
+                        // We still should traverse the sell orders to find any match not in head!
+                        traverseSellOrders(buyOrdersHead);
                     }
                 }
             }
         } finally {
             executor.submit(this);
+        }
+    }
+
+    private void traverseSellOrders(final Order buyOrdersHead) {
+        final var polls = new LinkedList<Order>();
+
+        do {
+            // Poll the head of sell orders, we are sure that the head's price is greater than that of buy order.
+            polls.add(sellOrders.poll());
+        } while (sellOrders.peek() != null && sellOrders.peek().get_price().compareTo(buyOrdersHead.get_price()) > 0);
+
+        try {
+            final var sellOrdersHead = sellOrders.peek();
+            if (sellOrdersHead != null) {
+                // If the price of the head of buy orders is greater than or equal to that of the head of sell orders.
+                if (buyOrdersHead.get_price().compareTo(sellOrdersHead.get_price()) >= 0) {
+                    trade(buyOrdersHead, sellOrdersHead);
+                }
+            }
+        } finally {
+            polls.forEach(sellOrders::offer);
         }
     }
 
