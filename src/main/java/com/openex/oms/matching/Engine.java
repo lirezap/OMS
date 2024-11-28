@@ -31,21 +31,21 @@ public final class Engine implements Closeable {
     private static final Logger logger = getLogger(Engine.class);
 
     private final ExecutorService executor;
-    private final ExecutorService importerExecutor;
+    private final ExecutorService eventsSynchronizerExecutor;
     private final PriorityQueue<Order> buyOrders;
     private final PriorityQueue<Order> sellOrders;
-    private final ThreadSafeAtomicFile tradesFile;
+    private final ThreadSafeAtomicFile eventsFile;
     private final Matcher matcher;
-    private final Importer importer;
+    private final EventsSynchronizer eventsSynchronizer;
 
     public Engine(final String symbol, final int initialCapacity) {
         this.executor = newSingleThreadExecutor();
-        this.importerExecutor = newSingleThreadExecutor();
+        this.eventsSynchronizerExecutor = newSingleThreadExecutor();
         this.buyOrders = new PriorityQueue<>(initialCapacity, reverseOrder());
         this.sellOrders = new PriorityQueue<>(initialCapacity, reverseOrder());
-        this.tradesFile = tradesFile(symbol.strip().replace("/", ""));
-        this.matcher = new Matcher(this.executor, this.buyOrders, this.sellOrders, this.tradesFile);
-        this.importer = new Importer(this.importerExecutor, this.tradesFile);
+        this.eventsFile = eventsFile(symbol.strip().replace("/", ""));
+        this.matcher = new Matcher(this.executor, this.buyOrders, this.sellOrders, this.eventsFile);
+        this.eventsSynchronizer = new EventsSynchronizer(this.eventsSynchronizerExecutor, this.eventsFile);
 
         match();
         doImport();
@@ -56,7 +56,7 @@ public final class Engine implements Closeable {
     }
 
     private void doImport() {
-        importerExecutor.submit(importer);
+        eventsSynchronizerExecutor.submit(eventsSynchronizer);
     }
 
     public CompletableFuture<Void> offer(final BuyOrder order) {
@@ -147,14 +147,14 @@ public final class Engine implements Closeable {
             final var binary = new OrderBinaryRepresentation(arena, cancelOrder);
             binary.encodeV1();
 
-            tradesFile.append(binary.segment());
+            eventsFile.append(binary.segment());
         }
     }
 
-    private ThreadSafeAtomicFile tradesFile(final String symbol) {
+    private ThreadSafeAtomicFile eventsFile(final String symbol) {
         try {
             final var dataDirectoryPath = of(context().config().loadString("matching.engine.data_directory_path"));
-            return new ThreadSafeAtomicFile(dataDirectoryPath.resolve(symbol + ".trades"), 1000);
+            return new ThreadSafeAtomicFile(dataDirectoryPath.resolve(symbol + ".events"), 1000);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -172,13 +172,13 @@ public final class Engine implements Closeable {
                 executor.shutdownNow();
             }
 
-            importerExecutor.shutdown();
-            if (!importerExecutor.awaitTermination(timeout.toSeconds(), SECONDS)) {
+            eventsSynchronizerExecutor.shutdown();
+            if (!eventsSynchronizerExecutor.awaitTermination(timeout.toSeconds(), SECONDS)) {
                 // Safe to ignore runnable list!
-                importerExecutor.shutdownNow();
+                eventsSynchronizerExecutor.shutdownNow();
             }
 
-            tradesFile.close();
+            eventsFile.close();
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
         }
