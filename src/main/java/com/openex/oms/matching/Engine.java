@@ -48,14 +48,14 @@ public final class Engine implements Closeable {
         this.eventsSynchronizer = new EventsSynchronizer(this.eventsSynchronizerExecutor, this.eventsFile);
 
         match();
-        doImport();
+        sync();
     }
 
     private void match() {
         executor.submit(matcher);
     }
 
-    private void doImport() {
+    private void sync() {
         eventsSynchronizerExecutor.submit(eventsSynchronizer);
     }
 
