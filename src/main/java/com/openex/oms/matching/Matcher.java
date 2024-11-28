@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.concurrent.ExecutorService;
 
+import static java.lang.String.format;
 import static java.lang.foreign.Arena.ofConfined;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
@@ -99,7 +100,7 @@ public final class Matcher implements Runnable {
                 buyOrder.get_remaining().toPlainString(),
                 buyOrder.getPrice(),
                 sellOrder.getPrice(),
-                "",
+                format("bor:%s;sor:%s", ZERO, ZERO),
                 now.toEpochMilli());
 
         append(trade);
@@ -123,7 +124,7 @@ public final class Matcher implements Runnable {
                 sellOrder.get_remaining().toPlainString(),
                 buyOrder.getPrice(),
                 sellOrder.getPrice(),
-                "",
+                format("bor:%s;sor:%s", remaining, ZERO),
                 now.toEpochMilli());
 
         append(trade);
@@ -145,7 +146,7 @@ public final class Matcher implements Runnable {
                 buyOrder.get_remaining().toPlainString(),
                 buyOrder.getPrice(),
                 sellOrder.getPrice(),
-                "",
+                format("bor:%s;sor:%s", ZERO, remaining),
                 now.toEpochMilli());
 
         append(trade);

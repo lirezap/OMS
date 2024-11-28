@@ -105,11 +105,24 @@ public final class EventsSynchronizer implements Runnable {
     private void insertTrade(final Trade trade, final Arena arena, final long nextPositionToImport) {
         context().dataBase().postgresql().transaction(configuration -> {
             final var count = configuration.dsl().insertInto(TRADE)
-                    .columns(TRADE.BUY_ORDER_ID, TRADE.SELL_ORDER_ID, TRADE.SYMBOL, TRADE.QUANTITY, TRADE.BUY_PRICE, TRADE.SELL_PRICE, TRADE.TS)
-                    .values(trade.getBuyOrderId(), trade.getSellOrderId(), trade.getSymbol(), trade.getQuantity(), trade.getBuyPrice(), trade.getSellPrice(), ofEpochMilli(trade.getTs()))
+                    .columns(TRADE.BUY_ORDER_ID, TRADE.SELL_ORDER_ID, TRADE.SYMBOL, TRADE.QUANTITY, TRADE.BUY_PRICE, TRADE.SELL_PRICE, TRADE.METADATA, TRADE.TS)
+                    .values(trade.getBuyOrderId(), trade.getSellOrderId(), trade.getSymbol(), trade.getQuantity(), trade.getBuyPrice(), trade.getSellPrice(), trade.getMetadata(), ofEpochMilli(trade.getTs()))
                     .execute();
 
             if (count == 1) {
+                // matching.engine.store_orders option may be false.
+                configuration.dsl().update(ORDER_REQUEST)
+                        .set(ORDER_REQUEST.REMAINING, trade.getMetadata().split(";")[0].replace("bor:", ""))
+                        .where(ORDER_REQUEST.ID.eq(trade.getBuyOrderId()))
+                        .and(ORDER_REQUEST.SYMBOL.eq(trade.getSymbol()))
+                        .execute();
+
+                configuration.dsl().update(ORDER_REQUEST)
+                        .set(ORDER_REQUEST.REMAINING, trade.getMetadata().split(";")[1].replace("sor:", ""))
+                        .where(ORDER_REQUEST.ID.eq(trade.getSellOrderId()))
+                        .and(ORDER_REQUEST.SYMBOL.eq(trade.getSymbol()))
+                        .execute();
+
                 final var newValue = arena.allocate(LONG.byteSize());
                 newValue.set(LONG, 0, nextPositionToImport);
                 eventsMetadataFile.write(newValue, fileHeader.representationSize());
