@@ -22,23 +22,25 @@ public final class MatchingEngines implements Closeable {
     private static final Logger logger = getLogger(MatchingEngines.class);
 
     private final ConcurrentHashMap<String, Engine> engines;
+    private final int initialCap;
 
-    public MatchingEngines() {
+    public MatchingEngines(final Configuration configuration) {
         this.engines = new ConcurrentHashMap<>();
+        this.initialCap = configuration.loadInt("matching.engine.queues_initial_cap");
     }
 
     public CompletableFuture<Void> offer(final BuyOrder order) {
-        return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, 10000))
+        return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, initialCap))
                 .offer(order);
     }
 
     public CompletableFuture<Void> offer(final SellOrder order) {
-        return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, 10000))
+        return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, initialCap))
                 .offer(order);
     }
 
     public CompletableFuture<Boolean> cancel(final CancelOrder order) {
-        return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, 10000))
+        return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, initialCap))
                 .cancel(order);
     }
 

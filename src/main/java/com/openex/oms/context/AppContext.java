@@ -49,7 +49,7 @@ public final class AppContext {
         this.dataBase = new DataBase(this.configuration, this.dataSource);
         this.compression = new Compression(this.configuration);
         this.messagesLogFile = messagesLogFile(this.configuration);
-        this.matchingEngines = new MatchingEngines();
+        this.matchingEngines = new MatchingEngines(this.configuration);
         this.executors = new Executors(this.configuration);
         this.dispatcher = new Dispatcher();
         this.socketServer = socketServer(this.configuration);
