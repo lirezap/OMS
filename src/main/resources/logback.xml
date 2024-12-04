@@ -6,7 +6,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.openex.oms" level="INFO"/>
+    <logger name="software.openex.oms" level="INFO"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

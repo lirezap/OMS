@@ -12,7 +12,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>com.openex</groupId>
+    <groupId>software.openex</groupId>
     <artifactId>oms</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>oms</name>
@@ -170,7 +170,7 @@
                         </generate>
 
                         <target>
-                            <packageName>com.openex.oms.models</packageName>
+                            <packageName>software.openex.oms.models</packageName>
                             <directory>target/generated-sources/jooq</directory>
                             <encoding>UTF-8</encoding>
                         </target>
