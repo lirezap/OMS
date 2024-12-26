@@ -19,6 +19,7 @@ package software.openex.oms.binary.order;
 
 import java.lang.foreign.MemorySegment;
 
+import static java.lang.Long.compare;
 import static software.openex.oms.binary.BinaryRepresentable.*;
 
 /**
@@ -33,6 +34,12 @@ public final class BuyOrder extends Order {
     @Override
     public int representationId() {
         return 101;
+    }
+
+    @Override
+    public int compareTo(final Order o) {
+        final var compare = get_price().compareTo(o.get_price());
+        return compare == 0 ? compare(getTs(), o.getTs()) : -compare;
     }
 
     public static BuyOrder decode(final MemorySegment segment) {

@@ -33,7 +33,6 @@ import static java.lang.Boolean.TRUE;
 import static java.lang.foreign.Arena.ofConfined;
 import static java.nio.file.Path.of;
 import static java.time.Duration.ofSeconds;
-import static java.util.Comparator.reverseOrder;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -58,8 +57,8 @@ public final class Engine implements Closeable {
     public Engine(final String symbol, final int initialCapacity) {
         this.executor = newSingleThreadExecutor();
         this.eventsSynchronizerExecutor = newSingleThreadExecutor();
-        this.buyOrders = new PriorityQueue<>(initialCapacity, reverseOrder());
-        this.sellOrders = new PriorityQueue<>(initialCapacity, reverseOrder());
+        this.buyOrders = new PriorityQueue<>(initialCapacity);
+        this.sellOrders = new PriorityQueue<>(initialCapacity);
         this.eventsFile = eventsFile(symbol.strip().replace("/", ""));
         this.matcher = new Matcher(this.executor, this.buyOrders, this.sellOrders, this.eventsFile);
         this.eventsSynchronizer = new EventsSynchronizer(this.eventsSynchronizerExecutor, this.eventsFile);

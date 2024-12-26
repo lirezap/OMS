@@ -19,7 +19,6 @@ package software.openex.oms.binary.order;
 
 import java.math.BigDecimal;
 
-import static java.lang.Long.compare;
 import static software.openex.oms.binary.BinaryRepresentable.representationSize;
 
 /**
@@ -88,12 +87,6 @@ public abstract sealed class Order implements Comparable<Order> permits BuyOrder
 
     public final void set_remaining(final BigDecimal _remaining) {
         this._remaining = _remaining;
-    }
-
-    @Override
-    public final int compareTo(final Order o) {
-        final var compare = _price.compareTo(o._price);
-        return compare == 0 ? -compare(ts, o.ts) : compare;
     }
 
     @Override

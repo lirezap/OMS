@@ -19,6 +19,7 @@ package software.openex.oms.binary.order;
 
 import java.lang.foreign.MemorySegment;
 
+import static java.lang.Long.compare;
 import static software.openex.oms.binary.BinaryRepresentable.*;
 
 /**
@@ -33,6 +34,11 @@ public final class CancelOrder extends Order {
     @Override
     public int representationId() {
         return 104;
+    }
+
+    @Override
+    public int compareTo(final Order o) {
+        return compare(getTs(), o.getTs());
     }
 
     public static CancelOrder decode(final MemorySegment segment) {
