@@ -173,16 +173,18 @@ public final class Engine implements Closeable {
 
     private ArrayList<BuyOrder> bidsReferences(final int size) {
         final var bids = new ArrayList<BuyOrder>(size);
-        for (int i = 1; i <= size; i++) {
-            if (buyOrders.peek() != null) {
-                bids.add((BuyOrder) buyOrders.poll());
-            } else {
-                break;
+        try {
+            for (int i = 1; i <= size; i++) {
+                if (buyOrders.peek() != null) {
+                    bids.add((BuyOrder) buyOrders.poll());
+                } else {
+                    break;
+                }
             }
-        }
-
-        for (final var bid : bids) {
-            buyOrders.offer(bid);
+        } finally {
+            for (final var bid : bids) {
+                buyOrders.offer(bid);
+            }
         }
 
         return bids;
@@ -190,16 +192,18 @@ public final class Engine implements Closeable {
 
     private ArrayList<SellOrder> asksReferences(final int size) {
         final var asks = new ArrayList<SellOrder>(size);
-        for (int i = 1; i <= size; i++) {
-            if (sellOrders.peek() != null) {
-                asks.add((SellOrder) sellOrders.poll());
-            } else {
-                break;
+        try {
+            for (int i = 1; i <= size; i++) {
+                if (sellOrders.peek() != null) {
+                    asks.add((SellOrder) sellOrders.poll());
+                } else {
+                    break;
+                }
             }
-        }
-
-        for (final var ask : asks) {
-            sellOrders.offer(ask);
+        } finally {
+            for (final var ask : asks) {
+                sellOrders.offer(ask);
+            }
         }
 
         return asks;
