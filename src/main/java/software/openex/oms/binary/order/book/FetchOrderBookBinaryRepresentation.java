@@ -20,6 +20,7 @@ package software.openex.oms.binary.order.book;
 import software.openex.oms.binary.BinaryRepresentation;
 
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 
 /**
  * @author Alireza Pourtaghi
@@ -50,5 +51,19 @@ public final class FetchOrderBookBinaryRepresentation extends BinaryRepresentati
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    public static FetchOrderBook decode(final MemorySegment segment) {
+        long position = RHS;
+
+        var symbolSize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        var symbol = segment.getString(position);
+        position += symbolSize;
+
+        var fetchSize = segment.get(INT, position);
+
+        return new FetchOrderBook(symbol, fetchSize);
     }
 }
