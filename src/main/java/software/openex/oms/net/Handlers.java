@@ -19,12 +19,16 @@ package software.openex.oms.net;
 
 import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
-import software.openex.oms.binary.order.BuyOrder;
-import software.openex.oms.binary.order.CancelOrder;
-import software.openex.oms.binary.order.Order;
-import software.openex.oms.binary.order.SellOrder;
+import software.openex.oms.binary.BinaryRepresentation;
+import software.openex.oms.binary.order.*;
+import software.openex.oms.binary.order.book.FetchOrderBookBinaryRepresentation;
+import software.openex.oms.binary.order.book.OrderBook;
+import software.openex.oms.binary.order.book.OrderBookBinaryRepresentation;
 import software.openex.oms.models.enums.OrderRequestType;
 
+import java.util.ArrayList;
+
+import static java.lang.foreign.Arena.ofShared;
 import static java.time.Instant.ofEpochMilli;
 import static org.slf4j.LoggerFactory.getLogger;
 import static software.openex.oms.context.AppContext.context;
@@ -117,6 +121,7 @@ public final class Handlers implements Responder {
             context().matchingEngines().cancel(cancelOrder)
                     .thenAccept(canceled -> {
                         if (canceled) {
+                            // Write the same received message.
                             write(connection);
                         } else {
                             write(connection, ORDER_NOT_FOUND);
@@ -135,7 +140,34 @@ public final class Handlers implements Responder {
 
     public void handleFetchOrderBook(final Connection connection) {
         try {
-            // TODO: Complete implementation.
+            // TODO: Validate incoming message.
+            final var fetchOrderBook = FetchOrderBookBinaryRepresentation.decode(connection.segment());
+            context().matchingEngines().orderBook(fetchOrderBook)
+                    .thenAccept(orderBook -> {
+                        final var arena = ofShared();
+                        final var bids = new ArrayList<BinaryRepresentation<Order>>();
+                        final var asks = new ArrayList<BinaryRepresentation<Order>>();
+
+                        orderBook.getBids().stream()
+                                .map(bid -> new OrderBinaryRepresentation(arena, bid))
+                                .peek(BinaryRepresentation::encodeV1)
+                                .forEach(bids::add);
+
+                        orderBook.getAsks().stream()
+                                .map(ask -> new OrderBinaryRepresentation(arena, ask))
+                                .peek(BinaryRepresentation::encodeV1)
+                                .forEach(asks::add);
+
+                        final var response = new OrderBookBinaryRepresentation(arena, new OrderBook(bids, asks));
+                        response.encodeV1();
+                        write(connection, response);
+                    })
+                    .exceptionally(ex -> {
+                        logger.error("{}", ex.getMessage());
+                        write(connection, INTERNAL_SERVER_ERROR);
+
+                        return null;
+                    });
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
             write(connection, INTERNAL_SERVER_ERROR);

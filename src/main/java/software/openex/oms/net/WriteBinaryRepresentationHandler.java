@@ -18,44 +18,59 @@
 package software.openex.oms.net;
 
 import org.slf4j.Logger;
+import software.openex.oms.binary.BinaryRepresentation;
 
+import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Stateless completion handler that writes bytes into a channel.
+ * Completion handler that writes binary representation bytes into a channel.
  *
  * @author Alireza Pourtaghi
  */
-public final class WriteHandler implements CompletionHandler<Integer, Connection> {
-    private static final Logger logger = getLogger(WriteHandler.class);
+public final class WriteBinaryRepresentationHandler implements CompletionHandler<Integer, ByteBuffer> {
+    private static final Logger logger = getLogger(WriteBinaryRepresentationHandler.class);
     private static final ReadHandler readHandler = new ReadHandler();
 
+    private final Connection connection;
+    private final BinaryRepresentation<?> binaryRepresentation;
+
+    public WriteBinaryRepresentationHandler(final Connection connection,
+                                            final BinaryRepresentation<?> binaryRepresentation) {
+
+        this.connection = connection;
+        this.binaryRepresentation = binaryRepresentation;
+    }
+
     @Override
-    public void completed(final Integer bytes, final Connection connection) {
-        if (connection.buffer().remaining() > 0) {
-            write(connection);
+    public void completed(final Integer bytes, final ByteBuffer buffer) {
+        if (buffer.remaining() > 0) {
+            write(buffer);
         } else {
+            binaryRepresentation.close();
             connection.buffer().clear();
             read(connection);
         }
     }
 
     @Override
-    public void failed(final Throwable th, final Connection connection) {
-        logger.error("write operation failed: {}", th.getMessage());
+    public void failed(final Throwable th, final ByteBuffer buffer) {
+        logger.error("write error operation failed: {}", th.getMessage());
 
+        binaryRepresentation.close();
         connection.buffer().clear();
         read(connection);
     }
 
-    private void write(final Connection connection) {
+    private void write(final ByteBuffer buffer) {
         try {
-            connection.socket().write(connection.buffer(), connection, this);
+            connection.socket().write(buffer, buffer, this);
         } catch (Exception ex) {
             logger.error("write call failed: {}", ex.getMessage());
 
+            binaryRepresentation.close();
             connection.buffer().clear();
             read(connection);
         }

@@ -19,10 +19,12 @@ package software.openex.oms.matching;
 
 import org.slf4j.Logger;
 import software.openex.oms.binary.order.*;
+import software.openex.oms.binary.order.book.FetchOrderBook;
 import software.openex.oms.storage.ThreadSafeAtomicFile;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -158,6 +160,50 @@ public final class Engine implements Closeable {
         }
     }
 
+    public CompletableFuture<OrderBook> orderBook(final FetchOrderBook fetchOrderBook) {
+        final var future = new CompletableFuture<OrderBook>();
+
+        executor.submit(() -> {
+            future.complete(new OrderBook(bidsReferences(fetchOrderBook.size()), asksReferences(fetchOrderBook.size())));
+        });
+
+        return future;
+    }
+
+    private ArrayList<BuyOrder> bidsReferences(final int size) {
+        final var bids = new ArrayList<BuyOrder>(size);
+        for (int i = 1; i <= size; i++) {
+            if (buyOrders.peek() != null) {
+                bids.add((BuyOrder) buyOrders.poll());
+            } else {
+                break;
+            }
+        }
+
+        for (final var bid : bids) {
+            buyOrders.offer(bid);
+        }
+
+        return bids;
+    }
+
+    private ArrayList<SellOrder> asksReferences(final int size) {
+        final var asks = new ArrayList<SellOrder>(size);
+        for (int i = 1; i <= size; i++) {
+            if (sellOrders.peek() != null) {
+                asks.add((SellOrder) sellOrders.poll());
+            } else {
+                break;
+            }
+        }
+
+        for (final var ask : asks) {
+            sellOrders.offer(ask);
+        }
+
+        return asks;
+    }
+
     private void append(final CancelOrder cancelOrder) {
         try (final var arena = ofConfined()) {
             final var binary = new OrderBinaryRepresentation(arena, cancelOrder);
@@ -197,6 +243,27 @@ public final class Engine implements Closeable {
             eventsFile.close();
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
+        }
+    }
+
+    /**
+     * @author Alireza Pourtaghi
+     */
+    public static final class OrderBook {
+        private final ArrayList<BuyOrder> bids;
+        private final ArrayList<SellOrder> asks;
+
+        public OrderBook(final ArrayList<BuyOrder> bids, final ArrayList<SellOrder> asks) {
+            this.bids = bids;
+            this.asks = asks;
+        }
+
+        public ArrayList<BuyOrder> getBids() {
+            return bids;
+        }
+
+        public ArrayList<SellOrder> getAsks() {
+            return asks;
         }
     }
 }

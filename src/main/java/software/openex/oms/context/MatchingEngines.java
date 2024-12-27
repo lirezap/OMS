@@ -21,7 +21,9 @@ import org.slf4j.Logger;
 import software.openex.oms.binary.order.BuyOrder;
 import software.openex.oms.binary.order.CancelOrder;
 import software.openex.oms.binary.order.SellOrder;
+import software.openex.oms.binary.order.book.FetchOrderBook;
 import software.openex.oms.matching.Engine;
+import software.openex.oms.matching.Engine.OrderBook;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -59,6 +61,11 @@ public final class MatchingEngines implements Closeable {
     public CompletableFuture<Boolean> cancel(final CancelOrder order) {
         return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, initialCap))
                 .cancel(order);
+    }
+
+    public CompletableFuture<OrderBook> orderBook(final FetchOrderBook fetchOrderBook) {
+        return engines.computeIfAbsent(fetchOrderBook.getSymbol(), symbol -> new Engine(symbol, initialCap))
+                .orderBook(fetchOrderBook);
     }
 
     @Override

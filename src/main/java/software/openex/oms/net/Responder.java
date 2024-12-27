@@ -18,6 +18,7 @@
 package software.openex.oms.net;
 
 import org.slf4j.Logger;
+import software.openex.oms.binary.BinaryRepresentation;
 import software.openex.oms.binary.base.ErrorMessageBinaryRepresentation;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -33,8 +34,7 @@ public interface Responder {
 
     ReadHandler readHandler = new ReadHandler();
     WriteHandler writeHandler = new WriteHandler();
-    Runnable doNothing = () -> {
-    };
+    Runnable doNothing = () -> {};
 
     default void write(final Connection connection, final ErrorMessageBinaryRepresentation message) {
         try {
@@ -51,6 +51,18 @@ public interface Responder {
     default void write(final Connection connection) {
         try {
             connection.socket().write(connection.buffer(), connection, writeHandler);
+        } catch (Exception ex) {
+            logger.error("write call failed: {}", ex.getMessage());
+
+            connection.buffer().clear();
+            read(connection);
+        }
+    }
+
+    default void write(final Connection connection, final BinaryRepresentation<?> message) {
+        try {
+            final var buffer = message.buffer();
+            connection.socket().write(buffer, buffer, new WriteBinaryRepresentationHandler(connection, message));
         } catch (Exception ex) {
             logger.error("write call failed: {}", ex.getMessage());
 

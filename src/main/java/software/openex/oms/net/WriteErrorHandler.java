@@ -25,7 +25,7 @@ import java.nio.channels.CompletionHandler;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Completion handler that write error bytes into a channel.
+ * Completion handler that writes error bytes into a channel.
  *
  * @author Alireza Pourtaghi
  */
