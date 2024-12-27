@@ -164,7 +164,8 @@ public final class Engine implements Closeable {
         final var future = new CompletableFuture<OrderBook>();
 
         executor.submit(() -> {
-            future.complete(new OrderBook(bidsReferences(fetchOrderBook.size()), asksReferences(fetchOrderBook.size())));
+            final var size = fetchOrderBook.getFetchSize();
+            future.complete(new OrderBook(bidsReferences(size), asksReferences(size)));
         });
 
         return future;
