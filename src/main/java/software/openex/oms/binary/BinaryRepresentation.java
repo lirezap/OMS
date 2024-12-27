@@ -22,6 +22,7 @@ import software.openex.oms.context.Compression;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.lang.foreign.Arena.ofShared;
@@ -117,6 +118,15 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
 
         putInt(length);
         copy(bytes, 0, segment, BYTE, position.getAndAdd(length), length);
+    }
+
+    public final <C> void putBinaryRepresentations(final List<BinaryRepresentation<C>> binaryRepresentations) {
+        putInt(binaryRepresentations.size());
+
+        for (final var br : binaryRepresentations) {
+            final var brSegmentSize = br.segment().byteSize();
+            copy(br.segment(), 0, segment, position.getAndAdd(brSegmentSize), brSegmentSize);
+        }
     }
 
     protected abstract int id();

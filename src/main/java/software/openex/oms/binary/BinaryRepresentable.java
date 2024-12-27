@@ -18,6 +18,7 @@
 package software.openex.oms.binary;
 
 import java.lang.foreign.MemorySegment;
+import java.util.List;
 
 import static java.lang.foreign.ValueLayout.*;
 import static java.nio.ByteOrder.BIG_ENDIAN;
@@ -79,5 +80,14 @@ public interface BinaryRepresentable {
 
     static int representationSize(final byte[] value) {
         return 4 + value.length;
+    }
+
+    static <T> int representationSize(final List<BinaryRepresentation<T>> values) {
+        var size = 0;
+        for (final var br : values) {
+            size += (int) br.representationSize();
+        }
+
+        return 4 + size;
     }
 }

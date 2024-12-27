@@ -133,6 +133,15 @@ public final class Handlers implements Responder {
         }
     }
 
+    public void handleFetchOrderBook(final Connection connection) {
+        try {
+            // TODO: Complete implementation.
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        }
+    }
+
     private void logMessage(final Connection connection) {
         context().messagesLogFile().ifPresentOrElse(file ->
                 file.append(connection.copyMessage().asByteBuffer()), doNothing);
