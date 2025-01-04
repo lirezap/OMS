@@ -56,13 +56,13 @@ public final class FetchOrderBookBinaryRepresentation extends BinaryRepresentati
     public static FetchOrderBook decode(final MemorySegment segment) {
         long position = RHS;
 
-        var symbolSize = segment.get(INT, position);
+        final var symbolSize = segment.get(INT, position);
         position += INT.byteSize();
 
-        var symbol = segment.getString(position);
+        final var symbol = segment.getString(position);
         position += symbolSize;
 
-        var fetchSize = segment.get(INT, position);
+        final var fetchSize = segment.get(INT, position);
 
         return new FetchOrderBook(symbol, fetchSize);
     }

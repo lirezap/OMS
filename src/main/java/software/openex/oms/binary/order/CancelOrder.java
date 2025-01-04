@@ -44,28 +44,28 @@ public final class CancelOrder extends Order {
     public static CancelOrder decode(final MemorySegment segment) {
         long position = RHS;
 
-        var id = segment.get(LONG, position);
+        final var id = segment.get(LONG, position);
         position += LONG.byteSize();
 
-        var ts = segment.get(LONG, position);
+        final var ts = segment.get(LONG, position);
         position += LONG.byteSize();
 
-        var symbolSize = segment.get(INT, position);
+        final var symbolSize = segment.get(INT, position);
         position += INT.byteSize();
 
-        var symbol = segment.getString(position);
+        final var symbol = segment.getString(position);
         position += symbolSize;
 
-        var quantitySize = segment.get(INT, position);
+        final var quantitySize = segment.get(INT, position);
         position += INT.byteSize();
 
-        var quantity = segment.getString(position);
+        final var quantity = segment.getString(position);
         position += quantitySize;
 
-        var priceSize = segment.get(INT, position);
+        final var priceSize = segment.get(INT, position);
         position += INT.byteSize();
 
-        var price = segment.getString(position);
+        final var price = segment.getString(position);
 
         return new CancelOrder(id, ts, symbol, quantity, price);
     }

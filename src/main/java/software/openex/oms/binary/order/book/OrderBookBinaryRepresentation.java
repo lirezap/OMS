@@ -61,7 +61,7 @@ public final class OrderBookBinaryRepresentation extends BinaryRepresentation<Or
     public static List<BuyOrder> bids(final MemorySegment segment) {
         long position = RHS;
 
-        var bidsSize = segment.get(INT, position);
+        final var bidsSize = segment.get(INT, position);
         position += INT.byteSize();
 
         final var bids = new ArrayList<BuyOrder>(bidsSize);
@@ -77,14 +77,14 @@ public final class OrderBookBinaryRepresentation extends BinaryRepresentation<Or
     public static List<SellOrder> asks(final MemorySegment segment) {
         long position = RHS;
 
-        var bidsSize = segment.get(INT, position);
+        final var bidsSize = segment.get(INT, position);
         position += INT.byteSize();
         for (int i = 1; i <= bidsSize; i++) {
             final var size = RHS + BinaryRepresentable.size(segment.asSlice(position));
             position += size;
         }
 
-        var asksSize = segment.get(INT, position);
+        final var asksSize = segment.get(INT, position);
         position += INT.byteSize();
 
         final var asks = new ArrayList<SellOrder>(asksSize);

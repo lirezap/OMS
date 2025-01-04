@@ -23,6 +23,7 @@ import software.openex.oms.binary.file.FileHeaderBinaryRepresentation;
 import software.openex.oms.binary.order.CancelOrder;
 import software.openex.oms.binary.order.Order;
 import software.openex.oms.binary.trade.Trade;
+import software.openex.oms.binary.trade.TradeBinaryRepresentation;
 import software.openex.oms.storage.AtomicFile;
 import software.openex.oms.storage.ThreadSafeAtomicFile;
 
@@ -86,7 +87,7 @@ public final class EventsSynchronizer implements Runnable {
 
         if (recordId == 103 && recordSize > 0) {
             final var tradeSegment = eventsFile.read(arena, position, RHS + recordSize);
-            final var trade = Trade.decode(tradeSegment);
+            final var trade = TradeBinaryRepresentation.decode(tradeSegment);
             insertTrade(trade, arena, position + RHS + recordSize);
 
             return;
@@ -106,7 +107,7 @@ public final class EventsSynchronizer implements Runnable {
 
         if (recordId == 103 && recordSize > 0) {
             final var tradeSegment = eventsFile.read(arena, fileHeader.representationSize(), RHS + recordSize);
-            final var trade = Trade.decode(tradeSegment);
+            final var trade = TradeBinaryRepresentation.decode(tradeSegment);
             insertTrade(trade, arena, fileHeader.representationSize() + RHS + recordSize);
 
             return;
