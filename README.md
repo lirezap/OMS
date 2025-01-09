@@ -25,3 +25,14 @@ have two active symbols, on each symbol you easily can reach 10K matches, meanin
 core per multiple symbols may affect these numbers. And also, the GC pressure is tried to be minimal, for example
 off-heap memory with manual control over allocation and de-allocation is nearly used all over the packages to gain
 better performance numbers.
+
+---
+
+## Current Features
+
+- Price/Time algorithm
+- Market & Limit orders
+- Cancel order
+- Fetch order book with optional depth parameter
+- Remaining at both order and trade level recording
+- Replay from day 0
