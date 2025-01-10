@@ -24,6 +24,7 @@ import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 
+import static java.lang.foreign.Arena.ofAuto;
 import static java.lang.foreign.Arena.ofShared;
 import static java.lang.foreign.MemorySegment.copy;
 
@@ -57,8 +58,9 @@ public final class Connection implements Closeable {
         return newConnection;
     }
 
-    public MemorySegment copyMessage() {
-        final var copySegment = arena.allocate(buffer().limit());
+    public MemorySegment copyMessageForLog() {
+        // Use automatic memory allocation to hand over de-allocation to GC.
+        final var copySegment = ofAuto().allocate(buffer().limit());
         copy(segment(), 0, copySegment, 0, copySegment.byteSize());
 
         return copySegment;

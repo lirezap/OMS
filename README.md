@@ -34,4 +34,4 @@ better performance numbers.
 - Market & Limit orders
 - Cancel order
 - Fetch order book with optional depth parameter
-- Remaining recording at both order and trade level
+- Remaining recording, at both order and trade models

@@ -176,7 +176,7 @@ public final class Handlers implements Responder {
 
     private void logMessage(final Connection connection) {
         context().messagesLogFile().ifPresentOrElse(file ->
-                file.append(connection.copyMessage().asByteBuffer()), doNothing);
+                file.append(connection.copyMessageForLog().asByteBuffer()), doNothing);
     }
 
     private boolean insertOrder(final Order order, final OrderRequestType type) {
