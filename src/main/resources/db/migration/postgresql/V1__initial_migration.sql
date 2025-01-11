@@ -21,8 +21,6 @@ CREATE TABLE order_request_p3 PARTITION OF order_request FOR VALUES WITH (MODULU
 CREATE TABLE order_request_p4 PARTITION OF order_request FOR VALUES WITH (MODULUS 5, REMAINDER 3);
 CREATE TABLE order_request_p5 PARTITION OF order_request FOR VALUES WITH (MODULUS 5, REMAINDER 4);
 
-CREATE INDEX order_request_symbol_ts ON order_request (symbol, ts) WHERE canceled = FALSE;
-
 -- trade table definition.
 CREATE TABLE trade (
     buy_order_id  BIGINT NOT NULL,
