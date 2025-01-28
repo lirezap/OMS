@@ -15,7 +15,7 @@ By being efficient, I mean the project should use resources efficiently and reac
 loads. Using resources efficiently requires some custom implementations, like low level memory access and managing
 memory manually, thereby in implementation I tried to use these kinds of techniques where ever possible. As an exchange
 platform founder did you ever been sensitized about how much efficient your main software components work?! Does your
-platform works well under heavy loads? With how much cost and resource usage?
+platform works well under heavy loads?! With how much cost and resource usage?
 
 #### Fast
 
