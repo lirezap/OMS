@@ -19,9 +19,9 @@ platform works well under heavy loads?! With how much cost and resource usage?
 
 #### Fast
 
-By being fast, I mean the processing of incoming orders, matching orders and persistence should all be fast and no
-bottleneck is acceptable. Why? because you should compete with other platforms out there, are your customers happy with
-you?! Or they complain about your platform's being slow sometimes?!
+By being fast, I mean the processing of incoming orders, matching orders, persistence and fetching order books should
+all be fast and no bottleneck is acceptable. Why? because you should compete with other platforms out there, are your
+customers happy with you?! Or they complain about your platform's being slow sometimes?!
 
 ---
 
