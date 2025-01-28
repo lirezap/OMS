@@ -40,7 +40,7 @@ working with files and file storage, including an atomic WAL implementation.
 
 #### CPU & Memory Level
 
-The project supports both one-core per symbol, or one-core per multiple symbols architecture. The GC pressure is tried
+The project supports both one-core per symbol or one-core per multiple symbols architecture. The GC pressure is tried
 to be minimal, for example off-heap memory with manual control over allocation and de-allocation is nearly used all over
 the packages to gain better performance numbers.
 
@@ -59,3 +59,10 @@ one-core per multiple symbols may affect these numbers.
 - Order canceling
 - Order book fetching with optional depth parameter
 - Remaining recording, at both order and trade models
+
+---
+
+### Contact
+
+If you have any question about the project, or want to try OMS in a sandbox, or use in production, you can reach me at
+lirezap[at]protonmail[dot]com.
