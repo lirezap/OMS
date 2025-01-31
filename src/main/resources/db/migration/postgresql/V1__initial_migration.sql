@@ -1,15 +1,14 @@
 -- order request table definition.
-CREATE TYPE order_request_type AS ENUM ('BUY', 'SELL');
+CREATE TYPE order_request_side AS ENUM ('BUY', 'SELL');
 
 CREATE TABLE order_request (
     id        BIGINT NOT NULL,
     symbol    VARCHAR(16) NOT NULL,
-    type      order_request_type NOT NULL,
+    side      order_request_side NOT NULL,
     quantity  VARCHAR(32) NOT NULL,
     price     VARCHAR(64) NOT NULL,
     remaining VARCHAR(32) NOT NULL,
     canceled  BOOLEAN NOT NULL DEFAULT FALSE,
-    metadata  VARCHAR(1024),
     ts        TIMESTAMPTZ NOT NULL,
 
     PRIMARY KEY (id, symbol)
@@ -29,7 +28,7 @@ CREATE TABLE trade (
     quantity      VARCHAR(32) NOT NULL,
     buy_price     VARCHAR(64) NOT NULL,
     sell_price    VARCHAR(64) NOT NULL,
-    metadata      VARCHAR(1024),
+    metadata      VARCHAR(256),
     ts            TIMESTAMPTZ NOT NULL
 ) PARTITION BY RANGE (ts);
 

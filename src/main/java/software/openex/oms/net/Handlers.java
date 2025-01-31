@@ -24,7 +24,7 @@ import software.openex.oms.binary.order.*;
 import software.openex.oms.binary.order.book.FetchOrderBookBinaryRepresentation;
 import software.openex.oms.binary.order.book.OrderBook;
 import software.openex.oms.binary.order.book.OrderBookBinaryRepresentation;
-import software.openex.oms.models.enums.OrderRequestType;
+import software.openex.oms.models.enums.OrderRequestSide;
 
 import java.util.ArrayList;
 
@@ -33,8 +33,8 @@ import static java.time.Instant.ofEpochMilli;
 import static org.slf4j.LoggerFactory.getLogger;
 import static software.openex.oms.context.AppContext.context;
 import static software.openex.oms.models.Tables.ORDER_REQUEST;
-import static software.openex.oms.models.enums.OrderRequestType.BUY;
-import static software.openex.oms.models.enums.OrderRequestType.SELL;
+import static software.openex.oms.models.enums.OrderRequestSide.BUY;
+import static software.openex.oms.models.enums.OrderRequestSide.SELL;
 import static software.openex.oms.net.ErrorMessages.*;
 
 /**
@@ -179,10 +179,10 @@ public final class Handlers implements Responder {
                 file.append(connection.copyMessageForLog().asByteBuffer()), doNothing);
     }
 
-    private boolean insertOrder(final Order order, final OrderRequestType type) {
+    private boolean insertOrder(final Order order, final OrderRequestSide side) {
         final var count = context().dataBase().postgresql().insertInto(ORDER_REQUEST)
-                .columns(ORDER_REQUEST.ID, ORDER_REQUEST.SYMBOL, ORDER_REQUEST.TYPE, ORDER_REQUEST.QUANTITY, ORDER_REQUEST.PRICE, ORDER_REQUEST.REMAINING, ORDER_REQUEST.TS)
-                .values(order.getId(), order.getSymbol(), type, order.getQuantity(), order.getPrice(), order.getQuantity(), ofEpochMilli(order.getTs()))
+                .columns(ORDER_REQUEST.ID, ORDER_REQUEST.SYMBOL, ORDER_REQUEST.SIDE, ORDER_REQUEST.QUANTITY, ORDER_REQUEST.PRICE, ORDER_REQUEST.REMAINING, ORDER_REQUEST.TS)
+                .values(order.getId(), order.getSymbol(), side, order.getQuantity(), order.getPrice(), order.getQuantity(), ofEpochMilli(order.getTs()))
                 .execute();
 
         return count == 1;
