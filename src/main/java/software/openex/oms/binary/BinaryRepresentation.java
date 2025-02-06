@@ -17,6 +17,8 @@
  */
 package software.openex.oms.binary;
 
+import software.openex.oms.binary.event.CompressEvent;
+import software.openex.oms.binary.event.EncodeEvent;
 import software.openex.oms.context.Compression;
 
 import java.lang.foreign.Arena;
@@ -52,6 +54,9 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
     }
 
     public final void encodeV1() {
+        final var event = new EncodeEvent(id());
+        event.begin();
+
         // Version
         segment.set(BYTE, position.getAndAdd(BYTE.byteSize()), VR1);
         // Flags
@@ -62,10 +67,16 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
         segment.set(INT, position.getAndAdd(INT.byteSize()), size);
         // Record
         encodeRecord();
+
+        event.end();
+        event.commit();
     }
 
     public final MemorySegment compressLZ4(final Compression compression) {
         try {
+            final var event = new CompressEvent(id());
+            event.begin();
+
             final var neededMemorySize = compression.lz4().compressBound(size);
             if (neededMemorySize <= 0) {
                 throw new RuntimeException("could not compute compress bound!");
@@ -80,8 +91,11 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
             copy(segment, 0, memory, 0, 6);
             memory.set(INT, 6, compressionSize);
             setCompressed(memory);
+            final var reinterpretMemory = memory.reinterpret(RHS + compressionSize);
 
-            return memory.reinterpret(RHS + compressionSize);
+            event.end();
+            event.commit();
+            return reinterpretMemory;
         } catch (Throwable th) {
             throw new RuntimeException(th);
         }
