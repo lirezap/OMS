@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import software.openex.oms.binary.order.Order;
 import software.openex.oms.binary.trade.Trade;
 import software.openex.oms.binary.trade.TradeBinaryRepresentation;
+import software.openex.oms.matching.event.MatchEvent;
 import software.openex.oms.storage.ThreadSafeAtomicFile;
 
 import java.util.PriorityQueue;
@@ -73,13 +74,18 @@ public final class Matcher implements Runnable {
     }
 
     private void trade(final Order buyOrder, final Order sellOrder) {
-        logger.trace("match: buy: {} sell: {}", buyOrder, sellOrder);
+        final var event = new MatchEvent(buyOrder.getSymbol());
+        event.begin();
 
+        logger.trace("match: buy: {} sell: {}", buyOrder, sellOrder);
         switch (buyOrder.get_remaining().compareTo(sellOrder.get_remaining())) {
             case 0 -> handleEquality(buyOrder, sellOrder);
             case 1 -> handleGreaterThan(buyOrder, sellOrder);
             case -1 -> handleLessThan(buyOrder, sellOrder);
         }
+
+        event.end();
+        event.commit();
     }
 
     private void handleEquality(final Order buyOrder, final Order sellOrder) {

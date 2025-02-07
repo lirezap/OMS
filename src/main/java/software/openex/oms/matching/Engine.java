@@ -17,9 +17,12 @@
  */
 package software.openex.oms.matching;
 
+import jdk.jfr.Event;
 import org.slf4j.Logger;
 import software.openex.oms.binary.order.*;
 import software.openex.oms.binary.order.book.FetchOrderBook;
+import software.openex.oms.matching.event.CancelOrderEvent;
+import software.openex.oms.matching.event.FetchOrderBookEvent;
 import software.openex.oms.storage.ThreadSafeAtomicFile;
 
 import java.io.Closeable;
@@ -106,6 +109,9 @@ public final class Engine implements Closeable {
     }
 
     public CompletableFuture<Boolean> cancel(final CancelOrder order) {
+        final var event = new CancelOrderEvent();
+        event.begin();
+
         final var future = new CompletableFuture<Boolean>();
         final var found = new AtomicBoolean(FALSE);
 
@@ -114,7 +120,7 @@ public final class Engine implements Closeable {
                 if (buyOrder.equals(order)) {
                     found.set(TRUE);
                     buyOrders.remove(buyOrder);
-                    buyOrderCanceled(future, order, buyOrder);
+                    buyOrderCanceled(future, order, buyOrder, event);
                 }
             });
 
@@ -123,23 +129,30 @@ public final class Engine implements Closeable {
                     if (sellOrder.equals(order)) {
                         found.set(TRUE);
                         sellOrders.remove(sellOrder);
-                        sellOrderCanceled(future, order, sellOrder);
+                        sellOrderCanceled(future, order, sellOrder, event);
                     }
                 });
             }
 
             if (!found.get()) {
                 future.complete(FALSE);
+                event.end();
+                event.commit();
             }
         });
 
         return future;
     }
 
-    private void buyOrderCanceled(final CompletableFuture<Boolean> future, final CancelOrder order, final Order buyOrder) {
+    private void buyOrderCanceled(final CompletableFuture<Boolean> future, final CancelOrder order,
+                                  final Order buyOrder, final Event event) {
+
         try {
             append(order);
             future.complete(TRUE);
+            event.end();
+            event.commit();
+
             logger.trace("cancel: buy: {}", order);
         } catch (RuntimeException ex) {
             // Re-offer the buy order at previous index.
@@ -148,10 +161,15 @@ public final class Engine implements Closeable {
         }
     }
 
-    private void sellOrderCanceled(final CompletableFuture<Boolean> future, final CancelOrder order, final Order sellOrder) {
+    private void sellOrderCanceled(final CompletableFuture<Boolean> future, final CancelOrder order,
+                                   final Order sellOrder, final Event event) {
+
         try {
             append(order);
             future.complete(TRUE);
+            event.end();
+            event.commit();
+
             logger.trace("cancel: sell: {}", order);
         } catch (RuntimeException ex) {
             // Re-offer the sell order at previous index.
@@ -161,11 +179,15 @@ public final class Engine implements Closeable {
     }
 
     public CompletableFuture<OrderBook> orderBook(final FetchOrderBook fetchOrderBook) {
-        final var future = new CompletableFuture<OrderBook>();
+        final var event = new FetchOrderBookEvent();
+        event.begin();
 
+        final var future = new CompletableFuture<OrderBook>();
         executor.submit(() -> {
             final var size = fetchOrderBook.getFetchSize();
             future.complete(new OrderBook(bidsReferences(size), asksReferences(size)));
+            event.end();
+            event.commit();
         });
 
         return future;
