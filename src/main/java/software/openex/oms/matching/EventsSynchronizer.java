@@ -24,6 +24,8 @@ import software.openex.oms.binary.order.CancelOrder;
 import software.openex.oms.binary.order.Order;
 import software.openex.oms.binary.trade.Trade;
 import software.openex.oms.binary.trade.TradeBinaryRepresentation;
+import software.openex.oms.matching.event.SyncCanceledOrderEvent;
+import software.openex.oms.matching.event.SyncTradeEvent;
 import software.openex.oms.storage.AtomicFile;
 import software.openex.oms.storage.ThreadSafeAtomicFile;
 
@@ -121,6 +123,9 @@ public final class EventsSynchronizer implements Runnable {
     }
 
     private void insertTrade(final Trade trade, final Arena arena, final long nextPositionToImport) {
+        final var event = new SyncTradeEvent();
+        event.begin();
+
         context().dataBase().postgresql().transaction(configuration -> {
             final var count = configuration.dsl().insertInto(TRADE)
                     .columns(TRADE.BUY_ORDER_ID, TRADE.SELL_ORDER_ID, TRADE.SYMBOL, TRADE.QUANTITY, TRADE.BUY_PRICE, TRADE.SELL_PRICE, TRADE.METADATA, TRADE.TS)
@@ -144,11 +149,17 @@ public final class EventsSynchronizer implements Runnable {
                 final var newValue = arena.allocate(LONG.byteSize());
                 newValue.set(LONG, 0, nextPositionToImport);
                 eventsMetadataFile.write(newValue, fileHeader.representationSize());
+
+                event.end();
+                event.commit();
             }
         });
     }
 
     private void cancelOrder(final Order order, final Arena arena, final long nextPositionToImport) {
+        final var event = new SyncCanceledOrderEvent();
+        event.begin();
+
         context().dataBase().postgresql().transaction(configuration -> {
             final var count = configuration.dsl().update(ORDER_REQUEST)
                     .set(ORDER_REQUEST.CANCELED, TRUE)
@@ -161,6 +172,9 @@ public final class EventsSynchronizer implements Runnable {
                 final var newValue = arena.allocate(LONG.byteSize());
                 newValue.set(LONG, 0, nextPositionToImport);
                 eventsMetadataFile.write(newValue, fileHeader.representationSize());
+
+                event.end();
+                event.commit();
             }
         });
     }
