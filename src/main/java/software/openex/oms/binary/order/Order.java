@@ -22,12 +22,9 @@ import java.math.BigDecimal;
 import static software.openex.oms.binary.BinaryRepresentable.representationSize;
 
 /**
- * Order messages are directed to the Price/Time algorithm. Orders can also be entered as non-priced (bid=0, offer=0) as
- * an indication of interest in the security.
- *
  * @author Alireza Pourtaghi
  */
-public abstract sealed class Order permits LimitOrder, CancelOrder {
+public abstract sealed class Order permits LimitOrder, CancelOrder, BuyMarketOrder, SellMarketOrder {
     private final long id;
     private final long ts;
     private final String symbol;

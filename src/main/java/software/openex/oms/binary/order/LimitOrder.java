@@ -22,8 +22,6 @@ import java.math.BigDecimal;
 import static software.openex.oms.binary.BinaryRepresentable.representationSize;
 
 /**
- * A limit order is an order to buy or sell at a specific price or better.
- *
  * @author Alireza Pourtaghi
  */
 public abstract sealed class LimitOrder extends Order implements Comparable<LimitOrder> permits

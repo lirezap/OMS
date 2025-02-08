@@ -8,3 +8,5 @@ Trade: 103
 CancelOrder: 104
 FetchOrderBook: 105
 OrderBook: 106
+BuyMarketOrder: 107
+SellMarketOrder: 108

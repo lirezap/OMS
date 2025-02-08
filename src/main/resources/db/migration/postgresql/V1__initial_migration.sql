@@ -9,7 +9,7 @@ CREATE TABLE order_message (
     type      order_message_type NOT NULL,
     quantity  VARCHAR(32) NOT NULL,
     price     VARCHAR(32),
-    remaining VARCHAR(32) NOT NULL,
+    remaining VARCHAR(32),
     canceled  BOOLEAN NOT NULL DEFAULT FALSE,
     ts        TIMESTAMPTZ NOT NULL,
 

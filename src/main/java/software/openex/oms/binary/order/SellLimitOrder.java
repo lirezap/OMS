@@ -23,8 +23,6 @@ import static java.lang.Long.compare;
 import static software.openex.oms.binary.BinaryRepresentable.*;
 
 /**
- * A sell limit order can only be executed at the limit price or higher.
- *
  * @author Alireza Pourtaghi
  */
 public final class SellLimitOrder extends LimitOrder {
