@@ -19,7 +19,6 @@ package software.openex.oms.binary.order;
 
 import java.lang.foreign.MemorySegment;
 
-import static java.lang.Long.compare;
 import static software.openex.oms.binary.BinaryRepresentable.*;
 
 /**
@@ -27,18 +26,13 @@ import static software.openex.oms.binary.BinaryRepresentable.*;
  */
 public final class CancelOrder extends Order {
 
-    public CancelOrder(final long id, final long ts, final String symbol, final String quantity, final String price) {
-        super(id, ts, symbol, quantity, price);
+    public CancelOrder(final long id, final long ts, final String symbol, final String quantity) {
+        super(id, ts, symbol, quantity);
     }
 
     @Override
     public int representationId() {
         return 104;
-    }
-
-    @Override
-    public int compareTo(final Order o) {
-        return compare(getTs(), o.getTs());
     }
 
     public static CancelOrder decode(final MemorySegment segment) {
@@ -60,13 +54,7 @@ public final class CancelOrder extends Order {
         position += INT.byteSize();
 
         final var quantity = segment.getString(position);
-        position += quantitySize;
 
-        final var priceSize = segment.get(INT, position);
-        position += INT.byteSize();
-
-        final var price = segment.getString(position);
-
-        return new CancelOrder(id, ts, symbol, quantity, price);
+        return new CancelOrder(id, ts, symbol, quantity);
     }
 }

@@ -24,31 +24,32 @@ import java.lang.foreign.Arena;
 /**
  * @author Alireza Pourtaghi
  */
-public final class OrderBinaryRepresentation extends BinaryRepresentation<Order> {
-    private final Order order;
+public final class LimitOrderBinaryRepresentation extends BinaryRepresentation<LimitOrder> {
+    private final LimitOrder limitOrder;
 
-    public OrderBinaryRepresentation(final Order order) {
-        super(order.size());
-        this.order = order;
+    public LimitOrderBinaryRepresentation(final LimitOrder limitOrder) {
+        super(limitOrder.size());
+        this.limitOrder = limitOrder;
     }
 
-    public OrderBinaryRepresentation(final Arena arena, final Order order) {
-        super(arena, order.size());
-        this.order = order;
+    public LimitOrderBinaryRepresentation(final Arena arena, final LimitOrder limitOrder) {
+        super(arena, limitOrder.size());
+        this.limitOrder = limitOrder;
     }
 
     @Override
     protected int id() {
-        return order.representationId();
+        return limitOrder.representationId();
     }
 
     @Override
     protected void encodeRecord() {
         try {
-            putLong(order.getId());
-            putLong(order.getTs());
-            putString(order.getSymbol());
-            putString(order.getQuantity());
+            putLong(limitOrder.getId());
+            putLong(limitOrder.getTs());
+            putString(limitOrder.getSymbol());
+            putString(limitOrder.getQuantity());
+            putString(limitOrder.getPrice());
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

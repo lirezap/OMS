@@ -53,8 +53,8 @@ public final class Engine implements Closeable {
 
     private final ExecutorService executor;
     private final ExecutorService eventsSynchronizerExecutor;
-    private final PriorityQueue<Order> buyOrders;
-    private final PriorityQueue<Order> sellOrders;
+    private final PriorityQueue<LimitOrder> buyOrders;
+    private final PriorityQueue<LimitOrder> sellOrders;
     private final ThreadSafeAtomicFile eventsFile;
     private final Matcher matcher;
     private final EventsSynchronizer eventsSynchronizer;
@@ -80,7 +80,7 @@ public final class Engine implements Closeable {
         eventsSynchronizerExecutor.submit(eventsSynchronizer);
     }
 
-    public CompletableFuture<Void> offer(final BuyOrder order) {
+    public CompletableFuture<Void> offer(final BuyLimitOrder order) {
         final var future = new CompletableFuture<Void>();
         executor.submit(() -> {
             if (buyOrders.offer(order)) {
@@ -94,7 +94,7 @@ public final class Engine implements Closeable {
         return future;
     }
 
-    public CompletableFuture<Void> offer(final SellOrder order) {
+    public CompletableFuture<Void> offer(final SellLimitOrder order) {
         final var future = new CompletableFuture<Void>();
         executor.submit(() -> {
             if (sellOrders.offer(order)) {
@@ -156,7 +156,7 @@ public final class Engine implements Closeable {
             logger.trace("cancel: buy: {}", order);
         } catch (RuntimeException ex) {
             // Re-offer the buy order at previous index.
-            offer((BuyOrder) buyOrder);
+            offer((BuyLimitOrder) buyOrder);
             future.completeExceptionally(ex);
         }
     }
@@ -173,7 +173,7 @@ public final class Engine implements Closeable {
             logger.trace("cancel: sell: {}", order);
         } catch (RuntimeException ex) {
             // Re-offer the sell order at previous index.
-            offer((SellOrder) sellOrder);
+            offer((SellLimitOrder) sellOrder);
             future.completeExceptionally(ex);
         }
     }
@@ -193,12 +193,12 @@ public final class Engine implements Closeable {
         return future;
     }
 
-    private ArrayList<BuyOrder> bidsReferences(final int size) {
-        final var bids = new ArrayList<BuyOrder>(size);
+    private ArrayList<BuyLimitOrder> bidsReferences(final int size) {
+        final var bids = new ArrayList<BuyLimitOrder>(size);
         try {
             for (int i = 1; i <= size; i++) {
                 if (buyOrders.peek() != null) {
-                    bids.add((BuyOrder) buyOrders.poll());
+                    bids.add((BuyLimitOrder) buyOrders.poll());
                 } else {
                     break;
                 }
@@ -212,12 +212,12 @@ public final class Engine implements Closeable {
         return bids;
     }
 
-    private ArrayList<SellOrder> asksReferences(final int size) {
-        final var asks = new ArrayList<SellOrder>(size);
+    private ArrayList<SellLimitOrder> asksReferences(final int size) {
+        final var asks = new ArrayList<SellLimitOrder>(size);
         try {
             for (int i = 1; i <= size; i++) {
                 if (sellOrders.peek() != null) {
-                    asks.add((SellOrder) sellOrders.poll());
+                    asks.add((SellLimitOrder) sellOrders.poll());
                 } else {
                     break;
                 }
@@ -277,19 +277,19 @@ public final class Engine implements Closeable {
      * @author Alireza Pourtaghi
      */
     public static final class OrderBook {
-        private final ArrayList<BuyOrder> bids;
-        private final ArrayList<SellOrder> asks;
+        private final ArrayList<BuyLimitOrder> bids;
+        private final ArrayList<SellLimitOrder> asks;
 
-        public OrderBook(final ArrayList<BuyOrder> bids, final ArrayList<SellOrder> asks) {
+        public OrderBook(final ArrayList<BuyLimitOrder> bids, final ArrayList<SellLimitOrder> asks) {
             this.bids = bids;
             this.asks = asks;
         }
 
-        public ArrayList<BuyOrder> getBids() {
+        public ArrayList<BuyLimitOrder> getBids() {
             return bids;
         }
 
-        public ArrayList<SellOrder> getAsks() {
+        public ArrayList<SellLimitOrder> getAsks() {
             return asks;
         }
     }

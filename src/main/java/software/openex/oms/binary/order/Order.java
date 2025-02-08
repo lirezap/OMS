@@ -22,33 +22,32 @@ import java.math.BigDecimal;
 import static software.openex.oms.binary.BinaryRepresentable.representationSize;
 
 /**
+ * Order messages are directed to the Price/Time algorithm. Orders can also be entered as non-priced (bid=0, offer=0) as
+ * an indication of interest in the security.
+ *
  * @author Alireza Pourtaghi
  */
-public abstract sealed class Order implements Comparable<Order> permits BuyOrder, SellOrder, CancelOrder {
+public abstract sealed class Order permits LimitOrder, CancelOrder {
     private final long id;
     private final long ts;
     private final String symbol;
     private final String quantity;
-    private final String price;
 
     private final BigDecimal _quantity;
-    private final BigDecimal _price;
     private BigDecimal _remaining;
 
-    public Order(final long id, final long ts, final String symbol, final String quantity, final String price) {
+    public Order(final long id, final long ts, final String symbol, final String quantity) {
         this.id = id;
         this.ts = ts;
         this.symbol = symbol == null ? "" : symbol;
         this.quantity = quantity == null ? "" : quantity;
-        this.price = price == null ? "" : price;
 
         this._quantity = new BigDecimal(this.quantity);
-        this._price = new BigDecimal(this.price);
         this._remaining = new BigDecimal(this.quantity);
     }
 
-    public final int size() {
-        return 8 + 8 + representationSize(symbol) + representationSize(quantity) + representationSize(price);
+    public int size() {
+        return 8 + 8 + representationSize(symbol) + representationSize(quantity);
     }
 
     public abstract int representationId();
@@ -69,16 +68,8 @@ public abstract sealed class Order implements Comparable<Order> permits BuyOrder
         return quantity;
     }
 
-    public final String getPrice() {
-        return price;
-    }
-
     public final BigDecimal get_quantity() {
         return _quantity;
-    }
-
-    public final BigDecimal get_price() {
-        return _price;
     }
 
     public final BigDecimal get_remaining() {
@@ -105,15 +96,13 @@ public abstract sealed class Order implements Comparable<Order> permits BuyOrder
     }
 
     @Override
-    public final String toString() {
+    public String toString() {
         return "Order{" +
                 "id=" + id +
                 ", ts=" + ts +
                 ", symbol='" + symbol + '\'' +
                 ", quantity='" + quantity + '\'' +
-                ", price='" + price + '\'' +
                 ", _quantity=" + _quantity +
-                ", _price=" + _price +
                 ", _remaining=" + _remaining +
                 '}';
     }

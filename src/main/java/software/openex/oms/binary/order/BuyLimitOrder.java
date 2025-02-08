@@ -23,11 +23,13 @@ import static java.lang.Long.compare;
 import static software.openex.oms.binary.BinaryRepresentable.*;
 
 /**
+ * A buy limit order can only be executed at the limit price or lower.
+ *
  * @author Alireza Pourtaghi
  */
-public final class BuyOrder extends Order {
+public final class BuyLimitOrder extends LimitOrder {
 
-    public BuyOrder(final long id, final long ts, final String symbol, final String quantity, final String price) {
+    public BuyLimitOrder(final long id, final long ts, final String symbol, final String quantity, final String price) {
         super(id, ts, symbol, quantity, price);
     }
 
@@ -37,12 +39,12 @@ public final class BuyOrder extends Order {
     }
 
     @Override
-    public int compareTo(final Order o) {
+    public int compareTo(final LimitOrder o) {
         final var compare = get_price().compareTo(o.get_price());
         return compare == 0 ? compare(getTs(), o.getTs()) : -compare;
     }
 
-    public static BuyOrder decode(final MemorySegment segment) {
+    public static BuyLimitOrder decode(final MemorySegment segment) {
         long position = RHS;
 
         final var id = segment.get(LONG, position);
@@ -68,6 +70,6 @@ public final class BuyOrder extends Order {
 
         final var price = segment.getString(position);
 
-        return new BuyOrder(id, ts, symbol, quantity, price);
+        return new BuyLimitOrder(id, ts, symbol, quantity, price);
     }
 }

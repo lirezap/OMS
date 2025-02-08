@@ -23,11 +23,13 @@ import static java.lang.Long.compare;
 import static software.openex.oms.binary.BinaryRepresentable.*;
 
 /**
+ * A sell limit order can only be executed at the limit price or higher.
+ *
  * @author Alireza Pourtaghi
  */
-public final class SellOrder extends Order {
+public final class SellLimitOrder extends LimitOrder {
 
-    public SellOrder(final long id, final long ts, final String symbol, final String quantity, final String price) {
+    public SellLimitOrder(final long id, final long ts, final String symbol, final String quantity, final String price) {
         super(id, ts, symbol, quantity, price);
     }
 
@@ -37,12 +39,12 @@ public final class SellOrder extends Order {
     }
 
     @Override
-    public int compareTo(final Order o) {
+    public int compareTo(final LimitOrder o) {
         final var compare = get_price().compareTo(o.get_price());
         return compare == 0 ? compare(getTs(), o.getTs()) : compare;
     }
 
-    public static SellOrder decode(final MemorySegment segment) {
+    public static SellLimitOrder decode(final MemorySegment segment) {
         long position = RHS;
 
         final var id = segment.get(LONG, position);
@@ -68,6 +70,6 @@ public final class SellOrder extends Order {
 
         final var price = segment.getString(position);
 
-        return new SellOrder(id, ts, symbol, quantity, price);
+        return new SellLimitOrder(id, ts, symbol, quantity, price);
     }
 }

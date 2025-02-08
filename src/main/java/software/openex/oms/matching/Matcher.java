@@ -18,7 +18,7 @@
 package software.openex.oms.matching;
 
 import org.slf4j.Logger;
-import software.openex.oms.binary.order.Order;
+import software.openex.oms.binary.order.LimitOrder;
 import software.openex.oms.binary.trade.Trade;
 import software.openex.oms.binary.trade.TradeBinaryRepresentation;
 import software.openex.oms.matching.event.MatchEvent;
@@ -42,12 +42,12 @@ public final class Matcher implements Runnable {
     private static final Logger logger = getLogger(Matcher.class);
 
     private final ExecutorService executor;
-    private final PriorityQueue<Order> buyOrders;
-    private final PriorityQueue<Order> sellOrders;
+    private final PriorityQueue<LimitOrder> buyOrders;
+    private final PriorityQueue<LimitOrder> sellOrders;
     private final ThreadSafeAtomicFile tradesFile;
 
-    public Matcher(final ExecutorService executor, final PriorityQueue<Order> buyOrders,
-                   final PriorityQueue<Order> sellOrders, final ThreadSafeAtomicFile tradesFile) {
+    public Matcher(final ExecutorService executor, final PriorityQueue<LimitOrder> buyOrders,
+                   final PriorityQueue<LimitOrder> sellOrders, final ThreadSafeAtomicFile tradesFile) {
 
         this.executor = executor;
         this.buyOrders = buyOrders;
@@ -73,7 +73,7 @@ public final class Matcher implements Runnable {
         }
     }
 
-    private void trade(final Order buyOrder, final Order sellOrder) {
+    private void trade(final LimitOrder buyOrder, final LimitOrder sellOrder) {
         final var event = new MatchEvent(buyOrder.getSymbol());
         event.begin();
 
@@ -88,7 +88,7 @@ public final class Matcher implements Runnable {
         event.commit();
     }
 
-    private void handleEquality(final Order buyOrder, final Order sellOrder) {
+    private void handleEquality(final LimitOrder buyOrder, final LimitOrder sellOrder) {
         // Both orders must be polled.
         final var now = now();
         final var trade = new Trade(
@@ -111,7 +111,7 @@ public final class Matcher implements Runnable {
         logger.trace("poll: sell: {}", sellOrder);
     }
 
-    private void handleGreaterThan(final Order buyOrder, final Order sellOrder) {
+    private void handleGreaterThan(final LimitOrder buyOrder, final LimitOrder sellOrder) {
         // Sell order must be polled.
         final var now = now();
         final var remaining = buyOrder.get_remaining().subtract(sellOrder.get_remaining());
@@ -133,7 +133,7 @@ public final class Matcher implements Runnable {
         logger.trace("poll: sell: {}", sellOrder);
     }
 
-    private void handleLessThan(final Order buyOrder, final Order sellOrder) {
+    private void handleLessThan(final LimitOrder buyOrder, final LimitOrder sellOrder) {
         // Buy order must be polled.
         final var now = now();
         final var remaining = sellOrder.get_remaining().subtract(buyOrder.get_remaining());

@@ -55,7 +55,7 @@ one-core per multiple symbols may affect these numbers.
 ### Current Features
 
 - Price/Time algorithm
-- Market & Limit orders
+- Limit, Market, FillOrKill, PrimaryPeg, Stop and StopLimit orders
 - Order canceling
 - Order book fetching with optional depth parameter
 - Remaining recording, at both order and trade models

@@ -39,7 +39,7 @@ import static java.time.Instant.ofEpochMilli;
 import static org.slf4j.LoggerFactory.getLogger;
 import static software.openex.oms.binary.BinaryRepresentable.*;
 import static software.openex.oms.context.AppContext.context;
-import static software.openex.oms.models.Tables.ORDER_REQUEST;
+import static software.openex.oms.models.Tables.ORDER_MESSAGE;
 import static software.openex.oms.models.Tables.TRADE;
 
 /**
@@ -134,16 +134,16 @@ public final class EventsSynchronizer implements Runnable {
 
             if (count == 1) {
                 // matching.engine.store_orders option may be false.
-                configuration.dsl().update(ORDER_REQUEST)
-                        .set(ORDER_REQUEST.REMAINING, trade.getMetadata().split(";")[0].replace("bor:", ""))
-                        .where(ORDER_REQUEST.ID.eq(trade.getBuyOrderId()))
-                        .and(ORDER_REQUEST.SYMBOL.eq(trade.getSymbol()))
+                configuration.dsl().update(ORDER_MESSAGE)
+                        .set(ORDER_MESSAGE.REMAINING, trade.getMetadata().split(";")[0].replace("bor:", ""))
+                        .where(ORDER_MESSAGE.ID.eq(trade.getBuyOrderId()))
+                        .and(ORDER_MESSAGE.SYMBOL.eq(trade.getSymbol()))
                         .execute();
 
-                configuration.dsl().update(ORDER_REQUEST)
-                        .set(ORDER_REQUEST.REMAINING, trade.getMetadata().split(";")[1].replace("sor:", ""))
-                        .where(ORDER_REQUEST.ID.eq(trade.getSellOrderId()))
-                        .and(ORDER_REQUEST.SYMBOL.eq(trade.getSymbol()))
+                configuration.dsl().update(ORDER_MESSAGE)
+                        .set(ORDER_MESSAGE.REMAINING, trade.getMetadata().split(";")[1].replace("sor:", ""))
+                        .where(ORDER_MESSAGE.ID.eq(trade.getSellOrderId()))
+                        .and(ORDER_MESSAGE.SYMBOL.eq(trade.getSymbol()))
                         .execute();
 
                 final var newValue = arena.allocate(LONG.byteSize());
@@ -161,10 +161,10 @@ public final class EventsSynchronizer implements Runnable {
         event.begin();
 
         context().dataBase().postgresql().transaction(configuration -> {
-            final var count = configuration.dsl().update(ORDER_REQUEST)
-                    .set(ORDER_REQUEST.CANCELED, TRUE)
-                    .where(ORDER_REQUEST.ID.eq(order.getId()))
-                    .and(ORDER_REQUEST.SYMBOL.eq(order.getSymbol()))
+            final var count = configuration.dsl().update(ORDER_MESSAGE)
+                    .set(ORDER_MESSAGE.CANCELED, TRUE)
+                    .where(ORDER_MESSAGE.ID.eq(order.getId()))
+                    .and(ORDER_MESSAGE.SYMBOL.eq(order.getSymbol()))
                     .execute();
 
             // matching.engine.store_orders option may be false.

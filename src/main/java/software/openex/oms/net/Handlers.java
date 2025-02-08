@@ -24,7 +24,8 @@ import software.openex.oms.binary.order.*;
 import software.openex.oms.binary.order.book.FetchOrderBookBinaryRepresentation;
 import software.openex.oms.binary.order.book.OrderBook;
 import software.openex.oms.binary.order.book.OrderBookBinaryRepresentation;
-import software.openex.oms.models.enums.OrderRequestSide;
+import software.openex.oms.models.enums.OrderMessageSide;
+import software.openex.oms.models.enums.OrderMessageType;
 
 import java.util.ArrayList;
 
@@ -32,9 +33,10 @@ import static java.lang.foreign.Arena.ofShared;
 import static java.time.Instant.ofEpochMilli;
 import static org.slf4j.LoggerFactory.getLogger;
 import static software.openex.oms.context.AppContext.context;
-import static software.openex.oms.models.Tables.ORDER_REQUEST;
-import static software.openex.oms.models.enums.OrderRequestSide.BUY;
-import static software.openex.oms.models.enums.OrderRequestSide.SELL;
+import static software.openex.oms.models.enums.OrderMessageSide.BUY;
+import static software.openex.oms.models.enums.OrderMessageSide.SELL;
+import static software.openex.oms.models.enums.OrderMessageType.LIMIT;
+import static software.openex.oms.models.tables.OrderMessage.ORDER_MESSAGE;
 import static software.openex.oms.net.ErrorMessages.*;
 
 /**
@@ -45,12 +47,12 @@ import static software.openex.oms.net.ErrorMessages.*;
 public final class Handlers implements Responder {
     private static final Logger logger = getLogger(Handlers.class);
 
-    public void handleBuyOrder(final Connection connection) {
+    public void handleBuyLimitOrder(final Connection connection) {
         try {
             // TODO: Validate incoming message.
             logMessage(connection);
-            final var buyOrder = BuyOrder.decode(connection.segment());
-            if (context().config().loadBoolean("matching.engine.store_orders") && !insertOrder(buyOrder, BUY)) {
+            final var buyOrder = BuyLimitOrder.decode(connection.segment());
+            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(buyOrder, BUY, LIMIT)) {
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
@@ -79,12 +81,12 @@ public final class Handlers implements Responder {
         }
     }
 
-    public void handleSellOrder(final Connection connection) {
+    public void handleSellLimitOrder(final Connection connection) {
         try {
             // TODO: Validate incoming message.
             logMessage(connection);
-            final var sellOrder = SellOrder.decode(connection.segment());
-            if (context().config().loadBoolean("matching.engine.store_orders") && !insertOrder(sellOrder, SELL)) {
+            final var sellOrder = SellLimitOrder.decode(connection.segment());
+            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(sellOrder, SELL, LIMIT)) {
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
@@ -145,16 +147,16 @@ public final class Handlers implements Responder {
             context().matchingEngines().orderBook(fetchOrderBook)
                     .thenAccept(orderBook -> {
                         final var arena = ofShared();
-                        final var bids = new ArrayList<BinaryRepresentation<Order>>();
-                        final var asks = new ArrayList<BinaryRepresentation<Order>>();
+                        final var bids = new ArrayList<BinaryRepresentation<LimitOrder>>();
+                        final var asks = new ArrayList<BinaryRepresentation<LimitOrder>>();
 
                         orderBook.getBids().stream()
-                                .map(bid -> new OrderBinaryRepresentation(arena, bid))
+                                .map(bid -> new LimitOrderBinaryRepresentation(arena, bid))
                                 .peek(BinaryRepresentation::encodeV1)
                                 .forEach(bids::add);
 
                         orderBook.getAsks().stream()
-                                .map(ask -> new OrderBinaryRepresentation(arena, ask))
+                                .map(ask -> new LimitOrderBinaryRepresentation(arena, ask))
                                 .peek(BinaryRepresentation::encodeV1)
                                 .forEach(asks::add);
 
@@ -179,10 +181,10 @@ public final class Handlers implements Responder {
                 file.append(connection.copyMessageForLog().asByteBuffer()), doNothing);
     }
 
-    private boolean insertOrder(final Order order, final OrderRequestSide side) {
-        final var count = context().dataBase().postgresql().insertInto(ORDER_REQUEST)
-                .columns(ORDER_REQUEST.ID, ORDER_REQUEST.SYMBOL, ORDER_REQUEST.SIDE, ORDER_REQUEST.QUANTITY, ORDER_REQUEST.PRICE, ORDER_REQUEST.REMAINING, ORDER_REQUEST.TS)
-                .values(order.getId(), order.getSymbol(), side, order.getQuantity(), order.getPrice(), order.getQuantity(), ofEpochMilli(order.getTs()))
+    private boolean insert(final LimitOrder order, final OrderMessageSide side, final OrderMessageType type) {
+        final var count = context().dataBase().postgresql().insertInto(ORDER_MESSAGE)
+                .columns(ORDER_MESSAGE.ID, ORDER_MESSAGE.SYMBOL, ORDER_MESSAGE.SIDE, ORDER_MESSAGE.TYPE, ORDER_MESSAGE.QUANTITY, ORDER_MESSAGE.PRICE, ORDER_MESSAGE.REMAINING, ORDER_MESSAGE.TS)
+                .values(order.getId(), order.getSymbol(), side, type, order.getQuantity(), order.getPrice(), order.getQuantity(), ofEpochMilli(order.getTs()))
                 .execute();
 
         return count == 1;

@@ -33,8 +33,8 @@ public final class Dispatcher implements Responder {
         if (isValid(connection)) {
             context().executors().worker().submit(() -> {
                 switch (id(connection.segment())) {
-                    case 101 -> handlers.handleBuyOrder(connection);
-                    case 102 -> handlers.handleSellOrder(connection);
+                    case 101 -> handlers.handleBuyLimitOrder(connection);
+                    case 102 -> handlers.handleSellLimitOrder(connection);
                     case 104 -> handlers.handleCancelOrder(connection);
                     case 105 -> handlers.handleFetchOrderBook(connection);
 

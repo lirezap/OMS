@@ -1,12 +1,14 @@
--- order request table definition.
-CREATE TYPE order_request_side AS ENUM ('BUY', 'SELL');
+-- order message table definition.
+CREATE TYPE order_message_side AS ENUM ('BUY', 'SELL');
+CREATE TYPE order_message_type AS ENUM ('LIMIT', 'MARKET', 'FILL_OR_KILL', 'PRIMARY_PEG', 'STOP', 'STOP_LIMIT');
 
-CREATE TABLE order_request (
+CREATE TABLE order_message (
     id        BIGINT NOT NULL,
     symbol    VARCHAR(16) NOT NULL,
-    side      order_request_side NOT NULL,
+    side      order_message_side NOT NULL,
+    type      order_message_type NOT NULL,
     quantity  VARCHAR(32) NOT NULL,
-    price     VARCHAR(64) NOT NULL,
+    price     VARCHAR(32),
     remaining VARCHAR(32) NOT NULL,
     canceled  BOOLEAN NOT NULL DEFAULT FALSE,
     ts        TIMESTAMPTZ NOT NULL,
@@ -14,11 +16,11 @@ CREATE TABLE order_request (
     PRIMARY KEY (id, symbol)
 ) PARTITION BY HASH (id, symbol);
 
-CREATE TABLE order_request_p1 PARTITION OF order_request FOR VALUES WITH (MODULUS 5, REMAINDER 0);
-CREATE TABLE order_request_p2 PARTITION OF order_request FOR VALUES WITH (MODULUS 5, REMAINDER 1);
-CREATE TABLE order_request_p3 PARTITION OF order_request FOR VALUES WITH (MODULUS 5, REMAINDER 2);
-CREATE TABLE order_request_p4 PARTITION OF order_request FOR VALUES WITH (MODULUS 5, REMAINDER 3);
-CREATE TABLE order_request_p5 PARTITION OF order_request FOR VALUES WITH (MODULUS 5, REMAINDER 4);
+CREATE TABLE order_message_p1 PARTITION OF order_message FOR VALUES WITH (MODULUS 5, REMAINDER 0);
+CREATE TABLE order_message_p2 PARTITION OF order_message FOR VALUES WITH (MODULUS 5, REMAINDER 1);
+CREATE TABLE order_message_p3 PARTITION OF order_message FOR VALUES WITH (MODULUS 5, REMAINDER 2);
+CREATE TABLE order_message_p4 PARTITION OF order_message FOR VALUES WITH (MODULUS 5, REMAINDER 3);
+CREATE TABLE order_message_p5 PARTITION OF order_message FOR VALUES WITH (MODULUS 5, REMAINDER 4);
 
 -- trade table definition.
 CREATE TABLE trade (
@@ -26,8 +28,8 @@ CREATE TABLE trade (
     sell_order_id BIGINT NOT NULL,
     symbol        VARCHAR(16) NOT NULL,
     quantity      VARCHAR(32) NOT NULL,
-    buy_price     VARCHAR(64) NOT NULL,
-    sell_price    VARCHAR(64) NOT NULL,
+    buy_price     VARCHAR(32) NOT NULL,
+    sell_price    VARCHAR(32) NOT NULL,
     metadata      VARCHAR(256),
     ts            TIMESTAMPTZ NOT NULL
 ) PARTITION BY RANGE (ts);

@@ -18,8 +18,8 @@
 package software.openex.oms.storage;
 
 import org.slf4j.Logger;
-import software.openex.oms.binary.order.Order;
-import software.openex.oms.binary.order.OrderBinaryRepresentation;
+import software.openex.oms.binary.order.LimitOrder;
+import software.openex.oms.binary.order.LimitOrderBinaryRepresentation;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -73,11 +73,11 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
         file.write(buffer, localPosition, buffer, new ByteBufferWriteHandler(file, localPosition));
     }
 
-    public void append(final Order order) {
+    public void append(final LimitOrder limitOrder) {
         final var writer = writers[(int) (index.getAndIncrement() % parallelism)];
 
         writer.getExecutor().submit(() -> {
-            final var representation = new OrderBinaryRepresentation(ofConfined(), order);
+            final var representation = new LimitOrderBinaryRepresentation(ofConfined(), limitOrder);
             representation.encodeV1();
 
             final var file = writer.getFile();

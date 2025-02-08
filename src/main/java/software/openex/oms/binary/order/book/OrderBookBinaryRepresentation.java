@@ -19,8 +19,8 @@ package software.openex.oms.binary.order.book;
 
 import software.openex.oms.binary.BinaryRepresentable;
 import software.openex.oms.binary.BinaryRepresentation;
-import software.openex.oms.binary.order.BuyOrder;
-import software.openex.oms.binary.order.SellOrder;
+import software.openex.oms.binary.order.BuyLimitOrder;
+import software.openex.oms.binary.order.SellLimitOrder;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -58,23 +58,23 @@ public final class OrderBookBinaryRepresentation extends BinaryRepresentation<Or
         }
     }
 
-    public static List<BuyOrder> bids(final MemorySegment segment) {
+    public static List<BuyLimitOrder> bids(final MemorySegment segment) {
         long position = RHS;
 
         final var bidsSize = segment.get(INT, position);
         position += INT.byteSize();
 
-        final var bids = new ArrayList<BuyOrder>(bidsSize);
+        final var bids = new ArrayList<BuyLimitOrder>(bidsSize);
         for (int i = 1; i <= bidsSize; i++) {
             final var size = RHS + BinaryRepresentable.size(segment.asSlice(position));
-            bids.add(BuyOrder.decode(segment.asSlice(position, size)));
+            bids.add(BuyLimitOrder.decode(segment.asSlice(position, size)));
             position += size;
         }
 
         return bids;
     }
 
-    public static List<SellOrder> asks(final MemorySegment segment) {
+    public static List<SellLimitOrder> asks(final MemorySegment segment) {
         long position = RHS;
 
         final var bidsSize = segment.get(INT, position);
@@ -87,10 +87,10 @@ public final class OrderBookBinaryRepresentation extends BinaryRepresentation<Or
         final var asksSize = segment.get(INT, position);
         position += INT.byteSize();
 
-        final var asks = new ArrayList<SellOrder>(asksSize);
+        final var asks = new ArrayList<SellLimitOrder>(asksSize);
         for (int i = 1; i <= asksSize; i++) {
             final var size = RHS + BinaryRepresentable.size(segment.asSlice(position));
-            asks.add(SellOrder.decode(segment.asSlice(position, size)));
+            asks.add(SellLimitOrder.decode(segment.asSlice(position, size)));
             position += size;
         }
 
