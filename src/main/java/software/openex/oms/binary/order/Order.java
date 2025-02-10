@@ -24,7 +24,7 @@ import static software.openex.oms.binary.BinaryRepresentable.representationSize;
 /**
  * @author Alireza Pourtaghi
  */
-public abstract sealed class Order permits LimitOrder, CancelOrder, BuyMarketOrder, SellMarketOrder {
+public abstract sealed class Order permits LimitOrder, CancelOrder, MarketOrder {
     private final long id;
     private final long ts;
     private final String symbol;

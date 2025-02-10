@@ -144,6 +144,21 @@ public final class Engine implements Closeable {
         return future;
     }
 
+    public CompletableFuture<OrderBook> orderBook(final FetchOrderBook fetchOrderBook) {
+        final var event = new FetchOrderBookEvent();
+        event.begin();
+
+        final var future = new CompletableFuture<OrderBook>();
+        executor.submit(() -> {
+            final var size = fetchOrderBook.getFetchSize();
+            future.complete(new OrderBook(bidsReferences(size), asksReferences(size)));
+            event.end();
+            event.commit();
+        });
+
+        return future;
+    }
+
     private void buyOrderCanceled(final CompletableFuture<Boolean> future, final CancelOrder order,
                                   final Order buyOrder, final Event event) {
 
@@ -176,21 +191,6 @@ public final class Engine implements Closeable {
             offer((SellLimitOrder) sellOrder);
             future.completeExceptionally(ex);
         }
-    }
-
-    public CompletableFuture<OrderBook> orderBook(final FetchOrderBook fetchOrderBook) {
-        final var event = new FetchOrderBookEvent();
-        event.begin();
-
-        final var future = new CompletableFuture<OrderBook>();
-        executor.submit(() -> {
-            final var size = fetchOrderBook.getFetchSize();
-            future.complete(new OrderBook(bidsReferences(size), asksReferences(size)));
-            event.end();
-            event.commit();
-        });
-
-        return future;
     }
 
     private ArrayList<BuyLimitOrder> bidsReferences(final int size) {
