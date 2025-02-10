@@ -36,6 +36,7 @@ import static software.openex.oms.context.AppContext.context;
 import static software.openex.oms.models.enums.OrderMessageSide.BUY;
 import static software.openex.oms.models.enums.OrderMessageSide.SELL;
 import static software.openex.oms.models.enums.OrderMessageType.LIMIT;
+import static software.openex.oms.models.enums.OrderMessageType.MARKET;
 import static software.openex.oms.models.tables.OrderMessage.ORDER_MESSAGE;
 import static software.openex.oms.net.ErrorMessages.*;
 
@@ -51,13 +52,13 @@ public final class Handlers implements Responder {
         try {
             // TODO: Validate incoming message.
             logMessage(connection);
-            final var buyOrder = BuyLimitOrder.decode(connection.segment());
-            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(buyOrder, BUY, LIMIT)) {
+            final var buyLimitOrder = BuyLimitOrder.decode(connection.segment());
+            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(buyLimitOrder, BUY, LIMIT)) {
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
 
-            context().matchingEngines().offer(buyOrder)
+            context().matchingEngines().offer(buyLimitOrder)
                     .thenAccept(v -> {
                         // Write the same received message.
                         write(connection);
@@ -85,13 +86,13 @@ public final class Handlers implements Responder {
         try {
             // TODO: Validate incoming message.
             logMessage(connection);
-            final var sellOrder = SellLimitOrder.decode(connection.segment());
-            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(sellOrder, SELL, LIMIT)) {
+            final var sellLimitOrder = SellLimitOrder.decode(connection.segment());
+            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(sellLimitOrder, SELL, LIMIT)) {
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
 
-            context().matchingEngines().offer(sellOrder)
+            context().matchingEngines().offer(sellLimitOrder)
                     .thenAccept(v -> {
                         // Write the same received message.
                         write(connection);
@@ -176,6 +177,60 @@ public final class Handlers implements Responder {
         }
     }
 
+    public void handleBuyMarketOrder(final Connection connection) {
+        try {
+            // TODO: Validate incoming message.
+            logMessage(connection);
+            final var buyMarketOrder = BuyMarketOrder.decode(connection.segment());
+            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(buyMarketOrder, BUY, MARKET)) {
+                write(connection, INTERNAL_SERVER_ERROR);
+                return;
+            }
+
+            context().matchingEngines().offer(buyMarketOrder);
+            // Write the same received message.
+            write(connection);
+        } catch (DataAccessException ex) {
+            if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
+                write(connection, ORDER_ALREADY_EXISTS);
+                return;
+            }
+
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public void handleSellMarketOrder(final Connection connection) {
+        try {
+            // TODO: Validate incoming message.
+            logMessage(connection);
+            final var sellMarketOrder = SellMarketOrder.decode(connection.segment());
+            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(sellMarketOrder, SELL, MARKET)) {
+                write(connection, INTERNAL_SERVER_ERROR);
+                return;
+            }
+
+            context().matchingEngines().offer(sellMarketOrder);
+            // Write the same received message.
+            write(connection);
+        } catch (DataAccessException ex) {
+            if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
+                write(connection, ORDER_ALREADY_EXISTS);
+                return;
+            }
+
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        }
+    }
+
     private void logMessage(final Connection connection) {
         context().messagesLogFile().ifPresentOrElse(file ->
                 file.append(connection.copyMessageForLog().asByteBuffer()), doNothing);
@@ -185,6 +240,15 @@ public final class Handlers implements Responder {
         final var count = context().dataBase().postgresql().insertInto(ORDER_MESSAGE)
                 .columns(ORDER_MESSAGE.ID, ORDER_MESSAGE.SYMBOL, ORDER_MESSAGE.SIDE, ORDER_MESSAGE.TYPE, ORDER_MESSAGE.QUANTITY, ORDER_MESSAGE.PRICE, ORDER_MESSAGE.REMAINING, ORDER_MESSAGE.TS)
                 .values(order.getId(), order.getSymbol(), side, type, order.getQuantity(), order.getPrice(), order.getQuantity(), ofEpochMilli(order.getTs()))
+                .execute();
+
+        return count == 1;
+    }
+
+    private boolean insert(final MarketOrder order, final OrderMessageSide side, final OrderMessageType type) {
+        final var count = context().dataBase().postgresql().insertInto(ORDER_MESSAGE)
+                .columns(ORDER_MESSAGE.ID, ORDER_MESSAGE.SYMBOL, ORDER_MESSAGE.SIDE, ORDER_MESSAGE.TYPE, ORDER_MESSAGE.QUANTITY, ORDER_MESSAGE.REMAINING, ORDER_MESSAGE.TS)
+                .values(order.getId(), order.getSymbol(), side, type, order.getQuantity(), order.getQuantity(), ofEpochMilli(order.getTs()))
                 .execute();
 
         return count == 1;
