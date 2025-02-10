@@ -113,9 +113,9 @@ public final class Engine implements Closeable {
         event.begin();
 
         final var future = new CompletableFuture<Boolean>();
-        final var found = new AtomicBoolean(FALSE);
-
         executor.submit(() -> {
+            final var found = new AtomicBoolean(FALSE);
+
             buyOrders.forEach(buyOrder -> {
                 if (buyOrder.equals(order)) {
                     found.set(TRUE);
