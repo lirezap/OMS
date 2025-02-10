@@ -18,9 +18,7 @@
 package software.openex.oms.context;
 
 import org.slf4j.Logger;
-import software.openex.oms.binary.order.BuyLimitOrder;
-import software.openex.oms.binary.order.CancelOrder;
-import software.openex.oms.binary.order.SellLimitOrder;
+import software.openex.oms.binary.order.*;
 import software.openex.oms.binary.order.book.FetchOrderBook;
 import software.openex.oms.matching.Engine;
 import software.openex.oms.matching.Engine.OrderBook;
@@ -55,6 +53,16 @@ public final class MatchingEngines implements Closeable {
 
     public CompletableFuture<Void> offer(final SellLimitOrder order) {
         return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, initialCap))
+                .offer(order);
+    }
+
+    public void offer(final BuyMarketOrder order) {
+        engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, initialCap))
+                .offer(order);
+    }
+
+    public void offer(final SellMarketOrder order) {
+        engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, initialCap))
                 .offer(order);
     }
 

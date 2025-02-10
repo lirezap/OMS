@@ -108,6 +108,14 @@ public final class Engine implements Closeable {
         return future;
     }
 
+    public void offer(final BuyMarketOrder order) {
+        executor.submit(new BuyMarketOrderMatcher(sellOrders, eventsFile, order));
+    }
+
+    public void offer(final SellMarketOrder order) {
+        executor.submit(new SellMarketOrderMatcher(buyOrders, eventsFile, order));
+    }
+
     public CompletableFuture<Boolean> cancel(final CancelOrder order) {
         final var event = new CancelOrderEvent();
         event.begin();
