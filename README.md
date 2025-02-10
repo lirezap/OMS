@@ -1,7 +1,7 @@
 ### Seriously Safe, Efficient and Fast Order Matching System
 
 This project is aimed to provide a safe, efficient and fast order matching system without any compromise in fairness
-that is very important in OMS software implementations.
+which is very important in OMS software implementations.
 
 #### Safe
 
