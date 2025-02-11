@@ -55,11 +55,16 @@ one-core per multiple symbols may affect these numbers.
 ### Current Features
 
 - Price/Time algorithm
-- Limit, Market, FillOrKill, PrimaryPeg, Stop and StopLimit orders
+- Limit & Market orders
 - Order canceling
 - Order book fetching with optional depth parameter
 - Remaining recording, at both order and trade models
 - JFR enabled to be able to visualize detailed metrics about project's behaviour at runtime
+
+### Under Development Features
+
+- FillOrKill, Stop and StopLimit orders
+- Partial cancelling
 
 ---
 
