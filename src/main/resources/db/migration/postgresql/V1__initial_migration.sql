@@ -1,6 +1,6 @@
 -- order message table definition.
 CREATE TYPE order_message_side AS ENUM ('BUY', 'SELL');
-CREATE TYPE order_message_type AS ENUM ('LIMIT', 'MARKET', 'FILL_OR_KILL', 'PRIMARY_PEG', 'STOP', 'STOP_LIMIT');
+CREATE TYPE order_message_type AS ENUM ('LIMIT', 'MARKET', 'FILL_OR_KILL', 'STOP', 'STOP_LIMIT');
 
 CREATE TABLE order_message (
     id        BIGINT NOT NULL,
