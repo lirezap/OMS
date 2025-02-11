@@ -20,6 +20,9 @@ package software.openex.oms.storage;
 import org.slf4j.Logger;
 import software.openex.oms.binary.file.FileHeader;
 import software.openex.oms.binary.file.FileHeaderBinaryRepresentation;
+import software.openex.oms.storage.event.AtomicFileAppendEvent;
+import software.openex.oms.storage.event.AtomicFileReadEvent;
+import software.openex.oms.storage.event.AtomicFileWriteEvent;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -74,6 +77,9 @@ public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile
     }
 
     public void write(final ByteBuffer buffer, final long position) {
+        final var event = new AtomicFileWriteEvent();
+        event.begin();
+
         try {
             move(source, target, ATOMIC_MOVE);
         } catch (Exception ex) {
@@ -100,6 +106,9 @@ public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile
         } finally {
             try {
                 move(target, source, ATOMIC_MOVE);
+
+                event.end();
+                event.commit();
             } catch (IOException _) {
             }
         }
@@ -110,6 +119,9 @@ public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile
     }
 
     public void append(final ByteBuffer buffer) {
+        final var event = new AtomicFileAppendEvent();
+        event.begin();
+
         try {
             move(source, target, ATOMIC_MOVE);
         } catch (Exception ex) {
@@ -139,6 +151,9 @@ public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile
         } finally {
             try {
                 move(target, source, ATOMIC_MOVE);
+
+                event.end();
+                event.commit();
             } catch (IOException _) {
             }
         }
@@ -149,8 +164,14 @@ public sealed class AtomicFile implements Closeable permits ThreadSafeAtomicFile
     }
 
     public MemorySegment read(final Arena arena, final long position, final long size) throws IOException {
+        final var event = new AtomicFileReadEvent();
+        event.begin();
+
         final var segment = arena.allocate(size);
         file.read(segment.asByteBuffer().clear(), position);
+
+        event.end();
+        event.commit();
 
         return segment;
     }
