@@ -73,16 +73,16 @@ public final class Engine implements Closeable {
     }
 
     private void match() {
-        executor.submit(matcher);
+        executor.execute(matcher);
     }
 
     private void sync() {
-        eventsSynchronizerExecutor.submit(eventsSynchronizer);
+        eventsSynchronizerExecutor.execute(eventsSynchronizer);
     }
 
     public CompletableFuture<Void> offer(final BuyLimitOrder order) {
         final var future = new CompletableFuture<Void>();
-        executor.submit(() -> {
+        executor.execute(() -> {
             if (buyOrders.offer(order)) {
                 future.complete(null);
                 logger.trace("offer: buy: {}", order);
@@ -96,7 +96,7 @@ public final class Engine implements Closeable {
 
     public CompletableFuture<Void> offer(final SellLimitOrder order) {
         final var future = new CompletableFuture<Void>();
-        executor.submit(() -> {
+        executor.execute(() -> {
             if (sellOrders.offer(order)) {
                 future.complete(null);
                 logger.trace("offer: sell: {}", order);
@@ -109,11 +109,11 @@ public final class Engine implements Closeable {
     }
 
     public void offer(final BuyMarketOrder order) {
-        executor.submit(new BuyMarketOrderMatcher(sellOrders, eventsFile, order));
+        executor.execute(new BuyMarketOrderMatcher(sellOrders, eventsFile, order));
     }
 
     public void offer(final SellMarketOrder order) {
-        executor.submit(new SellMarketOrderMatcher(buyOrders, eventsFile, order));
+        executor.execute(new SellMarketOrderMatcher(buyOrders, eventsFile, order));
     }
 
     public CompletableFuture<Boolean> cancel(final CancelOrder order) {
@@ -121,7 +121,7 @@ public final class Engine implements Closeable {
         event.begin();
 
         final var future = new CompletableFuture<Boolean>();
-        executor.submit(() -> {
+        executor.execute(() -> {
             final var found = new AtomicBoolean(FALSE);
 
             buyOrders.forEach(buyOrder -> {
@@ -157,7 +157,7 @@ public final class Engine implements Closeable {
         event.begin();
 
         final var future = new CompletableFuture<OrderBook>();
-        executor.submit(() -> {
+        executor.execute(() -> {
             final var size = fetchOrderBook.getFetchSize();
             future.complete(new OrderBook(bidsReferences(size), asksReferences(size)));
             event.end();

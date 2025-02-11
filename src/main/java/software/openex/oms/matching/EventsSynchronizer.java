@@ -78,7 +78,7 @@ public final class EventsSynchronizer implements Runnable {
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
         } finally {
-            executor.submit(this);
+            executor.execute(this);
         }
     }
 

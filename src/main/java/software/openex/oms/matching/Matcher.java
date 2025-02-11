@@ -69,7 +69,7 @@ public final class Matcher implements Runnable {
                 }
             }
         } finally {
-            executor.submit(this);
+            executor.execute(this);
         }
     }
 

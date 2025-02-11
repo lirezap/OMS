@@ -76,7 +76,7 @@ public final class AsynchronousAppendOnlyFile implements Closeable {
     public void append(final LimitOrder limitOrder) {
         final var writer = writers[(int) (index.getAndIncrement() % parallelism)];
 
-        writer.getExecutor().submit(() -> {
+        writer.getExecutor().execute(() -> {
             final var representation = new LimitOrderBinaryRepresentation(ofConfined(), limitOrder);
             representation.encodeV1();
 
