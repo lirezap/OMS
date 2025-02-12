@@ -1,6 +1,7 @@
 -- order message table definition.
 CREATE TYPE order_message_side AS ENUM ('BUY', 'SELL');
 CREATE TYPE order_message_type AS ENUM ('LIMIT', 'MARKET', 'FILL_OR_KILL', 'STOP', 'STOP_LIMIT');
+CREATE TYPE order_message_state AS ENUM ('ACTIVE', 'CANCELED');
 
 CREATE TABLE order_message (
     id        BIGINT NOT NULL,
@@ -10,7 +11,7 @@ CREATE TABLE order_message (
     quantity  VARCHAR(32) NOT NULL,
     price     VARCHAR(32),
     remaining VARCHAR(32),
-    canceled  BOOLEAN NOT NULL DEFAULT FALSE,
+    state     order_message_state NOT NULL DEFAULT 'ACTIVE',
     ts        TIMESTAMPTZ NOT NULL,
 
     PRIMARY KEY (id, symbol)

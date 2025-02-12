@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.lang.foreign.Arena;
 import java.util.concurrent.ExecutorService;
 
-import static java.lang.Boolean.TRUE;
 import static java.lang.foreign.Arena.ofConfined;
 import static java.time.Instant.ofEpochMilli;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -41,6 +40,7 @@ import static software.openex.oms.binary.BinaryRepresentable.*;
 import static software.openex.oms.context.AppContext.context;
 import static software.openex.oms.models.Tables.ORDER_MESSAGE;
 import static software.openex.oms.models.Tables.TRADE;
+import static software.openex.oms.models.enums.OrderMessageState.CANCELED;
 
 /**
  * Events synchronizer implementation that must keep trades, remaining quantity of orders and canceled orders in sync
@@ -162,7 +162,7 @@ public final class EventsSynchronizer implements Runnable {
 
         context().dataBase().postgresql().transaction(configuration -> {
             final var count = configuration.dsl().update(ORDER_MESSAGE)
-                    .set(ORDER_MESSAGE.CANCELED, TRUE)
+                    .set(ORDER_MESSAGE.STATE, CANCELED)
                     .where(ORDER_MESSAGE.ID.eq(order.getId()))
                     .and(ORDER_MESSAGE.SYMBOL.eq(order.getSymbol()))
                     .execute();
