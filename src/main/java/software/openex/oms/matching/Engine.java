@@ -64,7 +64,7 @@ public final class Engine implements Closeable {
         this.eventsSynchronizerExecutor = newSingleThreadExecutor();
         this.buyOrders = new PriorityQueue<>(initialCapacity);
         this.sellOrders = new PriorityQueue<>(initialCapacity);
-        this.eventsFile = eventsFile(symbol.strip().replace("/", ""));
+        this.eventsFile = eventsFile(symbol);
         this.matcher = new Matcher(this.executor, this.buyOrders, this.sellOrders, this.eventsFile);
         this.eventsSynchronizer = new EventsSynchronizer(this.eventsSynchronizerExecutor, this.eventsFile);
 
@@ -279,6 +279,10 @@ public final class Engine implements Closeable {
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
         }
+    }
+
+    public boolean isInSync() {
+        return eventsSynchronizer.isInSync();
     }
 
     /**

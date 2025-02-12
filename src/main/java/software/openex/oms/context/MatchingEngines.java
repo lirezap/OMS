@@ -25,9 +25,14 @@ import software.openex.oms.matching.Engine.OrderBook;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.lang.Thread.sleep;
+import static java.nio.file.Files.list;
+import static java.nio.file.Path.of;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -40,10 +45,29 @@ public final class MatchingEngines implements Closeable {
 
     private final ConcurrentHashMap<String, Engine> engines;
     private final int initialCap;
+    private final Path dataDirectoryPath;
 
     public MatchingEngines(final Configuration configuration) {
         this.engines = new ConcurrentHashMap<>();
         this.initialCap = configuration.loadInt("matching.engine.queues_initial_cap");
+        this.dataDirectoryPath = of(configuration.loadString("matching.engine.data_directory_path"));
+    }
+
+    public void load() {
+        try {
+            findSymbols().forEach(foundSymbol -> engines.computeIfAbsent(foundSymbol, symbol -> new Engine(symbol, initialCap)));
+            for (final var engine : engines.entrySet()) {
+                while (!engine.getValue().isInSync()) {
+                    // Sleep for 1 second to check at next round!
+                    logger.info("Events file is syncing for {}; still could not accept incoming messages \uD83E\uDD71\uD83D\uDE44!", engine.getKey());
+                    sleep(1000);
+                }
+            }
+
+            logger.info("Matching engines are ready to accept incoming messages ... \uD83E\uDD73");
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     public CompletableFuture<Void> offer(final BuyLimitOrder order) {
@@ -74,6 +98,15 @@ public final class MatchingEngines implements Closeable {
     public CompletableFuture<OrderBook> orderBook(final FetchOrderBook fetchOrderBook) {
         return engines.computeIfAbsent(fetchOrderBook.getSymbol(), symbol -> new Engine(symbol, initialCap))
                 .orderBook(fetchOrderBook);
+    }
+
+    private List<String> findSymbols() throws IOException {
+        try (final var stream = list(dataDirectoryPath)) {
+            return stream.map(Path::toFile)
+                    .filter(file -> file.getName().endsWith(".events") || file.getName().endsWith(".events.mv"))
+                    .map(file -> file.getName().split("\\.")[0])
+                    .toList();
+        }
     }
 
     @Override

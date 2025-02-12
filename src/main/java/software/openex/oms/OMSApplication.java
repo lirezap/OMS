@@ -33,12 +33,13 @@ public final class OMSApplication {
     private static final Logger logger = getLogger(OMSApplication.class);
 
     public static void main(final String... args) {
-        logger.info("Starting OMS; Version: {}", OMSApplication.class.getPackage().getImplementationVersion());
-
         try {
             initialize();
             context().databaseMigrator().migrate();
+            context().matchingEngines().load();
             context().socketServer().listen();
+
+            logger.info("Started OMS; Version: {}", OMSApplication.class.getPackage().getImplementationVersion());
         } catch (Exception ex) {
             logger.error("error on initializing application context: {}", ex.getMessage(), ex);
             exit(-1);

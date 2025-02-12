@@ -17,6 +17,7 @@
  */
 package software.openex.oms.matching;
 
+import org.jooq.Configuration;
 import org.slf4j.Logger;
 import software.openex.oms.binary.file.FileHeader;
 import software.openex.oms.binary.file.FileHeaderBinaryRepresentation;
@@ -41,6 +42,7 @@ import static software.openex.oms.context.AppContext.context;
 import static software.openex.oms.models.Tables.ORDER_MESSAGE;
 import static software.openex.oms.models.Tables.TRADE;
 import static software.openex.oms.models.enums.OrderMessageState.CANCELED;
+import static software.openex.oms.models.enums.OrderMessageState.EXECUTED;
 
 /**
  * Events synchronizer implementation that must keep trades, remaining quantity of orders and canceled orders in sync
@@ -52,11 +54,13 @@ public final class EventsSynchronizer implements Runnable {
     private static final Logger logger = getLogger(EventsSynchronizer.class);
     private static final FileHeaderBinaryRepresentation fileHeader = new FileHeaderBinaryRepresentation(new FileHeader(0));
 
+    private boolean inSync;
     private final ExecutorService executor;
     private final ThreadSafeAtomicFile eventsFile;
     private final AtomicFile eventsMetadataFile;
 
     public EventsSynchronizer(final ExecutorService executor, final ThreadSafeAtomicFile eventsFile) {
+        this.inSync = false;
         this.executor = executor;
         this.eventsFile = eventsFile;
         this.eventsMetadataFile = eventsMetadataFile();
@@ -87,6 +91,9 @@ public final class EventsSynchronizer implements Runnable {
         final var recordId = id(fileSegment);
         final var recordSize = size(fileSegment);
 
+        // We reached end of events file?
+        inSync = recordSize == 0;
+
         if (recordId == 103 && recordSize > 0) {
             final var tradeSegment = eventsFile.read(arena, position, RHS + recordSize);
             final var trade = TradeBinaryRepresentation.decode(tradeSegment);
@@ -106,6 +113,9 @@ public final class EventsSynchronizer implements Runnable {
         final var fileSegment = eventsFile.read(arena, fileHeader.representationSize(), RHS);
         final var recordId = id(fileSegment);
         final var recordSize = size(fileSegment);
+
+        // We reached end of events file?
+        inSync = recordSize == 0;
 
         if (recordId == 103 && recordSize > 0) {
             final var tradeSegment = eventsFile.read(arena, fileHeader.representationSize(), RHS + recordSize);
@@ -133,19 +143,7 @@ public final class EventsSynchronizer implements Runnable {
                     .execute();
 
             if (count == 1) {
-                // matching.engine.store_orders option may be false.
-                configuration.dsl().update(ORDER_MESSAGE)
-                        .set(ORDER_MESSAGE.REMAINING, trade.getMetadata().split(";")[0].replace("bor:", ""))
-                        .where(ORDER_MESSAGE.ID.eq(trade.getBuyOrderId()))
-                        .and(ORDER_MESSAGE.SYMBOL.eq(trade.getSymbol()))
-                        .execute();
-
-                configuration.dsl().update(ORDER_MESSAGE)
-                        .set(ORDER_MESSAGE.REMAINING, trade.getMetadata().split(";")[1].replace("sor:", ""))
-                        .where(ORDER_MESSAGE.ID.eq(trade.getSellOrderId()))
-                        .and(ORDER_MESSAGE.SYMBOL.eq(trade.getSymbol()))
-                        .execute();
-
+                updateOrders(configuration, trade);
                 final var newValue = arena.allocate(LONG.byteSize());
                 newValue.set(LONG, 0, nextPositionToImport);
                 eventsMetadataFile.write(newValue, fileHeader.representationSize());
@@ -179,11 +177,50 @@ public final class EventsSynchronizer implements Runnable {
         });
     }
 
+    private void updateOrders(final Configuration configuration, final Trade trade) {
+        // matching.engine.store_orders option may be false.
+        final var bor = trade.getMetadata().split(";")[0].replace("bor:", "");
+        if (bor.equals("0")) {
+            configuration.dsl().update(ORDER_MESSAGE)
+                    .set(ORDER_MESSAGE.STATE, EXECUTED)
+                    .set(ORDER_MESSAGE.REMAINING, bor)
+                    .where(ORDER_MESSAGE.ID.eq(trade.getBuyOrderId()))
+                    .and(ORDER_MESSAGE.SYMBOL.eq(trade.getSymbol()))
+                    .execute();
+        } else {
+            configuration.dsl().update(ORDER_MESSAGE)
+                    .set(ORDER_MESSAGE.REMAINING, bor)
+                    .where(ORDER_MESSAGE.ID.eq(trade.getBuyOrderId()))
+                    .and(ORDER_MESSAGE.SYMBOL.eq(trade.getSymbol()))
+                    .execute();
+        }
+
+        final var sor = trade.getMetadata().split(";")[1].replace("sor:", "");
+        if (sor.equals("0")) {
+            configuration.dsl().update(ORDER_MESSAGE)
+                    .set(ORDER_MESSAGE.STATE, EXECUTED)
+                    .set(ORDER_MESSAGE.REMAINING, sor)
+                    .where(ORDER_MESSAGE.ID.eq(trade.getSellOrderId()))
+                    .and(ORDER_MESSAGE.SYMBOL.eq(trade.getSymbol()))
+                    .execute();
+        } else {
+            configuration.dsl().update(ORDER_MESSAGE)
+                    .set(ORDER_MESSAGE.REMAINING, sor)
+                    .where(ORDER_MESSAGE.ID.eq(trade.getSellOrderId()))
+                    .and(ORDER_MESSAGE.SYMBOL.eq(trade.getSymbol()))
+                    .execute();
+        }
+    }
+
     private AtomicFile eventsMetadataFile() {
         try {
             return new AtomicFile(eventsFile.source().resolveSibling(eventsFile.source().getFileName() + ".metadata"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public boolean isInSync() {
+        return inSync;
     }
 }
