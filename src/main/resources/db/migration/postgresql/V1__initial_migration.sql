@@ -23,6 +23,8 @@ CREATE TABLE order_message_p3 PARTITION OF order_message FOR VALUES WITH (MODULU
 CREATE TABLE order_message_p4 PARTITION OF order_message FOR VALUES WITH (MODULUS 5, REMAINDER 3);
 CREATE TABLE order_message_p5 PARTITION OF order_message FOR VALUES WITH (MODULUS 5, REMAINDER 4);
 
+CREATE INDEX order_message_state_ts ON order_message (state, ts) WHERE state IN ('ACTIVE');
+
 -- trade table definition.
 CREATE TABLE trade (
     buy_order_id  BIGINT NOT NULL,
