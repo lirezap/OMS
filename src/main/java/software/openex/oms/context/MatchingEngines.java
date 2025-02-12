@@ -59,12 +59,12 @@ public final class MatchingEngines implements Closeable {
             for (final var engine : engines.entrySet()) {
                 while (!engine.getValue().isInSync()) {
                     // Sleep for 1 second to check at next round!
-                    logger.info("Events file is syncing for {}; still could not accept incoming messages \uD83E\uDD71\uD83D\uDE44!", engine.getKey());
+                    logger.info("Events file is syncing for {}; still can't accept incoming messages!", engine.getKey());
                     sleep(1000);
                 }
             }
 
-            logger.info("Matching engines are ready to accept incoming messages ... \uD83E\uDD73");
+            logger.info("Matching engines are ready to accept incoming messages ...");
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
