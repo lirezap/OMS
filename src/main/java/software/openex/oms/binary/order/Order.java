@@ -34,13 +34,17 @@ public abstract sealed class Order permits LimitOrder, CancelOrder, MarketOrder 
     private BigDecimal _remaining;
 
     public Order(final long id, final long ts, final String symbol, final String quantity) {
+        this(id, ts, symbol, quantity, quantity);
+    }
+
+    public Order(final long id, final long ts, final String symbol, final String quantity, final String remaining) {
         this.id = id;
         this.ts = ts;
         this.symbol = symbol == null ? "" : symbol;
         this.quantity = quantity == null ? "" : quantity;
 
         this._quantity = new BigDecimal(this.quantity);
-        this._remaining = new BigDecimal(this.quantity);
+        this._remaining = new BigDecimal(remaining);
     }
 
     public int size() {

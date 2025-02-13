@@ -59,7 +59,7 @@ public final class Engine implements Closeable {
     private final Matcher matcher;
     private final EventsSynchronizer eventsSynchronizer;
 
-    public Engine(final String symbol, final int initialCapacity) {
+    public Engine(final String symbol, final int initialCapacity, final boolean start) {
         this.executor = newSingleThreadExecutor();
         this.eventsSynchronizerExecutor = newSingleThreadExecutor();
         this.buyOrders = new PriorityQueue<>(initialCapacity);
@@ -68,16 +68,22 @@ public final class Engine implements Closeable {
         this.matcher = new Matcher(this.executor, this.buyOrders, this.sellOrders, this.eventsFile);
         this.eventsSynchronizer = new EventsSynchronizer(this.eventsSynchronizerExecutor, this.eventsFile);
 
-        match();
-        sync();
+        if (start) {
+            startMatching();
+            startSyncing();
+        }
     }
 
-    private void match() {
+    public void startMatching() {
         executor.execute(matcher);
     }
 
-    private void sync() {
+    public void startSyncing() {
         eventsSynchronizerExecutor.execute(eventsSynchronizer);
+    }
+
+    public boolean isInSync() {
+        return eventsSynchronizer.isInSync();
     }
 
     public CompletableFuture<Void> offer(final BuyLimitOrder order) {
@@ -279,10 +285,6 @@ public final class Engine implements Closeable {
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
         }
-    }
-
-    public boolean isInSync() {
-        return eventsSynchronizer.isInSync();
     }
 
     /**

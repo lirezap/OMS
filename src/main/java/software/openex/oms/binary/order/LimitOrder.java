@@ -31,7 +31,13 @@ public abstract sealed class LimitOrder extends Order implements Comparable<Limi
     private final BigDecimal _price;
 
     public LimitOrder(final long id, final long ts, final String symbol, final String quantity, final String price) {
-        super(id, ts, symbol, quantity);
+        this(id, ts, symbol, quantity, quantity, price);
+    }
+
+    public LimitOrder(final long id, final long ts, final String symbol, final String quantity, final String remaining,
+                      final String price) {
+
+        super(id, ts, symbol, quantity, remaining);
         this.price = price == null ? "" : price;
         this._price = new BigDecimal(this.price);
     }

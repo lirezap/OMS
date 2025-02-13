@@ -36,7 +36,9 @@ public final class OMSApplication {
         try {
             initialize();
             context().databaseMigrator().migrate();
-            context().matchingEngines().load();
+            context().matchingEngines().syncEventsWithDatabase();
+            context().matchingEngines().loadOrderBooksFromDatabase();
+            context().matchingEngines().start();
             context().socketServer().listen();
 
             logger.info("Started OMS; Version: {}", OMSApplication.class.getPackage().getImplementationVersion());
