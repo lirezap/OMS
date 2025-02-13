@@ -69,7 +69,7 @@ public final class Matcher implements Runnable {
                 }
             }
         } finally {
-            executor.execute(this);
+            if (!executor.isShutdown()) executor.execute(this);
         }
     }
 
