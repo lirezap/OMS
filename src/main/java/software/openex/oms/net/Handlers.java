@@ -25,7 +25,6 @@ import software.openex.oms.binary.order.book.FetchOrderBookBinaryRepresentation;
 import software.openex.oms.binary.order.book.OrderBook;
 import software.openex.oms.binary.order.book.OrderBookBinaryRepresentation;
 import software.openex.oms.models.enums.OrderMessageSide;
-import software.openex.oms.models.enums.OrderMessageType;
 
 import java.util.ArrayList;
 
@@ -53,7 +52,7 @@ public final class Handlers implements Responder {
             // TODO: Validate incoming message.
             logMessage(connection);
             final var buyLimitOrder = BuyLimitOrder.decode(connection.segment());
-            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(buyLimitOrder, BUY, LIMIT)) {
+            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(buyLimitOrder, BUY)) {
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
@@ -87,7 +86,7 @@ public final class Handlers implements Responder {
             // TODO: Validate incoming message.
             logMessage(connection);
             final var sellLimitOrder = SellLimitOrder.decode(connection.segment());
-            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(sellLimitOrder, SELL, LIMIT)) {
+            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(sellLimitOrder, SELL)) {
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
@@ -182,7 +181,7 @@ public final class Handlers implements Responder {
             // TODO: Validate incoming message.
             logMessage(connection);
             final var buyMarketOrder = BuyMarketOrder.decode(connection.segment());
-            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(buyMarketOrder, BUY, MARKET)) {
+            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(buyMarketOrder, BUY)) {
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
@@ -209,7 +208,7 @@ public final class Handlers implements Responder {
             // TODO: Validate incoming message.
             logMessage(connection);
             final var sellMarketOrder = SellMarketOrder.decode(connection.segment());
-            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(sellMarketOrder, SELL, MARKET)) {
+            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(sellMarketOrder, SELL)) {
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
@@ -236,19 +235,19 @@ public final class Handlers implements Responder {
                 file.append(connection.copyMessageForLog().asByteBuffer()), doNothing);
     }
 
-    private boolean insert(final LimitOrder order, final OrderMessageSide side, final OrderMessageType type) {
+    private boolean insert(final LimitOrder order, final OrderMessageSide side) {
         final var count = context().dataBase().postgresql().insertInto(ORDER_MESSAGE)
                 .columns(ORDER_MESSAGE.ID, ORDER_MESSAGE.SYMBOL, ORDER_MESSAGE.SIDE, ORDER_MESSAGE.TYPE, ORDER_MESSAGE.QUANTITY, ORDER_MESSAGE.PRICE, ORDER_MESSAGE.REMAINING, ORDER_MESSAGE.TS)
-                .values(order.getId(), order.getSymbol(), side, type, order.getQuantity(), order.getPrice(), order.getQuantity(), ofEpochMilli(order.getTs()))
+                .values(order.getId(), order.getSymbol(), side, LIMIT, order.getQuantity(), order.getPrice(), order.getQuantity(), ofEpochMilli(order.getTs()))
                 .execute();
 
         return count == 1;
     }
 
-    private boolean insert(final MarketOrder order, final OrderMessageSide side, final OrderMessageType type) {
+    private boolean insert(final MarketOrder order, final OrderMessageSide side) {
         final var count = context().dataBase().postgresql().insertInto(ORDER_MESSAGE)
                 .columns(ORDER_MESSAGE.ID, ORDER_MESSAGE.SYMBOL, ORDER_MESSAGE.SIDE, ORDER_MESSAGE.TYPE, ORDER_MESSAGE.QUANTITY, ORDER_MESSAGE.REMAINING, ORDER_MESSAGE.TS)
-                .values(order.getId(), order.getSymbol(), side, type, order.getQuantity(), order.getQuantity(), ofEpochMilli(order.getTs()))
+                .values(order.getId(), order.getSymbol(), side, MARKET, order.getQuantity(), order.getQuantity(), ofEpochMilli(order.getTs()))
                 .execute();
 
         return count == 1;
