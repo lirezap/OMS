@@ -18,21 +18,21 @@ public class BinaryRepresentableTest {
         var message = new ErrorMessage("code", "message");
         try (var binaryRepresentation = new ErrorMessageBinaryRepresentation(message)) {
             binaryRepresentation.encodeV1();
-            assertEquals(BinaryRepresentable.version(binaryRepresentation.segment()), 1);
-            assertEquals(BinaryRepresentable.flags(binaryRepresentation.segment()), 0b00000000);
-            assertEquals(BinaryRepresentable.id(binaryRepresentation.segment()), -1);
-            assertEquals(BinaryRepresentable.size(binaryRepresentation.segment()), 21);
+            assertEquals(1, BinaryRepresentable.version(binaryRepresentation.segment()));
+            assertEquals(0b00000000, BinaryRepresentable.flags(binaryRepresentation.segment()));
+            assertEquals(-1, BinaryRepresentable.id(binaryRepresentation.segment()));
+            assertEquals(21, BinaryRepresentable.size(binaryRepresentation.segment()));
         }
     }
 
     @Test
     public void testStringSize() {
-        assertEquals(BinaryRepresentable.representationSize("Testing"), 12);
+        assertEquals(12, BinaryRepresentable.representationSize("Testing"));
     }
 
     @Test
     public void testByteArraySize() {
-        assertEquals(BinaryRepresentable.representationSize(new byte[]{1, 2, 3, 4, 5}), 9);
+        assertEquals(9, BinaryRepresentable.representationSize(new byte[]{1, 2, 3, 4, 5}));
     }
 
     @Test
@@ -45,7 +45,7 @@ public class BinaryRepresentableTest {
 
             binaryRepresentation1.encodeV1();
             binaryRepresentation2.encodeV1();
-            assertEquals(BinaryRepresentable.representationSize(List.of(binaryRepresentation1, binaryRepresentation2)), 82);
+            assertEquals(82, BinaryRepresentable.representationSize(List.of(binaryRepresentation1, binaryRepresentation2)));
         }
     }
 }
