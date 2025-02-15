@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 import software.openex.oms.binary.base.ErrorMessage;
 import software.openex.oms.binary.base.ErrorMessageBinaryRepresentation;
 
-import java.util.List;
-
+import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -45,7 +44,7 @@ public class BinaryRepresentableTest {
 
             binaryRepresentation1.encodeV1();
             binaryRepresentation2.encodeV1();
-            assertEquals(82, BinaryRepresentable.representationSize(List.of(binaryRepresentation1, binaryRepresentation2)));
+            assertEquals(82, BinaryRepresentable.representationSize(of(binaryRepresentation1, binaryRepresentation2)));
         }
     }
 }

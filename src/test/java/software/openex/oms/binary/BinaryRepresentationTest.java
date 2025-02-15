@@ -14,8 +14,9 @@ import software.openex.oms.binary.trade.Trade;
 import software.openex.oms.binary.trade.TradeBinaryRepresentation;
 
 import java.math.BigDecimal;
-import java.util.List;
 
+import static java.lang.System.currentTimeMillis;
+import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -52,7 +53,7 @@ public class BinaryRepresentationTest {
 
     @Test
     public void testBuyLimitOrder() {
-        var order = new BuyLimitOrder(1, System.currentTimeMillis(), "BTC/USDT", "1", "100000");
+        var order = new BuyLimitOrder(1, currentTimeMillis(), "BTC/USDT", "1", "100000");
         try (var binaryRepresentation = new LimitOrderBinaryRepresentation(order)) {
             binaryRepresentation.encodeV1();
 
@@ -79,12 +80,12 @@ public class BinaryRepresentationTest {
         var o2 = new BuyLimitOrder(2, 1, "BTC/USDT", "1", "100000");
         assertEquals(0, o1.compareTo(o2));
 
-        o1 = new BuyLimitOrder(1, System.currentTimeMillis(), "BTC/USDT", "1", "100001");
-        o2 = new BuyLimitOrder(2, System.currentTimeMillis(), "BTC/USDT", "1", "100000");
+        o1 = new BuyLimitOrder(1, currentTimeMillis(), "BTC/USDT", "1", "100001");
+        o2 = new BuyLimitOrder(2, currentTimeMillis(), "BTC/USDT", "1", "100000");
         assertEquals(-1, o1.compareTo(o2));
 
-        o1 = new BuyLimitOrder(1, System.currentTimeMillis(), "BTC/USDT", "1", "100000");
-        o2 = new BuyLimitOrder(2, System.currentTimeMillis(), "BTC/USDT", "1", "100001");
+        o1 = new BuyLimitOrder(1, currentTimeMillis(), "BTC/USDT", "1", "100000");
+        o2 = new BuyLimitOrder(2, currentTimeMillis(), "BTC/USDT", "1", "100001");
         assertEquals(1, o1.compareTo(o2));
 
         o1 = new BuyLimitOrder(1, 1, "BTC/USDT", "1", "100000");
@@ -94,7 +95,7 @@ public class BinaryRepresentationTest {
 
     @Test
     public void testSellLimitOrder() {
-        var order = new SellLimitOrder(1, System.currentTimeMillis(), "BTC/USDT", "1", "100000");
+        var order = new SellLimitOrder(1, currentTimeMillis(), "BTC/USDT", "1", "100000");
         try (var binaryRepresentation = new LimitOrderBinaryRepresentation(order)) {
             binaryRepresentation.encodeV1();
 
@@ -121,12 +122,12 @@ public class BinaryRepresentationTest {
         var o2 = new SellLimitOrder(2, 1, "BTC/USDT", "1", "100000");
         assertEquals(0, o1.compareTo(o2));
 
-        o1 = new SellLimitOrder(1, System.currentTimeMillis(), "BTC/USDT", "1", "100001");
-        o2 = new SellLimitOrder(2, System.currentTimeMillis(), "BTC/USDT", "1", "100000");
+        o1 = new SellLimitOrder(1, currentTimeMillis(), "BTC/USDT", "1", "100001");
+        o2 = new SellLimitOrder(2, currentTimeMillis(), "BTC/USDT", "1", "100000");
         assertEquals(1, o1.compareTo(o2));
 
-        o1 = new SellLimitOrder(1, System.currentTimeMillis(), "BTC/USDT", "1", "100000");
-        o2 = new SellLimitOrder(2, System.currentTimeMillis(), "BTC/USDT", "1", "100001");
+        o1 = new SellLimitOrder(1, currentTimeMillis(), "BTC/USDT", "1", "100000");
+        o2 = new SellLimitOrder(2, currentTimeMillis(), "BTC/USDT", "1", "100001");
         assertEquals(-1, o1.compareTo(o2));
 
         o1 = new SellLimitOrder(1, 1, "BTC/USDT", "1", "100000");
@@ -136,7 +137,7 @@ public class BinaryRepresentationTest {
 
     @Test
     public void testTrade() {
-        var trade = new Trade(1, 2, "BTC/USDT", "1", "100000", "100000", "bor:0;sor:0", System.currentTimeMillis());
+        var trade = new Trade(1, 2, "BTC/USDT", "1", "100000", "100000", "bor:0;sor:0", currentTimeMillis());
         try (var binaryRepresentation = new TradeBinaryRepresentation(trade)) {
             binaryRepresentation.encodeV1();
 
@@ -158,7 +159,7 @@ public class BinaryRepresentationTest {
 
     @Test
     public void testCancelOrder() {
-        var order = new CancelOrder(1, System.currentTimeMillis(), "BTC/USDT", "1");
+        var order = new CancelOrder(1, currentTimeMillis(), "BTC/USDT", "1");
         try (var binaryRepresentation = new OrderBinaryRepresentation(order)) {
             binaryRepresentation.encodeV1();
 
@@ -195,11 +196,11 @@ public class BinaryRepresentationTest {
 
     @Test
     public void testOrderBook() {
-        var bo1 = new BuyLimitOrder(1, System.currentTimeMillis(), "BTC/USDT", "1", "100000");
-        var bo2 = new BuyLimitOrder(2, System.currentTimeMillis(), "BTC/USDT", "2", "200000");
-        var bo3 = new BuyLimitOrder(3, System.currentTimeMillis(), "BTC/USDT", "3", "300000");
-        var so4 = new SellLimitOrder(4, System.currentTimeMillis(), "BTC/USDT", "4", "400000");
-        var so5 = new SellLimitOrder(5, System.currentTimeMillis(), "BTC/USDT", "5", "500000");
+        var bo1 = new BuyLimitOrder(1, currentTimeMillis(), "BTC/USDT", "1", "100000");
+        var bo2 = new BuyLimitOrder(2, currentTimeMillis(), "BTC/USDT", "2", "200000");
+        var bo3 = new BuyLimitOrder(3, currentTimeMillis(), "BTC/USDT", "3", "300000");
+        var so4 = new SellLimitOrder(4, currentTimeMillis(), "BTC/USDT", "4", "400000");
+        var so5 = new SellLimitOrder(5, currentTimeMillis(), "BTC/USDT", "5", "500000");
 
         try (var bo1br = new LimitOrderBinaryRepresentation(bo1);
              var bo2br = new LimitOrderBinaryRepresentation(bo2);
@@ -212,7 +213,7 @@ public class BinaryRepresentationTest {
             bo3br.encodeV1();
             so4br.encodeV1();
             so5br.encodeV1();
-            var orderBook = new OrderBook(List.of(bo1br, bo2br, bo3br), List.of(so4br, so5br));
+            var orderBook = new OrderBook(of(bo1br, bo2br, bo3br), of(so4br, so5br));
             try (var binaryRepresentation = new OrderBookBinaryRepresentation(orderBook)) {
                 binaryRepresentation.encodeV1();
 
@@ -237,7 +238,7 @@ public class BinaryRepresentationTest {
 
     @Test
     public void testBuyMarketOrder() {
-        var order = new BuyMarketOrder(1, System.currentTimeMillis(), "BTC/USDT", "1");
+        var order = new BuyMarketOrder(1, currentTimeMillis(), "BTC/USDT", "1");
         try (var binaryRepresentation = new OrderBinaryRepresentation(order)) {
             binaryRepresentation.encodeV1();
 
@@ -258,7 +259,7 @@ public class BinaryRepresentationTest {
 
     @Test
     public void testSellMarketOrder() {
-        var order = new SellMarketOrder(1, System.currentTimeMillis(), "BTC/USDT", "1");
+        var order = new SellMarketOrder(1, currentTimeMillis(), "BTC/USDT", "1");
         try (var binaryRepresentation = new OrderBinaryRepresentation(order)) {
             binaryRepresentation.encodeV1();
 

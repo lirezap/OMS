@@ -22,6 +22,7 @@ import software.openex.oms.net.Dispatcher;
 import software.openex.oms.net.SocketServer;
 import software.openex.oms.storage.AsynchronousAppendOnlyFile;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,7 +41,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  *
  * @author Alireza Pourtaghi
  */
-public final class AppContext {
+public final class AppContext implements Closeable {
     private static final Logger logger = getLogger(AppContext.class);
 
     private static final AtomicBoolean initialized = new AtomicBoolean(FALSE);
@@ -172,17 +173,20 @@ public final class AppContext {
      * Adds a shutdown hook for context.
      */
     private void addShutdownHook() {
-        getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                if (socketServer != null) socketServer.close();
-                if (executors != null) executors.close();
-                if (matchingEngines != null) matchingEngines.close();
-                if (messagesLogFile != null) messagesLogFile.close();
-                if (compression != null) compression.close();
-                if (dataSource != null) dataSource.close();
-            } catch (Exception ex) {
-                logger.error("{}", ex.getMessage());
-            }
-        }));
+        getRuntime().addShutdownHook(new Thread(this::close));
+    }
+
+    @Override
+    public void close() {
+        try {
+            if (socketServer != null) socketServer.close();
+            if (executors != null) executors.close();
+            if (matchingEngines != null) matchingEngines.close();
+            if (messagesLogFile != null) messagesLogFile.close();
+            if (compression != null) compression.close();
+            if (dataSource != null) dataSource.close();
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+        }
     }
 }
