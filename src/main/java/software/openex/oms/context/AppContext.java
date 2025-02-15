@@ -107,6 +107,17 @@ public final class AppContext implements Closeable {
         return context;
     }
 
+    /**
+     * Returns new instance of application context.
+     * This method must only be used for testing purposes.
+     *
+     * @return new application context
+     */
+    public static AppContext contextTest() {
+        context = new AppContext();
+        return context;
+    }
+
     public Configuration config() {
         return configuration;
     }

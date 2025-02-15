@@ -1,24 +1,47 @@
 package software.openex.oms.matching;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import software.openex.oms.binary.order.BuyLimitOrder;
+import software.openex.oms.binary.order.SellLimitOrder;
 import software.openex.oms.binary.order.book.FetchOrderBook;
 import software.openex.oms.context.AppContext;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static software.openex.oms.context.AppContext.contextSafe;
+import static software.openex.oms.context.AppContext.contextTest;
 
 /**
  * @author Alireza Pourtaghi
  */
 public class EngineTest {
     private static final PostgreSQLContainer<?> postgresql = new PostgreSQLContainer<>("postgres:16");
-    private static AppContext context;
+    private AppContext context;
+
+    @Test
+    public void testBuyLimitOrderOffer() throws Exception {
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100000")).get();
+
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
+
+        assertEquals(1, orderBook.getBids().size());
+        assertEquals(0, orderBook.getAsks().size());
+    }
+
+    @Test
+    public void testSellLimitOrderOffer() throws Exception {
+        context.matchingEngines()
+                .offer(new SellLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100000")).get();
+
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
+
+        assertEquals(0, orderBook.getBids().size());
+        assertEquals(1, orderBook.getAsks().size());
+    }
 
     @BeforeAll
     public static void setup() {
@@ -28,31 +51,27 @@ public class EngineTest {
         postgresql.withUsername("oms");
         postgresql.withPassword("oms");
         postgresql.start();
+    }
 
-        // Start application context.
-        context = contextSafe();
+    @BeforeEach
+    public void buildContext() {
+        // Start/Replace application context.
+        context = contextTest();
         context.databaseMigrator().migrate();
         context.matchingEngines().start();
     }
 
-    @AfterAll
-    public static void stop() {
+    @AfterEach
+    public void closeContext() {
         // Stop application context.
-        if (context != null) context.close();
-
-        // Stop postgresql container.
-        postgresql.stop();
+        if (context != null) {
+            context.close();
+        }
     }
 
-    @Test
-    public void testBuyLimitOrderOffer() throws Exception {
-        context.matchingEngines()
-                .offer(new BuyLimitOrder(1, currentTimeMillis(), "BTC_USDT", "1", "100000")).get();
-
-        var orderBook = context.matchingEngines()
-                .orderBook(new FetchOrderBook("BTC_USDT", 10)).get();
-
-        assertEquals(1, orderBook.getBids().size());
-        assertEquals(0, orderBook.getAsks().size());
+    @AfterAll
+    public static void stop() {
+        // Stop postgresql container.
+        postgresql.stop();
     }
 }
