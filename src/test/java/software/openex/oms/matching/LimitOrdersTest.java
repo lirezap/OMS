@@ -3,6 +3,7 @@ package software.openex.oms.matching;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import software.openex.oms.binary.order.BuyLimitOrder;
+import software.openex.oms.binary.order.CancelOrder;
 import software.openex.oms.binary.order.SellLimitOrder;
 import software.openex.oms.binary.order.book.FetchOrderBook;
 import software.openex.oms.context.AppContext;
@@ -15,7 +16,7 @@ import static software.openex.oms.context.AppContext.contextTest;
 /**
  * @author Alireza Pourtaghi
  */
-public class EngineTest {
+public class LimitOrdersTest {
     private static final PostgreSQLContainer<?> postgresql = new PostgreSQLContainer<>("postgres:16");
     private AppContext context;
 
@@ -41,6 +42,48 @@ public class EngineTest {
 
         assertEquals(0, orderBook.getBids().size());
         assertEquals(1, orderBook.getAsks().size());
+    }
+
+    @Test
+    public void testBuyLimitOrderCancel() throws Exception {
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100")).get();
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "200")).get();
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(3, currentTimeMillis(), "BTC|USDT", "1", "300")).get();
+
+        context.matchingEngines()
+                .cancel(new CancelOrder(3, currentTimeMillis(), "BTC|USDT", "1")).get();
+
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
+
+        assertEquals(2, orderBook.getBids().size());
+
+        assertEquals(2, orderBook.getBids().get(0).getId());
+        assertEquals(1, orderBook.getBids().get(1).getId());
+    }
+
+    @Test
+    public void testSellLimitOrderCancel() throws Exception {
+        context.matchingEngines()
+                .offer(new SellLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100")).get();
+        context.matchingEngines()
+                .offer(new SellLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "200")).get();
+        context.matchingEngines()
+                .offer(new SellLimitOrder(3, currentTimeMillis(), "BTC|USDT", "1", "300")).get();
+
+        context.matchingEngines()
+                .cancel(new CancelOrder(3, currentTimeMillis(), "BTC|USDT", "1")).get();
+
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
+
+        assertEquals(2, orderBook.getAsks().size());
+
+        assertEquals(1, orderBook.getAsks().get(0).getId());
+        assertEquals(2, orderBook.getAsks().get(1).getId());
     }
 
     @BeforeAll
