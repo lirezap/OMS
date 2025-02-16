@@ -131,6 +131,13 @@ public class LimitOrdersTest {
                 .orderBook(new FetchOrderBook("BTC|USDT", 5)).get();
         assertEquals(3, orderBook.getBids().size());
         assertEquals(3, orderBook.getAsks().size());
+
+        assertEquals(3, orderBook.getBids().get(0).getId());
+        assertEquals(2, orderBook.getBids().get(1).getId());
+        assertEquals(1, orderBook.getBids().get(2).getId());
+        assertEquals(4, orderBook.getAsks().get(0).getId());
+        assertEquals(5, orderBook.getAsks().get(1).getId());
+        assertEquals(6, orderBook.getAsks().get(2).getId());
     }
 
     @BeforeAll
