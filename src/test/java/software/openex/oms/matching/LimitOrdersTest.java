@@ -86,6 +86,53 @@ public class LimitOrdersTest {
         assertEquals(2, orderBook.getAsks().get(1).getId());
     }
 
+    @Test
+    public void testFetchOrderBook() throws Exception {
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100")).get();
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "200")).get();
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(3, currentTimeMillis(), "BTC|USDT", "1", "300")).get();
+
+        context.matchingEngines()
+                .offer(new SellLimitOrder(4, currentTimeMillis(), "BTC|USDT", "1", "400")).get();
+        context.matchingEngines()
+                .offer(new SellLimitOrder(5, currentTimeMillis(), "BTC|USDT", "1", "500")).get();
+        context.matchingEngines()
+                .offer(new SellLimitOrder(6, currentTimeMillis(), "BTC|USDT", "1", "600")).get();
+
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 0)).get();
+        assertEquals(0, orderBook.getBids().size());
+        assertEquals(0, orderBook.getAsks().size());
+
+        orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 1)).get();
+        assertEquals(1, orderBook.getBids().size());
+        assertEquals(1, orderBook.getAsks().size());
+
+        orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 2)).get();
+        assertEquals(2, orderBook.getBids().size());
+        assertEquals(2, orderBook.getAsks().size());
+
+        orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 3)).get();
+        assertEquals(3, orderBook.getBids().size());
+        assertEquals(3, orderBook.getAsks().size());
+
+        orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 4)).get();
+        assertEquals(3, orderBook.getBids().size());
+        assertEquals(3, orderBook.getAsks().size());
+
+        orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 5)).get();
+        assertEquals(3, orderBook.getBids().size());
+        assertEquals(3, orderBook.getAsks().size());
+    }
+
     @BeforeAll
     public static void setup() {
         // Start postgresql container.
