@@ -33,6 +33,7 @@ import software.openex.oms.storage.ThreadSafeAtomicFile;
 import java.io.IOException;
 import java.lang.foreign.Arena;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 
 import static java.lang.foreign.Arena.ofConfined;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -77,7 +78,11 @@ public final class EventsSynchronizer implements Runnable {
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
         } finally {
-            if (!executor.isShutdown() && !executor.isTerminated()) executor.execute(this);
+            try {
+                executor.execute(this);
+            } catch (RejectedExecutionException _) {
+                logger.warn("Rejected task because of closing executor!");
+            }
         }
     }
 

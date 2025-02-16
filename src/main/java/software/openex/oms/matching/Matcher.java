@@ -26,6 +26,7 @@ import software.openex.oms.storage.ThreadSafeAtomicFile;
 
 import java.util.PriorityQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 
 import static java.lang.String.format;
 import static java.lang.foreign.Arena.ofConfined;
@@ -69,7 +70,11 @@ public final class Matcher implements Runnable {
                 }
             }
         } finally {
-            if (!executor.isShutdown() && !executor.isTerminated()) executor.execute(this);
+            try {
+                executor.execute(this);
+            } catch (RejectedExecutionException _) {
+                logger.warn("Rejected task because of closing executor!");
+            }
         }
     }
 
