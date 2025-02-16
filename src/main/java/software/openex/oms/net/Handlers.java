@@ -24,19 +24,14 @@ import software.openex.oms.binary.order.*;
 import software.openex.oms.binary.order.book.FetchOrderBookBinaryRepresentation;
 import software.openex.oms.binary.order.book.OrderBook;
 import software.openex.oms.binary.order.book.OrderBookBinaryRepresentation;
-import software.openex.oms.models.enums.OrderMessageSide;
 
 import java.util.ArrayList;
 
 import static java.lang.foreign.Arena.ofShared;
-import static java.time.Instant.ofEpochMilli;
 import static org.slf4j.LoggerFactory.getLogger;
 import static software.openex.oms.context.AppContext.context;
 import static software.openex.oms.models.enums.OrderMessageSide.BUY;
 import static software.openex.oms.models.enums.OrderMessageSide.SELL;
-import static software.openex.oms.models.enums.OrderMessageType.LIMIT;
-import static software.openex.oms.models.enums.OrderMessageType.MARKET;
-import static software.openex.oms.models.tables.OrderMessage.ORDER_MESSAGE;
 import static software.openex.oms.net.ErrorMessages.*;
 
 /**
@@ -52,7 +47,9 @@ public final class Handlers implements Responder {
             // TODO: Validate incoming message.
             logMessage(connection);
             final var buyLimitOrder = BuyLimitOrder.decode(connection.segment());
-            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(buyLimitOrder, BUY)) {
+            if (context().config().loadBoolean("matching.engine.store_orders") &&
+                    !context().dataBase().insertLimitOrder(buyLimitOrder, BUY)) {
+
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
@@ -86,7 +83,9 @@ public final class Handlers implements Responder {
             // TODO: Validate incoming message.
             logMessage(connection);
             final var sellLimitOrder = SellLimitOrder.decode(connection.segment());
-            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(sellLimitOrder, SELL)) {
+            if (context().config().loadBoolean("matching.engine.store_orders") &&
+                    !context().dataBase().insertLimitOrder(sellLimitOrder, SELL)) {
+
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
@@ -181,7 +180,9 @@ public final class Handlers implements Responder {
             // TODO: Validate incoming message.
             logMessage(connection);
             final var buyMarketOrder = BuyMarketOrder.decode(connection.segment());
-            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(buyMarketOrder, BUY)) {
+            if (context().config().loadBoolean("matching.engine.store_orders") &&
+                    !context().dataBase().insertMarketOrder(buyMarketOrder, BUY)) {
+
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
@@ -208,7 +209,9 @@ public final class Handlers implements Responder {
             // TODO: Validate incoming message.
             logMessage(connection);
             final var sellMarketOrder = SellMarketOrder.decode(connection.segment());
-            if (context().config().loadBoolean("matching.engine.store_orders") && !insert(sellMarketOrder, SELL)) {
+            if (context().config().loadBoolean("matching.engine.store_orders") &&
+                    !context().dataBase().insertMarketOrder(sellMarketOrder, SELL)) {
+
                 write(connection, INTERNAL_SERVER_ERROR);
                 return;
             }
@@ -233,23 +236,5 @@ public final class Handlers implements Responder {
     private void logMessage(final Connection connection) {
         context().messagesLogFile().ifPresentOrElse(file ->
                 file.append(connection.copyMessageForLog().asByteBuffer()), doNothing);
-    }
-
-    private boolean insert(final LimitOrder order, final OrderMessageSide side) {
-        final var count = context().dataBase().postgresql().insertInto(ORDER_MESSAGE)
-                .columns(ORDER_MESSAGE.ID, ORDER_MESSAGE.SYMBOL, ORDER_MESSAGE.SIDE, ORDER_MESSAGE.TYPE, ORDER_MESSAGE.QUANTITY, ORDER_MESSAGE.PRICE, ORDER_MESSAGE.REMAINING, ORDER_MESSAGE.TS)
-                .values(order.getId(), order.getSymbol(), side, LIMIT, order.getQuantity(), order.getPrice(), order.getQuantity(), ofEpochMilli(order.getTs()))
-                .execute();
-
-        return count == 1;
-    }
-
-    private boolean insert(final MarketOrder order, final OrderMessageSide side) {
-        final var count = context().dataBase().postgresql().insertInto(ORDER_MESSAGE)
-                .columns(ORDER_MESSAGE.ID, ORDER_MESSAGE.SYMBOL, ORDER_MESSAGE.SIDE, ORDER_MESSAGE.TYPE, ORDER_MESSAGE.QUANTITY, ORDER_MESSAGE.REMAINING, ORDER_MESSAGE.TS)
-                .values(order.getId(), order.getSymbol(), side, MARKET, order.getQuantity(), order.getQuantity(), ofEpochMilli(order.getTs()))
-                .execute();
-
-        return count == 1;
     }
 }

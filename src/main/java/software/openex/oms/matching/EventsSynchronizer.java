@@ -35,14 +35,9 @@ import java.lang.foreign.Arena;
 import java.util.concurrent.ExecutorService;
 
 import static java.lang.foreign.Arena.ofConfined;
-import static java.time.Instant.ofEpochMilli;
 import static org.slf4j.LoggerFactory.getLogger;
 import static software.openex.oms.binary.BinaryRepresentable.*;
 import static software.openex.oms.context.AppContext.context;
-import static software.openex.oms.models.Tables.ORDER_MESSAGE;
-import static software.openex.oms.models.Tables.TRADE;
-import static software.openex.oms.models.enums.OrderMessageState.CANCELED;
-import static software.openex.oms.models.enums.OrderMessageState.EXECUTED;
 
 /**
  * Events synchronizer implementation that must keep trades, remaining quantity of orders and canceled orders in sync
@@ -137,11 +132,7 @@ public final class EventsSynchronizer implements Runnable {
         event.begin();
 
         context().dataBase().postgresql().transaction(configuration -> {
-            final var count = configuration.dsl().insertInto(TRADE)
-                    .columns(TRADE.BUY_ORDER_ID, TRADE.SELL_ORDER_ID, TRADE.SYMBOL, TRADE.QUANTITY, TRADE.BUY_PRICE, TRADE.SELL_PRICE, TRADE.METADATA, TRADE.TS)
-                    .values(trade.getBuyOrderId(), trade.getSellOrderId(), trade.getSymbol(), trade.getQuantity(), trade.getBuyPrice(), trade.getSellPrice(), trade.getMetadata(), ofEpochMilli(trade.getTs()))
-                    .execute();
-
+            final var count = context().dataBase().insertTrade(configuration, trade);
             if (count == 1) {
                 updateOrders(configuration, trade);
                 final var newValue = arena.allocate(LONG.byteSize());
@@ -159,12 +150,7 @@ public final class EventsSynchronizer implements Runnable {
         event.begin();
 
         context().dataBase().postgresql().transaction(configuration -> {
-            final var count = configuration.dsl().update(ORDER_MESSAGE)
-                    .set(ORDER_MESSAGE.STATE, CANCELED)
-                    .where(ORDER_MESSAGE.ID.eq(order.getId()))
-                    .and(ORDER_MESSAGE.SYMBOL.eq(order.getSymbol()))
-                    .execute();
-
+            final var count = context().dataBase().cancelOrder(configuration, order);
             // matching.engine.store_orders option may be false.
             if (count == 0 || count == 1) {
                 final var newValue = arena.allocate(LONG.byteSize());
@@ -181,34 +167,16 @@ public final class EventsSynchronizer implements Runnable {
         // matching.engine.store_orders option may be false.
         final var bor = trade.getMetadata().split(";")[0].replace("bor:", "");
         if (bor.equals("0")) {
-            configuration.dsl().update(ORDER_MESSAGE)
-                    .set(ORDER_MESSAGE.STATE, EXECUTED)
-                    .set(ORDER_MESSAGE.REMAINING, bor)
-                    .where(ORDER_MESSAGE.ID.eq(trade.getBuyOrderId()))
-                    .and(ORDER_MESSAGE.SYMBOL.eq(trade.getSymbol()))
-                    .execute();
+            context().dataBase().executeOrder(configuration, trade.getBuyOrderId(), trade.getSymbol(), bor);
         } else {
-            configuration.dsl().update(ORDER_MESSAGE)
-                    .set(ORDER_MESSAGE.REMAINING, bor)
-                    .where(ORDER_MESSAGE.ID.eq(trade.getBuyOrderId()))
-                    .and(ORDER_MESSAGE.SYMBOL.eq(trade.getSymbol()))
-                    .execute();
+            context().dataBase().updateRemaining(configuration, trade.getBuyOrderId(), trade.getSymbol(), bor);
         }
 
         final var sor = trade.getMetadata().split(";")[1].replace("sor:", "");
         if (sor.equals("0")) {
-            configuration.dsl().update(ORDER_MESSAGE)
-                    .set(ORDER_MESSAGE.STATE, EXECUTED)
-                    .set(ORDER_MESSAGE.REMAINING, sor)
-                    .where(ORDER_MESSAGE.ID.eq(trade.getSellOrderId()))
-                    .and(ORDER_MESSAGE.SYMBOL.eq(trade.getSymbol()))
-                    .execute();
+            context().dataBase().executeOrder(configuration, trade.getSellOrderId(), trade.getSymbol(), sor);
         } else {
-            configuration.dsl().update(ORDER_MESSAGE)
-                    .set(ORDER_MESSAGE.REMAINING, sor)
-                    .where(ORDER_MESSAGE.ID.eq(trade.getSellOrderId()))
-                    .and(ORDER_MESSAGE.SYMBOL.eq(trade.getSymbol()))
-                    .execute();
+            context().dataBase().updateRemaining(configuration, trade.getSellOrderId(), trade.getSymbol(), sor);
         }
     }
 

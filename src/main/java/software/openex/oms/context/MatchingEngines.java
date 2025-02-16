@@ -41,9 +41,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static software.openex.oms.context.AppContext.context;
 import static software.openex.oms.models.enums.OrderMessageSide.BUY;
 import static software.openex.oms.models.enums.OrderMessageSide.SELL;
-import static software.openex.oms.models.enums.OrderMessageState.ACTIVE;
 import static software.openex.oms.models.enums.OrderMessageType.LIMIT;
-import static software.openex.oms.models.tables.OrderMessage.ORDER_MESSAGE;
 
 /**
  * A component that holds all matching engines.
@@ -140,22 +138,7 @@ public final class MatchingEngines implements Closeable {
     }
 
     private void loadFrom(final Instant time, final HashMap<String, HashSet<Long>> map) {
-        final var records = context().dataBase().postgresql()
-                .select(ORDER_MESSAGE.ID,
-                        ORDER_MESSAGE.SYMBOL,
-                        ORDER_MESSAGE.SIDE,
-                        ORDER_MESSAGE.TYPE,
-                        ORDER_MESSAGE.QUANTITY,
-                        ORDER_MESSAGE.PRICE,
-                        ORDER_MESSAGE.REMAINING,
-                        ORDER_MESSAGE.TS)
-                .from(ORDER_MESSAGE)
-                .where(ORDER_MESSAGE.STATE.eq(ACTIVE))
-                .and(ORDER_MESSAGE.TS.greaterOrEqual(time))
-                .orderBy(ORDER_MESSAGE.TS)
-                .limit(10000)
-                .fetch();
-
+        final var records = context().dataBase().fetchActiveOrderMessages(time, 10000);
         records.forEach(record -> {
             if (record.component3() == BUY && record.component4() == LIMIT) {
                 map.computeIfAbsent(record.component2(), _ -> new HashSet<>());
