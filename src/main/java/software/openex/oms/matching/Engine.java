@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -128,27 +127,31 @@ public final class Engine implements Closeable {
 
         final var future = new CompletableFuture<Boolean>();
         executor.execute(() -> {
-            final var found = new AtomicBoolean(FALSE);
+            var found = false;
 
-            buyOrders.forEach(buyOrder -> {
+            final var bids = buyOrders.iterator();
+            while (!found && bids.hasNext()) {
+                final var buyOrder = bids.next();
                 if (buyOrder.equals(order)) {
-                    found.set(TRUE);
+                    found = true;
                     buyOrders.remove(buyOrder);
                     buyOrderCanceled(future, order, buyOrder, event);
                 }
-            });
+            }
 
-            if (!found.get()) {
-                sellOrders.forEach(sellOrder -> {
+            if (!found) {
+                final var asks = sellOrders.iterator();
+                while (!found && asks.hasNext()) {
+                    final var sellOrder = asks.next();
                     if (sellOrder.equals(order)) {
-                        found.set(TRUE);
+                        found = true;
                         sellOrders.remove(sellOrder);
                         sellOrderCanceled(future, order, sellOrder, event);
                     }
-                });
+                }
             }
 
-            if (!found.get()) {
+            if (!found) {
                 future.complete(FALSE);
                 event.end();
                 event.commit();
