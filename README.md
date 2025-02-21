@@ -59,7 +59,7 @@ one-core per multiple symbols may affect these numbers.
 - Order canceling
 - Order book fetching with optional depth parameter
 - Remaining recording, at both order and trade models
-- JFR enabled to be able to visualize detailed metrics about project's behaviour at runtime
+- JFR enabled to be able to visualize detailed metrics about project's behavior at runtime
 
 ### Under Development Features
 
