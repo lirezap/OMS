@@ -19,6 +19,7 @@ package software.openex.oms.context;
 
 import org.jooq.DSLContext;
 import org.jooq.Record8;
+import org.jooq.Record9;
 import org.jooq.Result;
 import org.jooq.conf.Settings;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ import software.openex.oms.binary.order.MarketOrder;
 import software.openex.oms.binary.order.Order;
 import software.openex.oms.binary.trade.Trade;
 import software.openex.oms.models.enums.OrderMessageSide;
+import software.openex.oms.models.enums.OrderMessageState;
 import software.openex.oms.models.enums.OrderMessageType;
 
 import java.time.Instant;
@@ -108,6 +110,25 @@ public final class DataBase {
         return count == 1;
     }
 
+    public Record9<Long, String, OrderMessageSide, OrderMessageType, String, String, String, OrderMessageState, Instant>
+    fetchOrderMessage(final long id, final String symbol) {
+
+        return postgresql()
+                .select(ORDER_MESSAGE.ID,
+                        ORDER_MESSAGE.SYMBOL,
+                        ORDER_MESSAGE.SIDE,
+                        ORDER_MESSAGE.TYPE,
+                        ORDER_MESSAGE.QUANTITY,
+                        ORDER_MESSAGE.PRICE,
+                        ORDER_MESSAGE.REMAINING,
+                        ORDER_MESSAGE.STATE,
+                        ORDER_MESSAGE.TS)
+                .from(ORDER_MESSAGE)
+                .where(ORDER_MESSAGE.ID.eq(id))
+                .and(ORDER_MESSAGE.SYMBOL.eq(symbol))
+                .fetchOne();
+    }
+
     public int insertTrade(final org.jooq.Configuration configuration, final Trade trade) {
         return configuration.dsl()
                 .insertInto(TRADE)
@@ -162,8 +183,8 @@ public final class DataBase {
                 .execute();
     }
 
-    public Result<Record8<Long, String, OrderMessageSide, OrderMessageType, String, String, String, Instant>> fetchActiveOrderMessages(
-            final Instant from, final int limit) {
+    public Result<Record8<Long, String, OrderMessageSide, OrderMessageType, String, String, String, Instant>>
+    fetchActiveOrderMessages(final Instant from, final int limit) {
 
         return postgresql()
                 .select(ORDER_MESSAGE.ID,
