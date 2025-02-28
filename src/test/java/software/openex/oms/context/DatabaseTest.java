@@ -20,7 +20,7 @@ import static software.openex.oms.context.AppContext.contextTest;
 import static software.openex.oms.models.Tables.TRADE;
 import static software.openex.oms.models.enums.OrderMessageSide.BUY;
 import static software.openex.oms.models.enums.OrderMessageSide.SELL;
-import static software.openex.oms.models.enums.OrderMessageState.ACTIVE;
+import static software.openex.oms.models.enums.OrderMessageState.*;
 import static software.openex.oms.models.enums.OrderMessageType.LIMIT;
 import static software.openex.oms.models.enums.OrderMessageType.MARKET;
 
@@ -92,6 +92,37 @@ public class DatabaseTest {
         var trade = new Trade(1, 2, "BTC/USDT", "1", "100000", "100000", "bor:0;sor:0", currentTimeMillis());
         context.dataBase().insertTrade(context.dataBase().postgresql(), trade);
         assertTrue(tradeExistsAndIsMatched(trade));
+    }
+
+    @Test
+    public void testCancelOrder() {
+        var buyLimitOrder = new BuyLimitOrder(6, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        context.dataBase().insertLimitOrder(buyLimitOrder, BUY);
+        context.dataBase().cancelOrder(context.dataBase().postgresql(), buyLimitOrder);
+
+        var recordFetched = context.dataBase().fetchOrderMessage(6, "BTC|USDT");
+        assertEquals(CANCELED, recordFetched.component8());
+    }
+
+    @Test
+    public void testExecuteOrder() {
+        var buyLimitOrder = new BuyLimitOrder(7, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        context.dataBase().insertLimitOrder(buyLimitOrder, BUY);
+        context.dataBase().executeOrder(context.dataBase().postgresql(), buyLimitOrder.getId(), "BTC|USDT", "0.5");
+
+        var recordFetched = context.dataBase().fetchOrderMessage(7, "BTC|USDT");
+        assertEquals("0.5", recordFetched.component7());
+        assertEquals(EXECUTED, recordFetched.component8());
+    }
+
+    @Test
+    public void testUpdateRemaining() {
+        var buyLimitOrder = new BuyLimitOrder(8, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        context.dataBase().insertLimitOrder(buyLimitOrder, BUY);
+        context.dataBase().updateRemaining(context.dataBase().postgresql(), buyLimitOrder.getId(), "BTC|USDT", "0.1");
+
+        var recordFetched = context.dataBase().fetchOrderMessage(8, "BTC|USDT");
+        assertEquals("0.1", recordFetched.component7());
     }
 
     private boolean tradeExistsAndIsMatched(final Trade trade) {
