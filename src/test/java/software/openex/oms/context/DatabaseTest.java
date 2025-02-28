@@ -1,4 +1,4 @@
-package software.openex.oms.data;
+package software.openex.oms.context;
 
 import org.jooq.exception.DataAccessException;
 import org.junit.jupiter.api.AfterAll;
@@ -10,7 +10,6 @@ import software.openex.oms.binary.order.BuyMarketOrder;
 import software.openex.oms.binary.order.SellLimitOrder;
 import software.openex.oms.binary.order.SellMarketOrder;
 import software.openex.oms.binary.trade.Trade;
-import software.openex.oms.context.AppContext;
 
 import java.time.Instant;
 

@@ -1,4 +1,4 @@
-package software.openex.oms.compression;
+package software.openex.oms.binary;
 
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
