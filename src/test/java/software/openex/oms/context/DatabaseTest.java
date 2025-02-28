@@ -125,7 +125,37 @@ public class DatabaseTest {
         assertEquals("0.1", recordFetched.component7());
     }
 
-    private boolean tradeExistsAndIsMatched(final Trade trade) {
+    @Test
+    public void testFetchActiveOrderMessages() {
+        var now = currentTimeMillis();
+        var buyLimitOrder1 = new BuyLimitOrder(11, now + 1, "BTC|USDT", "1", "100000");
+        context.dataBase().insertLimitOrder(buyLimitOrder1, BUY);
+
+        var buyLimitOrder2 = new BuyLimitOrder(12, now + 2, "BTC|USDT", "1", "100000");
+        context.dataBase().insertLimitOrder(buyLimitOrder2, BUY);
+
+        var buyLimitOrder3 = new BuyLimitOrder(13, now + 3, "BTC|USDT", "1", "100000");
+        context.dataBase().insertLimitOrder(buyLimitOrder3, BUY);
+        context.dataBase().cancelOrder(context.dataBase().postgresql(), buyLimitOrder3);
+
+        var buyLimitOrder4 = new BuyLimitOrder(14, now + 4, "BTC|USDT", "1", "100000");
+        context.dataBase().insertLimitOrder(buyLimitOrder4, BUY);
+
+        var buyLimitOrder5 = new BuyLimitOrder(15, now + 5, "BTC|USDT", "1", "100000");
+        context.dataBase().insertLimitOrder(buyLimitOrder5, BUY);
+        context.dataBase().executeOrder(context.dataBase().postgresql(), buyLimitOrder5.getId(), "BTC|USDT", "0.5");
+
+        var recordsFetched = context.dataBase().fetchActiveOrderMessages(Instant.ofEpochMilli(now), 10);
+        assertEquals(3, recordsFetched.size());
+
+        recordsFetched = context.dataBase().fetchActiveOrderMessages(Instant.ofEpochMilli(now), 2);
+        assertEquals(2, recordsFetched.size());
+
+        recordsFetched = context.dataBase().fetchActiveOrderMessages(Instant.ofEpochMilli(now + 4), 10);
+        assertEquals(1, recordsFetched.size());
+    }
+
+    private boolean tradeExistsAndIsMatched(Trade trade) {
         var recordFetched = context.dataBase().postgresql()
                 .select(TRADE.BUY_ORDER_ID,
                         TRADE.SELL_ORDER_ID,
