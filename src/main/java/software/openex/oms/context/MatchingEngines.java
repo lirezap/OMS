@@ -125,7 +125,8 @@ public final class MatchingEngines implements Closeable {
         final var map = new HashMap<String, HashSet<Long>>();
         loadFrom(EPOCH, map);
 
-        map.forEach((symbol, ids) -> logger.info("✅ Loaded {} {} orders from database into order book!", ids.size(), symbol));
+        map.forEach((symbol, ids) ->
+                logger.info("✅ Loaded {} {} orders from database into order book!", ids.size(), symbol));
     }
 
     private List<String> findSymbols() throws IOException {

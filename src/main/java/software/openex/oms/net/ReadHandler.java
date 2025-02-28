@@ -94,7 +94,8 @@ public final class ReadHandler implements CompletionHandler<Integer, Connection>
                 context().dispatcher().dispatch(connection);
             } else {
                 // Extended buffer size remains for connection.
-                final var extendedSegmentConnection = extendSegment(connection, context().config().loadInt("server.read_buffer_size"));
+                final var readBufferSize = context().config().loadInt("server.read_buffer_size");
+                final var extendedSegmentConnection = extendSegment(connection, readBufferSize);
                 read(extendedSegmentConnection);
             }
         }

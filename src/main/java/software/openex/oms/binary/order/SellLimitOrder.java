@@ -27,7 +27,9 @@ import static software.openex.oms.binary.BinaryRepresentable.*;
  */
 public final class SellLimitOrder extends LimitOrder {
 
-    public SellLimitOrder(final long id, final long ts, final String symbol, final String quantity, final String price) {
+    public SellLimitOrder(final long id, final long ts, final String symbol, final String quantity,
+                          final String price) {
+
         this(id, ts, symbol, quantity, quantity, price);
     }
 

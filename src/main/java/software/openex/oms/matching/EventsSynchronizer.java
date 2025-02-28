@@ -137,7 +137,7 @@ public final class EventsSynchronizer implements Runnable {
         event.begin();
 
         context().dataBase().postgresql().transaction(configuration -> {
-            final var count = context().dataBase().insertTrade(configuration, trade);
+            final var count = context().dataBase().insertTrade(configuration.dsl(), trade);
             if (count == 1) {
                 updateOrders(configuration, trade);
                 final var newValue = arena.allocate(LONG.byteSize());
@@ -155,7 +155,7 @@ public final class EventsSynchronizer implements Runnable {
         event.begin();
 
         context().dataBase().postgresql().transaction(configuration -> {
-            final var count = context().dataBase().cancelOrder(configuration, order);
+            final var count = context().dataBase().cancelOrder(configuration.dsl(), order);
             // matching.engine.store_orders option may be false.
             if (count == 0 || count == 1) {
                 final var newValue = arena.allocate(LONG.byteSize());
@@ -172,22 +172,23 @@ public final class EventsSynchronizer implements Runnable {
         // matching.engine.store_orders option may be false.
         final var bor = trade.getMetadata().split(";")[0].replace("bor:", "");
         if (bor.equals("0")) {
-            context().dataBase().executeOrder(configuration, trade.getBuyOrderId(), trade.getSymbol(), bor);
+            context().dataBase().executeOrder(configuration.dsl(), trade.getBuyOrderId(), trade.getSymbol(), bor);
         } else {
-            context().dataBase().updateRemaining(configuration, trade.getBuyOrderId(), trade.getSymbol(), bor);
+            context().dataBase().updateRemaining(configuration.dsl(), trade.getBuyOrderId(), trade.getSymbol(), bor);
         }
 
         final var sor = trade.getMetadata().split(";")[1].replace("sor:", "");
         if (sor.equals("0")) {
-            context().dataBase().executeOrder(configuration, trade.getSellOrderId(), trade.getSymbol(), sor);
+            context().dataBase().executeOrder(configuration.dsl(), trade.getSellOrderId(), trade.getSymbol(), sor);
         } else {
-            context().dataBase().updateRemaining(configuration, trade.getSellOrderId(), trade.getSymbol(), sor);
+            context().dataBase().updateRemaining(configuration.dsl(), trade.getSellOrderId(), trade.getSymbol(), sor);
         }
     }
 
     private AtomicFile eventsMetadataFile() {
         try {
-            return new AtomicFile(eventsFile.source().resolveSibling(eventsFile.source().getFileName() + ".metadata"));
+            final var path = eventsFile.source().resolveSibling(eventsFile.source().getFileName() + ".metadata");
+            return new AtomicFile(path);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

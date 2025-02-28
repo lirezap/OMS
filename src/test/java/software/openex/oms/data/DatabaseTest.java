@@ -9,12 +9,16 @@ import software.openex.oms.binary.order.BuyLimitOrder;
 import software.openex.oms.binary.order.BuyMarketOrder;
 import software.openex.oms.binary.order.SellLimitOrder;
 import software.openex.oms.binary.order.SellMarketOrder;
+import software.openex.oms.binary.trade.Trade;
 import software.openex.oms.context.AppContext;
+
+import java.time.Instant;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.*;
 import static software.openex.oms.context.AppContext.contextTest;
+import static software.openex.oms.models.Tables.TRADE;
 import static software.openex.oms.models.enums.OrderMessageSide.BUY;
 import static software.openex.oms.models.enums.OrderMessageSide.SELL;
 import static software.openex.oms.models.enums.OrderMessageState.ACTIVE;
@@ -82,6 +86,40 @@ public class DatabaseTest {
 
         var buyLimitOrder = new BuyLimitOrder(5, currentTimeMillis(), "BTC|USDT", "1", "100000");
         assertThrows(DataAccessException.class, () -> context.dataBase().insertLimitOrder(buyLimitOrder, BUY));
+    }
+
+    @Test
+    public void testInsertTrade() {
+        var trade = new Trade(1, 2, "BTC/USDT", "1", "100000", "100000", "bor:0;sor:0", currentTimeMillis());
+        context.dataBase().insertTrade(context.dataBase().postgresql(), trade);
+        assertTrue(tradeExistsAndIsMatched(trade));
+    }
+
+    private boolean tradeExistsAndIsMatched(final Trade trade) {
+        var recordFetched = context.dataBase().postgresql()
+                .select(TRADE.BUY_ORDER_ID,
+                        TRADE.SELL_ORDER_ID,
+                        TRADE.SYMBOL,
+                        TRADE.QUANTITY,
+                        TRADE.BUY_PRICE,
+                        TRADE.SELL_PRICE,
+                        TRADE.METADATA,
+                        TRADE.TS)
+                .from(TRADE)
+                .where(TRADE.BUY_ORDER_ID.eq(trade.getBuyOrderId()))
+                .and(TRADE.SELL_ORDER_ID.eq(trade.getSellOrderId()))
+                .and(TRADE.SYMBOL.eq(trade.getSymbol()))
+                .fetchOne();
+
+        return recordFetched != null
+                && recordFetched.component1().equals(trade.getBuyOrderId())
+                && recordFetched.component2().equals(trade.getSellOrderId())
+                && recordFetched.component3().equals(trade.getSymbol())
+                && recordFetched.component4().equals(trade.getQuantity())
+                && recordFetched.component5().equals(trade.getBuyPrice())
+                && recordFetched.component6().equals(trade.getSellPrice())
+                && recordFetched.component7().equals(trade.getMetadata())
+                && recordFetched.component8().equals(Instant.ofEpochMilli(trade.getTs()));
     }
 
     @BeforeAll

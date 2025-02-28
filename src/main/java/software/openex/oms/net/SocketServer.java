@@ -42,7 +42,10 @@ public final class SocketServer implements Closeable {
     private final AcceptConnectionHandler acceptConnectionHandler;
 
     public SocketServer(final Configuration configuration) throws IOException {
-        logger.info("Binding server socket {}:{} ...", configuration.loadString("server.host"), configuration.loadInt("server.port"));
+        final var host = configuration.loadString("server.host");
+        final var port = configuration.loadInt("server.port");
+
+        logger.info("Binding server socket {}:{} ...", host, port);
         this.server = setOptions(open(), configuration).bind(address(configuration));
         this.acceptConnectionHandler = new AcceptConnectionHandler();
     }
@@ -64,7 +67,10 @@ public final class SocketServer implements Closeable {
     }
 
     private static InetSocketAddress address(final Configuration configuration) {
-        return new InetSocketAddress(configuration.loadString("server.host"), configuration.loadInt("server.port"));
+        final var host = configuration.loadString("server.host");
+        final var port = configuration.loadInt("server.port");
+
+        return new InetSocketAddress(host, port);
     }
 
     @Override

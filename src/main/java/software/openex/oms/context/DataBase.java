@@ -129,8 +129,8 @@ public final class DataBase {
                 .fetchOne();
     }
 
-    public int insertTrade(final org.jooq.Configuration configuration, final Trade trade) {
-        return configuration.dsl()
+    public int insertTrade(final DSLContext dslContext, final Trade trade) {
+        return dslContext
                 .insertInto(TRADE)
                 .columns(TRADE.BUY_ORDER_ID,
                         TRADE.SELL_ORDER_ID,
@@ -151,8 +151,8 @@ public final class DataBase {
                 .execute();
     }
 
-    public int cancelOrder(final org.jooq.Configuration configuration, final Order order) {
-        return configuration.dsl()
+    public int cancelOrder(final DSLContext dslContext, final Order order) {
+        return dslContext
                 .update(ORDER_MESSAGE)
                 .set(ORDER_MESSAGE.STATE, CANCELED)
                 .where(ORDER_MESSAGE.ID.eq(order.getId()))
@@ -160,10 +160,10 @@ public final class DataBase {
                 .execute();
     }
 
-    public int executeOrder(final org.jooq.Configuration configuration, final long orderId, final String symbol,
+    public int executeOrder(final DSLContext dslContext, final long orderId, final String symbol,
                             final String remaining) {
 
-        return configuration.dsl()
+        return dslContext
                 .update(ORDER_MESSAGE)
                 .set(ORDER_MESSAGE.STATE, EXECUTED)
                 .set(ORDER_MESSAGE.REMAINING, remaining)
@@ -172,10 +172,10 @@ public final class DataBase {
                 .execute();
     }
 
-    public int updateRemaining(final org.jooq.Configuration configuration, final long orderId, final String symbol,
+    public int updateRemaining(final DSLContext dslContext, final long orderId, final String symbol,
                                final String remaining) {
 
-        return configuration.dsl()
+        return dslContext
                 .update(ORDER_MESSAGE)
                 .set(ORDER_MESSAGE.REMAINING, remaining)
                 .where(ORDER_MESSAGE.ID.eq(orderId))

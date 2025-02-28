@@ -63,7 +63,7 @@ public final class Matcher implements Runnable {
             if (buyOrdersHead != null) {
                 final var sellOrdersHead = sellOrders.peek();
                 if (sellOrdersHead != null) {
-                    // If the price of the head of buy orders is greater than or equal to that of the head of sell orders.
+                    // If the price of the head of buys is greater than or equal to that of the head of sells.
                     if (buyOrdersHead.get_price().compareTo(sellOrdersHead.get_price()) >= 0) {
                         trade(buyOrdersHead, sellOrdersHead);
                     }
