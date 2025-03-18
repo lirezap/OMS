@@ -63,12 +63,11 @@ one-core per multiple symbols may affect these numbers.
 
 ### Under Development Features
 
-- FillOrKill order
-- Partial cancelling
+- Stop, StopLimit & FillOrKill orders
+- Partial order cancelling
 
 ### Non-Open Source Features
 
-- Stop & StopLimit orders
 - Restful API server
 
 ---
