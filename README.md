@@ -55,7 +55,8 @@ one-core per multiple symbols may affect these numbers.
 ### Current Features
 
 - Price/Time algorithm
-- Limit & Market orders
+- Limit order (GTC)
+- Market order (IOC)
 - Order canceling
 - Partially order cancelling
 - Order book fetching with optional depth parameter
@@ -64,7 +65,10 @@ one-core per multiple symbols may affect these numbers.
 
 ### Under Development Features
 
-- Stop, StopLimit & FillOrKill orders
+- Limit order (IOC)
+- Limit order (FOK)
+- Market order (FOK)
+- Stop & StopLimit orders
 
 ### Non-Open Source Features
 

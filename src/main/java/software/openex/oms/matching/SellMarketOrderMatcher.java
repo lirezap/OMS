@@ -18,9 +18,7 @@
 package software.openex.oms.matching;
 
 import org.slf4j.Logger;
-import software.openex.oms.binary.order.BuyLimitOrder;
-import software.openex.oms.binary.order.LimitOrder;
-import software.openex.oms.binary.order.SellMarketOrder;
+import software.openex.oms.binary.order.*;
 import software.openex.oms.binary.trade.Trade;
 import software.openex.oms.binary.trade.TradeBinaryRepresentation;
 import software.openex.oms.matching.event.MatchEvent;
@@ -63,6 +61,16 @@ public final class SellMarketOrderMatcher implements Runnable {
             } else {
                 break;
             }
+        }
+
+        // Because of IOC feature we should cancel remaining quantity in order message.
+        if (sellMarketOrder.get_remaining().compareTo(ZERO) > 0) {
+            append(new CancelOrder(
+                    sellMarketOrder.getId(),
+                    sellMarketOrder.getTs(),
+                    sellMarketOrder.getSymbol(),
+                    // Set ZERO to cancel all remaining.
+                    ZERO.toPlainString()));
         }
     }
 
@@ -145,6 +153,15 @@ public final class SellMarketOrderMatcher implements Runnable {
     private void append(final Trade trade) {
         try (final var arena = ofConfined()) {
             final var binary = new TradeBinaryRepresentation(arena, trade);
+            binary.encodeV1();
+
+            tradesFile.append(binary.segment());
+        }
+    }
+
+    private void append(final CancelOrder cancelOrder) {
+        try (final var arena = ofConfined()) {
+            final var binary = new OrderBinaryRepresentation(arena, cancelOrder);
             binary.encodeV1();
 
             tradesFile.append(binary.segment());
