@@ -8,6 +8,8 @@ import software.openex.oms.binary.order.SellLimitOrder;
 import software.openex.oms.binary.order.book.FetchOrderBook;
 import software.openex.oms.context.AppContext;
 
+import java.math.BigDecimal;
+
 import static java.lang.System.currentTimeMillis;
 import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,6 +70,55 @@ public class LimitOrdersTest {
     }
 
     @Test
+    public void testBuyLimitOrderPartiallyCancel() throws Exception {
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100000")).get();
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "200000")).get();
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(3, currentTimeMillis(), "BTC|USDT", "1", "300000")).get();
+
+        var canceled = context.matchingEngines()
+                .cancel(new CancelOrder(3, currentTimeMillis(), "BTC|USDT", "0.51")).get();
+
+        assertEquals(true, canceled);
+
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
+
+        assertEquals(3, orderBook.getBids().size());
+
+        assertEquals(3, orderBook.getBids().get(0).getId());
+        assertEquals(2, orderBook.getBids().get(1).getId());
+        assertEquals(1, orderBook.getBids().get(2).getId());
+
+        assertEquals(new BigDecimal("0.49"), orderBook.getBids().get(0).get_remaining());
+    }
+
+    @Test
+    public void testBuyLimitOrderAllCancel() throws Exception {
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100000")).get();
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "200000")).get();
+        context.matchingEngines()
+                .offer(new BuyLimitOrder(3, currentTimeMillis(), "BTC|USDT", "1", "300000")).get();
+
+        var canceled = context.matchingEngines()
+                .cancel(new CancelOrder(3, currentTimeMillis(), "BTC|USDT", "0")).get();
+
+        assertEquals(true, canceled);
+
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
+
+        assertEquals(2, orderBook.getBids().size());
+
+        assertEquals(2, orderBook.getBids().get(0).getId());
+        assertEquals(1, orderBook.getBids().get(1).getId());
+    }
+
+    @Test
     public void testSellLimitOrderCancel() throws Exception {
         context.matchingEngines()
                 .offer(new SellLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100000")).get();
@@ -90,6 +141,53 @@ public class LimitOrdersTest {
     }
 
     @Test
+    public void testSellLimitOrderPartiallyCancel() throws Exception {
+        context.matchingEngines()
+                .offer(new SellLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100000")).get();
+        context.matchingEngines()
+                .offer(new SellLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "200000")).get();
+        context.matchingEngines()
+                .offer(new SellLimitOrder(3, currentTimeMillis(), "BTC|USDT", "1", "300000")).get();
+
+        var canceled = context.matchingEngines()
+                .cancel(new CancelOrder(3, currentTimeMillis(), "BTC|USDT", "0.51")).get();
+        assertEquals(true, canceled);
+
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
+
+        assertEquals(3, orderBook.getAsks().size());
+
+        assertEquals(1, orderBook.getAsks().get(0).getId());
+        assertEquals(2, orderBook.getAsks().get(1).getId());
+        assertEquals(3, orderBook.getAsks().get(2).getId());
+
+        assertEquals(new BigDecimal("0.49"), orderBook.getAsks().get(2).get_remaining());
+    }
+
+    @Test
+    public void testSellLimitOrderAllCancel() throws Exception {
+        context.matchingEngines()
+                .offer(new SellLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100000")).get();
+        context.matchingEngines()
+                .offer(new SellLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "200000")).get();
+        context.matchingEngines()
+                .offer(new SellLimitOrder(3, currentTimeMillis(), "BTC|USDT", "1", "300000")).get();
+
+        var canceled = context.matchingEngines()
+                .cancel(new CancelOrder(3, currentTimeMillis(), "BTC|USDT", "0")).get();
+        assertEquals(true, canceled);
+
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
+
+        assertEquals(2, orderBook.getAsks().size());
+
+        assertEquals(1, orderBook.getAsks().get(0).getId());
+        assertEquals(2, orderBook.getAsks().get(1).getId());
+    }
+
+    @Test
     public void testNotFoundCancel() throws Exception {
         context.matchingEngines()
                 .offer(new SellLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100000")).get();
@@ -100,6 +198,25 @@ public class LimitOrdersTest {
 
         var canceled = context.matchingEngines()
                 .cancel(new CancelOrder(4, currentTimeMillis(), "BTC|USDT", "1")).get();
+        assertEquals(false, canceled);
+
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
+
+        assertEquals(3, orderBook.getAsks().size());
+    }
+
+    @Test
+    public void testNotPossiblePartiallyCancel() throws Exception {
+        context.matchingEngines()
+                .offer(new SellLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100000")).get();
+        context.matchingEngines()
+                .offer(new SellLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "200000")).get();
+        context.matchingEngines()
+                .offer(new SellLimitOrder(3, currentTimeMillis(), "BTC|USDT", "1", "300000")).get();
+
+        var canceled = context.matchingEngines()
+                .cancel(new CancelOrder(3, currentTimeMillis(), "BTC|USDT", "1.0000000001")).get();
         assertEquals(false, canceled);
 
         var orderBook = context.matchingEngines()

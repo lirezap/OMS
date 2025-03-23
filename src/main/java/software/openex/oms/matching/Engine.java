@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutorService;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.lang.foreign.Arena.ofConfined;
+import static java.math.BigDecimal.ZERO;
 import static java.nio.file.Path.of;
 import static java.time.Duration.ofSeconds;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -134,8 +135,18 @@ public final class Engine implements Closeable {
                 final var buyOrder = bids.next();
                 if (buyOrder.equals(order)) {
                     found = true;
-                    buyOrders.remove(buyOrder);
-                    buyOrderCanceled(future, order, buyOrder, event);
+                    if (order.get_quantity().equals(ZERO) ||
+                            buyOrder.get_remaining().compareTo(order.get_quantity()) == 0) {
+
+                        buyOrders.remove(buyOrder);
+                        buyOrderCanceled(future, order, buyOrder, event);
+                    } else if (buyOrder.get_remaining().compareTo(order.get_quantity()) > 0) {
+                        buyOrder.set_remaining(buyOrder.get_remaining().subtract(order.get_quantity()));
+                        buyOrderPartiallyCanceled(future, order, buyOrder, event);
+                    } else {
+                        // Found order's remaining is less than requested cancel order's quantity.
+                        found = false;
+                    }
                 }
             }
 
@@ -145,8 +156,18 @@ public final class Engine implements Closeable {
                     final var sellOrder = asks.next();
                     if (sellOrder.equals(order)) {
                         found = true;
-                        sellOrders.remove(sellOrder);
-                        sellOrderCanceled(future, order, sellOrder, event);
+                        if (order.get_quantity().equals(ZERO) ||
+                                sellOrder.get_remaining().compareTo(order.get_quantity()) == 0) {
+
+                            sellOrders.remove(sellOrder);
+                            sellOrderCanceled(future, order, sellOrder, event);
+                        } else if (sellOrder.get_remaining().compareTo(order.get_quantity()) > 0) {
+                            sellOrder.set_remaining(sellOrder.get_remaining().subtract(order.get_quantity()));
+                            sellOrderPartiallyCanceled(future, order, sellOrder, event);
+                        } else {
+                            // Found order's remaining is less than requested cancel order's quantity.
+                            found = false;
+                        }
                     }
                 }
             }
@@ -193,6 +214,23 @@ public final class Engine implements Closeable {
         }
     }
 
+    private void buyOrderPartiallyCanceled(final CompletableFuture<Boolean> future, final CancelOrder order,
+                                           final Order buyOrder, final Event event) {
+
+        try {
+            append(order);
+            future.complete(TRUE);
+            event.end();
+            event.commit();
+
+            logger.trace("partially: cancel: buy: {}", order);
+        } catch (RuntimeException ex) {
+            // Re-add the subtracted quantity.
+            buyOrder.set_remaining(buyOrder.get_remaining().add(order.get_quantity()));
+            future.completeExceptionally(ex);
+        }
+    }
+
     private void sellOrderCanceled(final CompletableFuture<Boolean> future, final CancelOrder order,
                                    final Order sellOrder, final Event event) {
 
@@ -206,6 +244,23 @@ public final class Engine implements Closeable {
         } catch (RuntimeException ex) {
             // Re-offer the sell order at previous index.
             offer((SellLimitOrder) sellOrder);
+            future.completeExceptionally(ex);
+        }
+    }
+
+    private void sellOrderPartiallyCanceled(final CompletableFuture<Boolean> future, final CancelOrder order,
+                                            final Order sellOrder, final Event event) {
+
+        try {
+            append(order);
+            future.complete(TRUE);
+            event.end();
+            event.commit();
+
+            logger.trace("partially: cancel: sell: {}", order);
+        } catch (RuntimeException ex) {
+            // Re-add the subtracted quantity.
+            sellOrder.set_remaining(sellOrder.get_remaining().add(order.get_quantity()));
             future.completeExceptionally(ex);
         }
     }

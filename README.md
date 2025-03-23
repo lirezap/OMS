@@ -57,6 +57,7 @@ one-core per multiple symbols may affect these numbers.
 - Price/Time algorithm
 - Limit & Market orders
 - Order canceling
+- Partially order cancelling
 - Order book fetching with optional depth parameter
 - Remaining recording, at both order and trade models
 - JFR enabled to be able to visualize detailed metrics about project's behavior at runtime
@@ -64,7 +65,6 @@ one-core per multiple symbols may affect these numbers.
 ### Under Development Features
 
 - Stop, StopLimit & FillOrKill orders
-- Partial order cancelling
 
 ### Non-Open Source Features
 

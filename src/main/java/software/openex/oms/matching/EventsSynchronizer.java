@@ -32,10 +32,12 @@ import software.openex.oms.storage.ThreadSafeAtomicFile;
 
 import java.io.IOException;
 import java.lang.foreign.Arena;
+import java.math.BigDecimal;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
 import static java.lang.foreign.Arena.ofConfined;
+import static java.math.BigDecimal.ZERO;
 import static org.slf4j.LoggerFactory.getLogger;
 import static software.openex.oms.binary.BinaryRepresentable.*;
 import static software.openex.oms.context.AppContext.context;
@@ -140,10 +142,7 @@ public final class EventsSynchronizer implements Runnable {
             final var count = context().dataBase().insertTrade(configuration.dsl(), trade);
             if (count == 1) {
                 updateOrders(configuration, trade);
-                final var newValue = arena.allocate(LONG.byteSize());
-                newValue.set(LONG, 0, nextPositionToImport);
-                eventsMetadataFile.write(newValue, fileHeader.representationSize());
-
+                updateNextPositionToImport(arena, nextPositionToImport);
                 event.end();
                 event.commit();
             }
@@ -154,18 +153,38 @@ public final class EventsSynchronizer implements Runnable {
         final var event = new SyncCanceledOrderEvent();
         event.begin();
 
-        context().dataBase().postgresql().transaction(configuration -> {
-            final var count = context().dataBase().cancelOrder(configuration.dsl(), order);
-            // matching.engine.store_orders option may be false.
-            if (count == 0 || count == 1) {
-                final var newValue = arena.allocate(LONG.byteSize());
-                newValue.set(LONG, 0, nextPositionToImport);
-                eventsMetadataFile.write(newValue, fileHeader.representationSize());
+        final var fetchedOrder = context().dataBase().fetchOrderMessage(order.getId(), order.getSymbol());
+        // matching.engine.store_orders option may be false.
+        if (fetchedOrder == null) {
+            updateNextPositionToImport(arena, nextPositionToImport);
+            event.end();
+            event.commit();
+            return;
+        }
 
-                event.end();
-                event.commit();
-            }
-        });
+        final var currentRemaining = new BigDecimal(fetchedOrder.component7());
+        if (order.get_quantity().equals(ZERO) || currentRemaining.compareTo(order.get_quantity()) == 0) {
+            context().dataBase().postgresql().transaction(configuration -> {
+                final var count = context().dataBase().cancelOrder(configuration.dsl(), order);
+                if (count == 1) {
+                    updateNextPositionToImport(arena, nextPositionToImport);
+                    event.end();
+                    event.commit();
+                }
+            });
+        }
+
+        if (currentRemaining.compareTo(order.get_quantity()) > 0) {
+            context().dataBase().postgresql().transaction(configuration -> {
+                final var newRemaining = currentRemaining.subtract(order.get_quantity()).toPlainString();
+                final var count = context().dataBase().updateRemaining(configuration.dsl(), order.getId(), order.getSymbol(), newRemaining);
+                if (count == 1) {
+                    updateNextPositionToImport(arena, nextPositionToImport);
+                    event.end();
+                    event.commit();
+                }
+            });
+        }
     }
 
     private void updateOrders(final Configuration configuration, final Trade trade) {
@@ -183,6 +202,12 @@ public final class EventsSynchronizer implements Runnable {
         } else {
             context().dataBase().updateRemaining(configuration.dsl(), trade.getSellOrderId(), trade.getSymbol(), sor);
         }
+    }
+
+    private void updateNextPositionToImport(final Arena arena, final long nextPositionToImport) {
+        final var newValue = arena.allocate(LONG.byteSize());
+        newValue.set(LONG, 0, nextPositionToImport);
+        eventsMetadataFile.write(newValue, fileHeader.representationSize());
     }
 
     private AtomicFile eventsMetadataFile() {

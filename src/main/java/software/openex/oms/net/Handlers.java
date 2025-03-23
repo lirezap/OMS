@@ -55,15 +55,16 @@ public final class Handlers implements Responder {
             }
 
             context().matchingEngines().offer(buyLimitOrder)
-                    .thenAccept(v -> {
+                    .thenAcceptAsync(v -> {
                         // Write the same received message.
                         write(connection);
-                    }).exceptionally(ex -> {
+                    }, context().executors().worker())
+                    .exceptionallyAsync(ex -> {
                         logger.error("{}", ex.getMessage());
                         write(connection, INTERNAL_SERVER_ERROR);
 
                         return null;
-                    });
+                    }, context().executors().worker());
         } catch (DataAccessException ex) {
             if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
                 write(connection, ORDER_ALREADY_EXISTS);
@@ -91,15 +92,16 @@ public final class Handlers implements Responder {
             }
 
             context().matchingEngines().offer(sellLimitOrder)
-                    .thenAccept(v -> {
+                    .thenAcceptAsync(v -> {
                         // Write the same received message.
                         write(connection);
-                    }).exceptionally(ex -> {
+                    }, context().executors().worker())
+                    .exceptionallyAsync(ex -> {
                         logger.error("{}", ex.getMessage());
                         write(connection, INTERNAL_SERVER_ERROR);
 
                         return null;
-                    });
+                    }, context().executors().worker());
         } catch (DataAccessException ex) {
             if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
                 write(connection, ORDER_ALREADY_EXISTS);
@@ -120,19 +122,20 @@ public final class Handlers implements Responder {
             logMessage(connection);
             final var cancelOrder = CancelOrder.decode(connection.segment());
             context().matchingEngines().cancel(cancelOrder)
-                    .thenAccept(canceled -> {
+                    .thenAcceptAsync(canceled -> {
                         if (canceled) {
                             // Write the same received message.
                             write(connection);
                         } else {
                             write(connection, ORDER_NOT_FOUND);
                         }
-                    }).exceptionally(ex -> {
+                    }, context().executors().worker())
+                    .exceptionallyAsync(ex -> {
                         logger.error("{}", ex.getMessage());
                         write(connection, INTERNAL_SERVER_ERROR);
 
                         return null;
-                    });
+                    }, context().executors().worker());
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
             write(connection, INTERNAL_SERVER_ERROR);
@@ -144,7 +147,7 @@ public final class Handlers implements Responder {
             // TODO: Validate incoming message.
             final var fetchOrderBook = FetchOrderBookBinaryRepresentation.decode(connection.segment());
             context().matchingEngines().orderBook(fetchOrderBook)
-                    .thenAccept(orderBook -> {
+                    .thenAcceptAsync(orderBook -> {
                         final var arena = ofShared();
                         final var bids = new ArrayList<BinaryRepresentation<LimitOrder>>();
                         final var asks = new ArrayList<BinaryRepresentation<LimitOrder>>();
@@ -162,13 +165,13 @@ public final class Handlers implements Responder {
                         final var response = new OrderBookBinaryRepresentation(arena, new OrderBook(bids, asks));
                         response.encodeV1();
                         write(connection, response);
-                    })
-                    .exceptionally(ex -> {
+                    }, context().executors().worker())
+                    .exceptionallyAsync(ex -> {
                         logger.error("{}", ex.getMessage());
                         write(connection, INTERNAL_SERVER_ERROR);
 
                         return null;
-                    });
+                    }, context().executors().worker());
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
             write(connection, INTERNAL_SERVER_ERROR);
