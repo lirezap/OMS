@@ -15,6 +15,7 @@ import static java.lang.Thread.sleep;
 import static java.math.BigDecimal.ZERO;
 import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static software.openex.oms.context.AppContext.contextTest;
 import static software.openex.oms.models.Tables.TRADE;
 
@@ -27,117 +28,117 @@ public class MatcherTest {
 
     @Test
     public void testEqualityMatching1() throws Exception {
-        var bol = new BuyLimitOrder(1000, currentTimeMillis(), "BTC|USDT", "1", "100000");
-        var sol = new SellLimitOrder(1000 * 2, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var blo = new BuyLimitOrder(1000 + 1, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var slo = new SellLimitOrder(1000 + 2, currentTimeMillis(), "BTC|USDT", "1", "100000");
 
-        context.matchingEngines().offer(bol).get();
-        context.matchingEngines().offer(sol).get();
+        context.matchingEngines().offer(blo).get();
+        context.matchingEngines().offer(slo).get();
 
         sleep(500);
         var orderBook = context.matchingEngines()
                 .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
 
-        assertEquals(ZERO, bol.get_remaining());
-        assertEquals(ZERO, sol.get_remaining());
+        assertEquals(ZERO, blo.get_remaining());
+        assertEquals(ZERO, slo.get_remaining());
         assertEquals(0, orderBook.getBids().size());
         assertEquals(0, orderBook.getAsks().size());
 
         sleep(500);
-        tradeExistsAndIsValid(new Trade(1000, 2000, "BTC|USDT", "1", "100000", "100000", "bor:0,sor:0", currentTimeMillis()));
+        assertTrue(tradeExistsAndIsValid(new Trade(1000 + 1, 1000 + 2, "BTC|USDT", "1", "100000", "100000", "bor:0;sor:0", currentTimeMillis())));
     }
 
     @Test
     public void testEqualityMatching2() throws Exception {
-        var bol = new BuyLimitOrder(1000 * 3, currentTimeMillis(), "BTC|USDT", "1", "99000");
-        var sol = new SellLimitOrder(1000 * 4, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var blo = new BuyLimitOrder(1000 + 3, currentTimeMillis(), "BTC|USDT", "1", "99000");
+        var slo = new SellLimitOrder(1000 + 4, currentTimeMillis(), "BTC|USDT", "1", "100000");
 
-        context.matchingEngines().offer(bol).get();
-        context.matchingEngines().offer(sol).get();
+        context.matchingEngines().offer(blo).get();
+        context.matchingEngines().offer(slo).get();
 
         sleep(500);
         var orderBook = context.matchingEngines()
                 .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
 
-        assertEquals(new BigDecimal("1"), bol.get_remaining());
-        assertEquals(new BigDecimal("1"), sol.get_remaining());
+        assertEquals(new BigDecimal("1"), blo.get_remaining());
+        assertEquals(new BigDecimal("1"), slo.get_remaining());
         assertEquals(1, orderBook.getBids().size());
         assertEquals(1, orderBook.getAsks().size());
     }
 
     @Test
     public void testGreaterThanMatching1() throws Exception {
-        var bol = new BuyLimitOrder(1000 * 5, currentTimeMillis(), "BTC|USDT", "2", "101000");
-        var sol = new SellLimitOrder(1000 * 6, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var blo = new BuyLimitOrder(1000 + 5, currentTimeMillis(), "BTC|USDT", "2", "101000");
+        var slo = new SellLimitOrder(1000 + 6, currentTimeMillis(), "BTC|USDT", "1", "100000");
 
-        context.matchingEngines().offer(bol).get();
-        context.matchingEngines().offer(sol).get();
+        context.matchingEngines().offer(blo).get();
+        context.matchingEngines().offer(slo).get();
 
         sleep(500);
         var orderBook = context.matchingEngines()
                 .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
 
-        assertEquals(new BigDecimal("1"), bol.get_remaining());
-        assertEquals(ZERO, sol.get_remaining());
+        assertEquals(new BigDecimal("1"), blo.get_remaining());
+        assertEquals(ZERO, slo.get_remaining());
         assertEquals(1, orderBook.getBids().size());
         assertEquals(0, orderBook.getAsks().size());
 
         sleep(500);
-        tradeExistsAndIsValid(new Trade(5000, 6000, "BTC|USDT", "1", "101000", "100000", "bor:1,sor:0", currentTimeMillis()));
+        assertTrue(tradeExistsAndIsValid(new Trade(1000 + 5, 1000 + 6, "BTC|USDT", "1", "101000", "100000", "bor:1;sor:0", currentTimeMillis())));
     }
 
     @Test
     public void testGreaterThanMatching2() throws Exception {
-        var bol = new BuyLimitOrder(1000 * 7, currentTimeMillis(), "BTC|USDT", "2", "99000");
-        var sol = new SellLimitOrder(1000 * 8, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var blo = new BuyLimitOrder(1000 + 7, currentTimeMillis(), "BTC|USDT", "2", "99000");
+        var slo = new SellLimitOrder(1000 + 8, currentTimeMillis(), "BTC|USDT", "1", "100000");
 
-        context.matchingEngines().offer(bol).get();
-        context.matchingEngines().offer(sol).get();
+        context.matchingEngines().offer(blo).get();
+        context.matchingEngines().offer(slo).get();
 
         sleep(500);
         var orderBook = context.matchingEngines()
                 .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
 
-        assertEquals(new BigDecimal("2"), bol.get_remaining());
-        assertEquals(new BigDecimal("1"), sol.get_remaining());
+        assertEquals(new BigDecimal("2"), blo.get_remaining());
+        assertEquals(new BigDecimal("1"), slo.get_remaining());
         assertEquals(1, orderBook.getBids().size());
         assertEquals(1, orderBook.getAsks().size());
     }
 
     @Test
     public void testLessThanMatching1() throws Exception {
-        var bol = new BuyLimitOrder(1000 * 9, currentTimeMillis(), "BTC|USDT", "1", "101000");
-        var sol = new SellLimitOrder(1000 * 10, currentTimeMillis(), "BTC|USDT", "2", "100000");
+        var blo = new BuyLimitOrder(1000 + 9, currentTimeMillis(), "BTC|USDT", "1", "101000");
+        var slo = new SellLimitOrder(1000 + 10, currentTimeMillis(), "BTC|USDT", "2", "100000");
 
-        context.matchingEngines().offer(bol).get();
-        context.matchingEngines().offer(sol).get();
+        context.matchingEngines().offer(blo).get();
+        context.matchingEngines().offer(slo).get();
 
         sleep(500);
         var orderBook = context.matchingEngines()
                 .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
 
-        assertEquals(ZERO, bol.get_remaining());
-        assertEquals(new BigDecimal("1"), sol.get_remaining());
+        assertEquals(ZERO, blo.get_remaining());
+        assertEquals(new BigDecimal("1"), slo.get_remaining());
         assertEquals(0, orderBook.getBids().size());
         assertEquals(1, orderBook.getAsks().size());
 
         sleep(500);
-        tradeExistsAndIsValid(new Trade(9000, 10000, "BTC|USDT", "1", "101000", "100000", "bor:0,sor:1", currentTimeMillis()));
+        assertTrue(tradeExistsAndIsValid(new Trade(1000 + 9, 1000 + 10, "BTC|USDT", "1", "101000", "100000", "bor:0;sor:1", currentTimeMillis())));
     }
 
     @Test
     public void testLessThanMatching2() throws Exception {
-        var bol = new BuyLimitOrder(1000 * 11, currentTimeMillis(), "BTC|USDT", "1", "99000");
-        var sol = new SellLimitOrder(1000 * 12, currentTimeMillis(), "BTC|USDT", "2", "100000");
+        var blo = new BuyLimitOrder(1000 + 11, currentTimeMillis(), "BTC|USDT", "1", "99000");
+        var slo = new SellLimitOrder(1000 + 12, currentTimeMillis(), "BTC|USDT", "2", "100000");
 
-        context.matchingEngines().offer(bol).get();
-        context.matchingEngines().offer(sol).get();
+        context.matchingEngines().offer(blo).get();
+        context.matchingEngines().offer(slo).get();
 
         sleep(500);
         var orderBook = context.matchingEngines()
                 .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
 
-        assertEquals(new BigDecimal("1"), bol.get_remaining());
-        assertEquals(new BigDecimal("2"), sol.get_remaining());
+        assertEquals(new BigDecimal("1"), blo.get_remaining());
+        assertEquals(new BigDecimal("2"), slo.get_remaining());
         assertEquals(1, orderBook.getBids().size());
         assertEquals(1, orderBook.getAsks().size());
     }

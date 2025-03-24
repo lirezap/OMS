@@ -121,7 +121,7 @@ public final class SellMarketOrderMatcher implements Runnable {
                 buyOrder.get_remaining().toPlainString(),
                 buyOrder.getPrice(),
                 ZERO.toPlainString(),
-                format("bor:%s;sor:%s", ZERO, remaining),
+                format("bor:%s;sor:%s", ZERO, remaining.stripTrailingZeros()),
                 now.toEpochMilli());
 
         append(trade);
@@ -142,7 +142,7 @@ public final class SellMarketOrderMatcher implements Runnable {
                 sellMarketOrder.get_remaining().toPlainString(),
                 buyOrder.getPrice(),
                 ZERO.toPlainString(),
-                format("bor:%s;sor:%s", remaining, ZERO),
+                format("bor:%s;sor:%s", remaining.stripTrailingZeros(), ZERO),
                 now.toEpochMilli());
 
         append(trade);
