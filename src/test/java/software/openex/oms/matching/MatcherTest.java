@@ -5,6 +5,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import software.openex.oms.binary.order.BuyLimitOrder;
 import software.openex.oms.binary.order.SellLimitOrder;
 import software.openex.oms.binary.order.book.FetchOrderBook;
+import software.openex.oms.binary.trade.Trade;
 import software.openex.oms.context.AppContext;
 
 import java.math.BigDecimal;
@@ -15,6 +16,7 @@ import static java.math.BigDecimal.ZERO;
 import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static software.openex.oms.context.AppContext.contextTest;
+import static software.openex.oms.models.Tables.TRADE;
 
 /**
  * @author Alireza Pourtaghi
@@ -25,8 +27,8 @@ public class MatcherTest {
 
     @Test
     public void testEqualityMatching1() throws Exception {
-        var bol = new BuyLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100000");
-        var sol = new SellLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var bol = new BuyLimitOrder(1000, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var sol = new SellLimitOrder(1000 * 2, currentTimeMillis(), "BTC|USDT", "1", "100000");
 
         context.matchingEngines().offer(bol).get();
         context.matchingEngines().offer(sol).get();
@@ -39,12 +41,15 @@ public class MatcherTest {
         assertEquals(ZERO, sol.get_remaining());
         assertEquals(0, orderBook.getBids().size());
         assertEquals(0, orderBook.getAsks().size());
+
+        sleep(500);
+        tradeExistsAndIsValid(new Trade(1000, 2000, "BTC|USDT", "1", "100000", "100000", "bor:0,sor:0", currentTimeMillis()));
     }
 
     @Test
     public void testEqualityMatching2() throws Exception {
-        var bol = new BuyLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "99000");
-        var sol = new SellLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var bol = new BuyLimitOrder(1000 * 3, currentTimeMillis(), "BTC|USDT", "1", "99000");
+        var sol = new SellLimitOrder(1000 * 4, currentTimeMillis(), "BTC|USDT", "1", "100000");
 
         context.matchingEngines().offer(bol).get();
         context.matchingEngines().offer(sol).get();
@@ -61,8 +66,8 @@ public class MatcherTest {
 
     @Test
     public void testGreaterThanMatching1() throws Exception {
-        var bol = new BuyLimitOrder(1, currentTimeMillis(), "BTC|USDT", "2", "101000");
-        var sol = new SellLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var bol = new BuyLimitOrder(1000 * 5, currentTimeMillis(), "BTC|USDT", "2", "101000");
+        var sol = new SellLimitOrder(1000 * 6, currentTimeMillis(), "BTC|USDT", "1", "100000");
 
         context.matchingEngines().offer(bol).get();
         context.matchingEngines().offer(sol).get();
@@ -75,12 +80,15 @@ public class MatcherTest {
         assertEquals(ZERO, sol.get_remaining());
         assertEquals(1, orderBook.getBids().size());
         assertEquals(0, orderBook.getAsks().size());
+
+        sleep(500);
+        tradeExistsAndIsValid(new Trade(5000, 6000, "BTC|USDT", "1", "101000", "100000", "bor:1,sor:0", currentTimeMillis()));
     }
 
     @Test
     public void testGreaterThanMatching2() throws Exception {
-        var bol = new BuyLimitOrder(1, currentTimeMillis(), "BTC|USDT", "2", "99000");
-        var sol = new SellLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var bol = new BuyLimitOrder(1000 * 7, currentTimeMillis(), "BTC|USDT", "2", "99000");
+        var sol = new SellLimitOrder(1000 * 8, currentTimeMillis(), "BTC|USDT", "1", "100000");
 
         context.matchingEngines().offer(bol).get();
         context.matchingEngines().offer(sol).get();
@@ -97,8 +105,8 @@ public class MatcherTest {
 
     @Test
     public void testLessThanMatching1() throws Exception {
-        var bol = new BuyLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "101000");
-        var sol = new SellLimitOrder(2, currentTimeMillis(), "BTC|USDT", "2", "100000");
+        var bol = new BuyLimitOrder(1000 * 9, currentTimeMillis(), "BTC|USDT", "1", "101000");
+        var sol = new SellLimitOrder(1000 * 10, currentTimeMillis(), "BTC|USDT", "2", "100000");
 
         context.matchingEngines().offer(bol).get();
         context.matchingEngines().offer(sol).get();
@@ -111,12 +119,15 @@ public class MatcherTest {
         assertEquals(new BigDecimal("1"), sol.get_remaining());
         assertEquals(0, orderBook.getBids().size());
         assertEquals(1, orderBook.getAsks().size());
+
+        sleep(500);
+        tradeExistsAndIsValid(new Trade(9000, 10000, "BTC|USDT", "1", "101000", "100000", "bor:0,sor:1", currentTimeMillis()));
     }
 
     @Test
     public void testLessThanMatching2() throws Exception {
-        var bol = new BuyLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "99000");
-        var sol = new SellLimitOrder(2, currentTimeMillis(), "BTC|USDT", "2", "100000");
+        var bol = new BuyLimitOrder(1000 * 11, currentTimeMillis(), "BTC|USDT", "1", "99000");
+        var sol = new SellLimitOrder(1000 * 12, currentTimeMillis(), "BTC|USDT", "2", "100000");
 
         context.matchingEngines().offer(bol).get();
         context.matchingEngines().offer(sol).get();
@@ -129,6 +140,33 @@ public class MatcherTest {
         assertEquals(new BigDecimal("2"), sol.get_remaining());
         assertEquals(1, orderBook.getBids().size());
         assertEquals(1, orderBook.getAsks().size());
+    }
+
+    private boolean tradeExistsAndIsValid(Trade trade) {
+        var recordFetched = context.dataBase().postgresql()
+                .select(TRADE.BUY_ORDER_ID,
+                        TRADE.SELL_ORDER_ID,
+                        TRADE.SYMBOL,
+                        TRADE.QUANTITY,
+                        TRADE.BUY_PRICE,
+                        TRADE.SELL_PRICE,
+                        TRADE.METADATA,
+                        TRADE.TS)
+                .from(TRADE)
+                .where(TRADE.BUY_ORDER_ID.eq(trade.getBuyOrderId()))
+                .and(TRADE.SELL_ORDER_ID.eq(trade.getSellOrderId()))
+                .and(TRADE.SYMBOL.eq(trade.getSymbol()))
+                .fetchOne();
+
+        return recordFetched != null
+                && recordFetched.component1().equals(trade.getBuyOrderId())
+                && recordFetched.component2().equals(trade.getSellOrderId())
+                && recordFetched.component3().equals(trade.getSymbol())
+                && recordFetched.component4().equals(trade.getQuantity())
+                && recordFetched.component5().equals(trade.getBuyPrice())
+                && recordFetched.component6().equals(trade.getSellPrice())
+                && recordFetched.component7().equals(trade.getMetadata())
+                && recordFetched.component8().toEpochMilli() < trade.getTs();
     }
 
     @BeforeAll
