@@ -175,7 +175,7 @@ public class LimitOrdersTest {
                 .offer(new SellLimitOrder(3, currentTimeMillis(), "BTC|USDT", "1", "300000")).get();
 
         var canceled = context.matchingEngines()
-                .cancel(new CancelOrder(3, currentTimeMillis(), "BTC|USDT", "0")).get();
+                .cancel(new CancelOrder(3, currentTimeMillis(), "BTC|USDT", "0.0")).get();
         assertEquals(true, canceled);
 
         var orderBook = context.matchingEngines()

@@ -135,7 +135,7 @@ public final class Engine implements Closeable {
                 final var buyOrder = bids.next();
                 if (buyOrder.equals(order)) {
                     found = true;
-                    if (order.get_quantity().equals(ZERO) ||
+                    if (order.get_quantity().stripTrailingZeros().equals(ZERO) ||
                             buyOrder.get_remaining().compareTo(order.get_quantity()) == 0) {
 
                         buyOrders.remove(buyOrder);
@@ -156,7 +156,7 @@ public final class Engine implements Closeable {
                     final var sellOrder = asks.next();
                     if (sellOrder.equals(order)) {
                         found = true;
-                        if (order.get_quantity().equals(ZERO) ||
+                        if (order.get_quantity().stripTrailingZeros().equals(ZERO) ||
                                 sellOrder.get_remaining().compareTo(order.get_quantity()) == 0) {
 
                             sellOrders.remove(sellOrder);

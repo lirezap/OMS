@@ -163,7 +163,9 @@ public final class EventsSynchronizer implements Runnable {
         }
 
         final var currentRemaining = new BigDecimal(fetchedOrder.component7());
-        if (order.get_quantity().equals(ZERO) || currentRemaining.compareTo(order.get_quantity()) == 0) {
+        if (order.get_quantity().stripTrailingZeros().equals(ZERO) ||
+                currentRemaining.compareTo(order.get_quantity()) == 0) {
+
             context().dataBase().postgresql().transaction(configuration -> {
                 final var count = context().dataBase().cancelOrder(configuration.dsl(), order);
                 if (count == 1) {
