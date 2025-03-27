@@ -122,6 +122,22 @@ public final class Engine implements Closeable {
         executor.execute(new SellMarketOrderMatcher(buyOrders, eventsFile, order));
     }
 
+    public void offer(final IOCBuyLimitOrder order) {
+        executor.execute(new BuyLimitOrderMatcher(sellOrders, eventsFile, order));
+    }
+
+    public void offer(final IOCSellLimitOrder order) {
+        executor.execute(new SellLimitOrderMatcher(buyOrders, eventsFile, order));
+    }
+
+    public void offer(final FOKBuyLimitOrder order) {
+        executor.execute(new BuyLimitOrderMatcher(sellOrders, eventsFile, order));
+    }
+
+    public void offer(final FOKSellLimitOrder order) {
+        executor.execute(new SellLimitOrderMatcher(buyOrders, eventsFile, order));
+    }
+
     public CompletableFuture<Boolean> cancel(final CancelOrder order) {
         final var event = new CancelOrderEvent();
         event.begin();

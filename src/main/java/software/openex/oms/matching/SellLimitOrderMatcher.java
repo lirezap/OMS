@@ -18,10 +18,7 @@
 package software.openex.oms.matching;
 
 import org.slf4j.Logger;
-import software.openex.oms.binary.order.BuyLimitOrder;
-import software.openex.oms.binary.order.CancelOrder;
-import software.openex.oms.binary.order.LimitOrder;
-import software.openex.oms.binary.order.SellMarketOrder;
+import software.openex.oms.binary.order.*;
 import software.openex.oms.binary.trade.Trade;
 import software.openex.oms.matching.event.MatchEvent;
 import software.openex.oms.storage.ThreadSafeAtomicFile;
@@ -34,30 +31,63 @@ import static java.time.Instant.now;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * A market order matcher as a runnable to be submitted into engine's single threaded executor.
+ * An IOC limit order matcher as a runnable to be submitted into engine's single threaded executor.
  *
  * @author Alireza Pourtaghi
  */
-public final class SellMarketOrderMatcher extends IOCMatcher implements Runnable {
-    private static final Logger logger = getLogger(SellMarketOrderMatcher.class);
+public final class SellLimitOrderMatcher extends IOCMatcher implements Runnable {
+    private static final Logger logger = getLogger(SellLimitOrderMatcher.class);
 
     private final PriorityQueue<LimitOrder> buyOrders;
     private final ThreadSafeAtomicFile tradesFile;
-    private final SellMarketOrder sellMarketOrder;
+    private final SellLimitOrder sellLimitOrder;
 
-    public SellMarketOrderMatcher(final PriorityQueue<LimitOrder> buyOrders, final ThreadSafeAtomicFile tradesFile,
-                                  final SellMarketOrder sellMarketOrder) {
+    public SellLimitOrderMatcher(final PriorityQueue<LimitOrder> buyOrders, final ThreadSafeAtomicFile tradesFile,
+                                 final SellLimitOrder sellLimitOrder) {
 
         this.buyOrders = buyOrders;
         this.tradesFile = tradesFile;
-        this.sellMarketOrder = sellMarketOrder;
+        this.sellLimitOrder = sellLimitOrder;
     }
 
     @Override
     public void run() {
+        if (sellLimitOrder instanceof FOKSellLimitOrder) {
+            handleFOK();
+        } else if (sellLimitOrder instanceof IOCSellLimitOrder) {
+            handleIOC();
+        } else {
+            // Do nothing special, Just warn!
+            logger.warn("must not reach block reached for order: {}", sellLimitOrder);
+        }
+    }
+
+    private void handleFOK() {
+        final var buyOrdersHead = buyOrders.peek();
+        if (buyOrdersHead != null &&
+                sellLimitOrder.get_remaining().compareTo(buyOrdersHead.get_remaining()) <= 0 &&
+                sellLimitOrder.get_price().compareTo(buyOrdersHead.get_price()) <= 0) {
+
+            trade((BuyLimitOrder) buyOrdersHead);
+        } else {
+            final var cancelOrder = new CancelOrder(
+                    sellLimitOrder.getId(),
+                    sellLimitOrder.getTs(),
+                    sellLimitOrder.getSymbol(),
+                    // Set ZERO to cancel all remaining.
+                    ZERO.toPlainString());
+
+            append(cancelOrder, tradesFile);
+        }
+    }
+
+    private void handleIOC() {
         for (; ; ) {
             final var buyOrdersHead = buyOrders.peek();
-            if (sellMarketOrder.get_remaining().compareTo(ZERO) > 0 && buyOrdersHead != null) {
+            if (sellLimitOrder.get_remaining().compareTo(ZERO) > 0 &&
+                    buyOrdersHead != null &&
+                    sellLimitOrder.get_price().compareTo(buyOrdersHead.get_price()) <= 0) {
+
                 trade((BuyLimitOrder) buyOrdersHead);
             } else {
                 break;
@@ -65,11 +95,11 @@ public final class SellMarketOrderMatcher extends IOCMatcher implements Runnable
         }
 
         // Because of IOC feature we should cancel remaining quantity in order message.
-        if (sellMarketOrder.get_remaining().compareTo(ZERO) > 0) {
+        if (sellLimitOrder.get_remaining().compareTo(ZERO) > 0) {
             final var cancelOrder = new CancelOrder(
-                    sellMarketOrder.getId(),
-                    sellMarketOrder.getTs(),
-                    sellMarketOrder.getSymbol(),
+                    sellLimitOrder.getId(),
+                    sellLimitOrder.getTs(),
+                    sellLimitOrder.getSymbol(),
                     // Set ZERO to cancel all remaining.
                     ZERO.toPlainString());
 
@@ -78,11 +108,11 @@ public final class SellMarketOrderMatcher extends IOCMatcher implements Runnable
     }
 
     private void trade(final BuyLimitOrder buyOrder) {
-        final var event = new MatchEvent(sellMarketOrder.getSymbol());
+        final var event = new MatchEvent(sellLimitOrder.getSymbol());
         event.begin();
 
-        logger.trace("match: buy: {} sell: {}", buyOrder, sellMarketOrder);
-        switch (sellMarketOrder.get_remaining().compareTo(buyOrder.get_remaining())) {
+        logger.trace("match: buy: {} sell: {}", buyOrder, sellLimitOrder);
+        switch (sellLimitOrder.get_remaining().compareTo(buyOrder.get_remaining())) {
             case 0 -> handleEquality(buyOrder);
             case 1 -> handleGreaterThan(buyOrder);
             case -1 -> handleLessThan(buyOrder);
@@ -97,17 +127,17 @@ public final class SellMarketOrderMatcher extends IOCMatcher implements Runnable
         final var now = now();
         final var trade = new Trade(
                 buyOrder.getId(),
-                sellMarketOrder.getId(),
-                sellMarketOrder.getSymbol(),
-                sellMarketOrder.get_remaining().toPlainString(),
+                sellLimitOrder.getId(),
+                sellLimitOrder.getSymbol(),
+                sellLimitOrder.get_remaining().toPlainString(),
                 buyOrder.getPrice(),
-                ZERO.toPlainString(),
+                sellLimitOrder.getPrice(),
                 format("bor:%s;sor:%s", ZERO, ZERO),
                 now.toEpochMilli());
 
         append(trade, tradesFile);
         buyOrder.set_remaining(ZERO);
-        sellMarketOrder.set_remaining(ZERO);
+        sellLimitOrder.set_remaining(ZERO);
         buyOrders.poll();
 
         logger.trace("poll: buy: {}", buyOrder);
@@ -116,20 +146,20 @@ public final class SellMarketOrderMatcher extends IOCMatcher implements Runnable
     private void handleGreaterThan(final BuyLimitOrder buyOrder) {
         // Buy order must be polled.
         final var now = now();
-        final var remaining = sellMarketOrder.get_remaining().subtract(buyOrder.get_remaining());
+        final var remaining = sellLimitOrder.get_remaining().subtract(buyOrder.get_remaining());
         final var trade = new Trade(
                 buyOrder.getId(),
-                sellMarketOrder.getId(),
-                sellMarketOrder.getSymbol(),
+                sellLimitOrder.getId(),
+                sellLimitOrder.getSymbol(),
                 buyOrder.get_remaining().toPlainString(),
                 buyOrder.getPrice(),
-                ZERO.toPlainString(),
+                sellLimitOrder.getPrice(),
                 format("bor:%s;sor:%s", ZERO, remaining.stripTrailingZeros()),
                 now.toEpochMilli());
 
         append(trade, tradesFile);
         buyOrder.set_remaining(ZERO);
-        sellMarketOrder.set_remaining(remaining);
+        sellLimitOrder.set_remaining(remaining);
         buyOrders.poll();
 
         logger.trace("poll: buy: {}", buyOrder);
@@ -137,19 +167,19 @@ public final class SellMarketOrderMatcher extends IOCMatcher implements Runnable
 
     private void handleLessThan(final BuyLimitOrder buyOrder) {
         final var now = now();
-        final var remaining = buyOrder.get_remaining().subtract(sellMarketOrder.get_remaining());
+        final var remaining = buyOrder.get_remaining().subtract(sellLimitOrder.get_remaining());
         final var trade = new Trade(
                 buyOrder.getId(),
-                sellMarketOrder.getId(),
-                sellMarketOrder.getSymbol(),
-                sellMarketOrder.get_remaining().toPlainString(),
+                sellLimitOrder.getId(),
+                sellLimitOrder.getSymbol(),
+                sellLimitOrder.get_remaining().toPlainString(),
                 buyOrder.getPrice(),
-                ZERO.toPlainString(),
+                sellLimitOrder.getPrice(),
                 format("bor:%s;sor:%s", remaining.stripTrailingZeros(), ZERO),
                 now.toEpochMilli());
 
         append(trade, tradesFile);
         buyOrder.set_remaining(remaining);
-        sellMarketOrder.set_remaining(ZERO);
+        sellLimitOrder.set_remaining(ZERO);
     }
 }

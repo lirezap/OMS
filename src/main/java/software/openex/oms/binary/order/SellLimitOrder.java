@@ -25,7 +25,7 @@ import static software.openex.oms.binary.BinaryRepresentable.*;
 /**
  * @author Alireza Pourtaghi
  */
-public final class SellLimitOrder extends LimitOrder {
+public sealed class SellLimitOrder extends LimitOrder permits IOCSellLimitOrder {
 
     public SellLimitOrder(final long id, final long ts, final String symbol, final String quantity,
                           final String price) {

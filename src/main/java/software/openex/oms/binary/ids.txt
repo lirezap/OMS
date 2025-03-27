@@ -10,3 +10,7 @@ FetchOrderBook: 105
 OrderBook: 106
 BuyMarketOrder: 107
 SellMarketOrder: 108
+IOCBuyLimitOrder: 109
+IOCSellLimitOrder: 110
+FOKBuyLimitOrder: 111
+FOKSellLimitOrder: 112
