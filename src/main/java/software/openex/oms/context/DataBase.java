@@ -18,8 +18,8 @@
 package software.openex.oms.context;
 
 import org.jooq.DSLContext;
+import org.jooq.Record10;
 import org.jooq.Record8;
-import org.jooq.Record9;
 import org.jooq.Result;
 import org.jooq.conf.Settings;
 import org.slf4j.Logger;
@@ -162,7 +162,7 @@ public final class DataBase {
         return count == 1;
     }
 
-    public Record9<Long, String, OrderMessageSide, OrderMessageType, String, String, String, OrderMessageState, Instant>
+    public Record10<Long, String, OrderMessageSide, OrderMessageType, String, String, String, OrderMessageState, String, Instant>
     fetchOrderMessage(final long id, final String symbol) {
 
         return postgresql()
@@ -174,6 +174,7 @@ public final class DataBase {
                         ORDER_MESSAGE.PRICE,
                         ORDER_MESSAGE.REMAINING,
                         ORDER_MESSAGE.STATE,
+                        ORDER_MESSAGE.METADATA,
                         ORDER_MESSAGE.TS)
                 .from(ORDER_MESSAGE)
                 .where(ORDER_MESSAGE.ID.eq(id))

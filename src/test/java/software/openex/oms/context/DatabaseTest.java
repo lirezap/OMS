@@ -5,10 +5,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
-import software.openex.oms.binary.order.BuyLimitOrder;
-import software.openex.oms.binary.order.BuyMarketOrder;
-import software.openex.oms.binary.order.SellLimitOrder;
-import software.openex.oms.binary.order.SellMarketOrder;
+import software.openex.oms.binary.order.*;
 import software.openex.oms.binary.trade.Trade;
 
 import java.time.Instant;
@@ -33,10 +30,11 @@ public class DatabaseTest {
 
     @Test
     public void testInsertLimitOrder() {
-        var buyLimitOrder = new BuyLimitOrder(1, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var now = currentTimeMillis();
+        var buyLimitOrder = new BuyLimitOrder(1, now, "BTC|USDT", "1", "100000");
         assertTrue(context.dataBase().insertLimitOrder(buyLimitOrder, BUY));
 
-        var sellLimitOrder = new SellLimitOrder(2, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var sellLimitOrder = new SellLimitOrder(2, now, "BTC|USDT", "1", "100000");
         assertTrue(context.dataBase().insertLimitOrder(sellLimitOrder, SELL));
 
         var recordFetched = context.dataBase().fetchOrderMessage(1, "BTC|USDT");
@@ -49,6 +47,8 @@ public class DatabaseTest {
         assertEquals("100000", recordFetched.component6());
         assertEquals("1", recordFetched.component7());
         assertEquals(ACTIVE, recordFetched.component8());
+        assertNull(recordFetched.component9());
+        assertEquals(now, recordFetched.component10().toEpochMilli());
 
         recordFetched = context.dataBase().fetchOrderMessage(2, "BTC|USDT");
         assertNotNull(recordFetched);
@@ -57,10 +57,11 @@ public class DatabaseTest {
 
     @Test
     public void testInsertMarketOrder() {
-        var buyMarketOrder = new BuyMarketOrder(3, currentTimeMillis(), "BTC|USDT", "1");
+        var now = currentTimeMillis();
+        var buyMarketOrder = new BuyMarketOrder(3, now, "BTC|USDT", "1");
         assertTrue(context.dataBase().insertMarketOrder(buyMarketOrder, BUY));
 
-        var sellMarketOrder = new SellMarketOrder(4, currentTimeMillis(), "BTC|USDT", "1");
+        var sellMarketOrder = new SellMarketOrder(4, now, "BTC|USDT", "1");
         assertTrue(context.dataBase().insertMarketOrder(sellMarketOrder, SELL));
 
         var recordFetched = context.dataBase().fetchOrderMessage(3, "BTC|USDT");
@@ -73,6 +74,8 @@ public class DatabaseTest {
         assertNull(recordFetched.component6());
         assertEquals("1", recordFetched.component7());
         assertEquals(ACTIVE, recordFetched.component8());
+        assertNull(recordFetched.component9());
+        assertEquals(now, recordFetched.component10().toEpochMilli());
 
         recordFetched = context.dataBase().fetchOrderMessage(4, "BTC|USDT");
         assertNotNull(recordFetched);
@@ -80,10 +83,64 @@ public class DatabaseTest {
     }
 
     @Test
-    public void testOrderMessageAlreadyExists() {
-        context.dataBase().insertLimitOrder(new BuyLimitOrder(5, currentTimeMillis(), "BTC|USDT", "1", "100000"), BUY);
+    public void testInsertIOCLimitOrder() {
+        var now = currentTimeMillis();
+        var iocBuyLimitOrder = new IOCBuyLimitOrder(5, now, "BTC|USDT", "1", "100000");
+        assertTrue(context.dataBase().insertIOCLimitOrder(iocBuyLimitOrder, BUY));
 
-        var buyLimitOrder = new BuyLimitOrder(5, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var iocSellLimitOrder = new IOCSellLimitOrder(6, now, "BTC|USDT", "1", "100000");
+        assertTrue(context.dataBase().insertLimitOrder(iocSellLimitOrder, SELL));
+
+        var recordFetched = context.dataBase().fetchOrderMessage(5, "BTC|USDT");
+        assertNotNull(recordFetched);
+        assertEquals(5, recordFetched.component1());
+        assertEquals("BTC|USDT", recordFetched.component2());
+        assertEquals(BUY, recordFetched.component3());
+        assertEquals(LIMIT, recordFetched.component4());
+        assertEquals("1", recordFetched.component5());
+        assertEquals("100000", recordFetched.component6());
+        assertEquals("1", recordFetched.component7());
+        assertEquals(ACTIVE, recordFetched.component8());
+        assertEquals("tif:ioc;aon:false", recordFetched.component9());
+        assertEquals(now, recordFetched.component10().toEpochMilli());
+
+        recordFetched = context.dataBase().fetchOrderMessage(6, "BTC|USDT");
+        assertNotNull(recordFetched);
+        assertEquals(SELL, recordFetched.component3());
+    }
+
+    @Test
+    public void testInsertFOKLimitOrder() {
+        var now = currentTimeMillis();
+        var fokBuyLimitOrder = new FOKBuyLimitOrder(7, now, "BTC|USDT", "1", "100000");
+        assertTrue(context.dataBase().insertFOKLimitOrder(fokBuyLimitOrder, BUY));
+
+        var fokSellLimitOrder = new FOKSellLimitOrder(8, now, "BTC|USDT", "1", "100000");
+        assertTrue(context.dataBase().insertFOKLimitOrder(fokSellLimitOrder, SELL));
+
+        var recordFetched = context.dataBase().fetchOrderMessage(7, "BTC|USDT");
+        assertNotNull(recordFetched);
+        assertEquals(7, recordFetched.component1());
+        assertEquals("BTC|USDT", recordFetched.component2());
+        assertEquals(BUY, recordFetched.component3());
+        assertEquals(LIMIT, recordFetched.component4());
+        assertEquals("1", recordFetched.component5());
+        assertEquals("100000", recordFetched.component6());
+        assertEquals("1", recordFetched.component7());
+        assertEquals(ACTIVE, recordFetched.component8());
+        assertEquals("tif:ioc;aon:true", recordFetched.component9());
+        assertEquals(now, recordFetched.component10().toEpochMilli());
+
+        recordFetched = context.dataBase().fetchOrderMessage(8, "BTC|USDT");
+        assertNotNull(recordFetched);
+        assertEquals(SELL, recordFetched.component3());
+    }
+
+    @Test
+    public void testOrderMessageAlreadyExists() {
+        context.dataBase().insertLimitOrder(new BuyLimitOrder(9, currentTimeMillis(), "BTC|USDT", "1", "100000"), BUY);
+
+        var buyLimitOrder = new BuyLimitOrder(9, currentTimeMillis(), "BTC|USDT", "1", "100000");
         assertThrows(DataAccessException.class, () -> context.dataBase().insertLimitOrder(buyLimitOrder, BUY));
     }
 
@@ -96,52 +153,52 @@ public class DatabaseTest {
 
     @Test
     public void testCancelOrder() {
-        var buyLimitOrder = new BuyLimitOrder(6, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var buyLimitOrder = new BuyLimitOrder(10, currentTimeMillis(), "BTC|USDT", "1", "100000");
         context.dataBase().insertLimitOrder(buyLimitOrder, BUY);
         context.dataBase().cancelOrder(context.dataBase().postgresql(), buyLimitOrder);
 
-        var recordFetched = context.dataBase().fetchOrderMessage(6, "BTC|USDT");
+        var recordFetched = context.dataBase().fetchOrderMessage(10, "BTC|USDT");
         assertEquals(CANCELED, recordFetched.component8());
     }
 
     @Test
     public void testExecuteOrder() {
-        var buyLimitOrder = new BuyLimitOrder(7, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var buyLimitOrder = new BuyLimitOrder(11, currentTimeMillis(), "BTC|USDT", "1", "100000");
         context.dataBase().insertLimitOrder(buyLimitOrder, BUY);
         context.dataBase().executeOrder(context.dataBase().postgresql(), buyLimitOrder.getId(), "BTC|USDT", "0.5");
 
-        var recordFetched = context.dataBase().fetchOrderMessage(7, "BTC|USDT");
+        var recordFetched = context.dataBase().fetchOrderMessage(11, "BTC|USDT");
         assertEquals("0.5", recordFetched.component7());
         assertEquals(EXECUTED, recordFetched.component8());
     }
 
     @Test
     public void testUpdateRemaining() {
-        var buyLimitOrder = new BuyLimitOrder(8, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var buyLimitOrder = new BuyLimitOrder(12, currentTimeMillis(), "BTC|USDT", "1", "100000");
         context.dataBase().insertLimitOrder(buyLimitOrder, BUY);
         context.dataBase().updateRemaining(context.dataBase().postgresql(), buyLimitOrder.getId(), "BTC|USDT", "0.1");
 
-        var recordFetched = context.dataBase().fetchOrderMessage(8, "BTC|USDT");
+        var recordFetched = context.dataBase().fetchOrderMessage(12, "BTC|USDT");
         assertEquals("0.1", recordFetched.component7());
     }
 
     @Test
     public void testFetchActiveOrderMessages() {
         var now = currentTimeMillis();
-        var buyLimitOrder1 = new BuyLimitOrder(11, now + 1, "BTC|USDT", "1", "100000");
+        var buyLimitOrder1 = new BuyLimitOrder(13, now + 1, "BTC|USDT", "1", "100000");
         context.dataBase().insertLimitOrder(buyLimitOrder1, BUY);
 
-        var buyLimitOrder2 = new BuyLimitOrder(12, now + 2, "BTC|USDT", "1", "100000");
+        var buyLimitOrder2 = new BuyLimitOrder(14, now + 2, "BTC|USDT", "1", "100000");
         context.dataBase().insertLimitOrder(buyLimitOrder2, BUY);
 
-        var buyLimitOrder3 = new BuyLimitOrder(13, now + 3, "BTC|USDT", "1", "100000");
+        var buyLimitOrder3 = new BuyLimitOrder(15, now + 3, "BTC|USDT", "1", "100000");
         context.dataBase().insertLimitOrder(buyLimitOrder3, BUY);
         context.dataBase().cancelOrder(context.dataBase().postgresql(), buyLimitOrder3);
 
-        var buyLimitOrder4 = new BuyLimitOrder(14, now + 4, "BTC|USDT", "1", "100000");
+        var buyLimitOrder4 = new BuyLimitOrder(16, now + 4, "BTC|USDT", "1", "100000");
         context.dataBase().insertLimitOrder(buyLimitOrder4, BUY);
 
-        var buyLimitOrder5 = new BuyLimitOrder(15, now + 5, "BTC|USDT", "1", "100000");
+        var buyLimitOrder5 = new BuyLimitOrder(17, now + 5, "BTC|USDT", "1", "100000");
         context.dataBase().insertLimitOrder(buyLimitOrder5, BUY);
         context.dataBase().executeOrder(context.dataBase().postgresql(), buyLimitOrder5.getId(), "BTC|USDT", "0.5");
 
