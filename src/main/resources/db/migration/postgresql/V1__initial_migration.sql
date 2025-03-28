@@ -12,6 +12,7 @@ CREATE TABLE order_message (
     price     VARCHAR(32),
     remaining VARCHAR(32),
     state     order_message_state NOT NULL DEFAULT 'ACTIVE',
+    metadata  VARCHAR(256),
     ts        TIMESTAMPTZ NOT NULL,
 
     PRIMARY KEY (id, symbol)

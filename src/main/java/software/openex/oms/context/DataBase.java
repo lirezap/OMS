@@ -110,6 +110,58 @@ public final class DataBase {
         return count == 1;
     }
 
+    public boolean insertIOCLimitOrder(final LimitOrder order, final OrderMessageSide side) {
+        final var count = postgresql()
+                .insertInto(ORDER_MESSAGE)
+                .columns(ORDER_MESSAGE.ID,
+                        ORDER_MESSAGE.SYMBOL,
+                        ORDER_MESSAGE.SIDE,
+                        ORDER_MESSAGE.TYPE,
+                        ORDER_MESSAGE.QUANTITY,
+                        ORDER_MESSAGE.PRICE,
+                        ORDER_MESSAGE.REMAINING,
+                        ORDER_MESSAGE.METADATA,
+                        ORDER_MESSAGE.TS)
+                .values(order.getId(),
+                        order.getSymbol(),
+                        side,
+                        LIMIT,
+                        order.getQuantity(),
+                        order.getPrice(),
+                        order.getQuantity(),
+                        "tif:ioc;aon:false",
+                        ofEpochMilli(order.getTs()))
+                .execute();
+
+        return count == 1;
+    }
+
+    public boolean insertFOKLimitOrder(final LimitOrder order, final OrderMessageSide side) {
+        final var count = postgresql()
+                .insertInto(ORDER_MESSAGE)
+                .columns(ORDER_MESSAGE.ID,
+                        ORDER_MESSAGE.SYMBOL,
+                        ORDER_MESSAGE.SIDE,
+                        ORDER_MESSAGE.TYPE,
+                        ORDER_MESSAGE.QUANTITY,
+                        ORDER_MESSAGE.PRICE,
+                        ORDER_MESSAGE.REMAINING,
+                        ORDER_MESSAGE.METADATA,
+                        ORDER_MESSAGE.TS)
+                .values(order.getId(),
+                        order.getSymbol(),
+                        side,
+                        LIMIT,
+                        order.getQuantity(),
+                        order.getPrice(),
+                        order.getQuantity(),
+                        "tif:ioc;aon:true",
+                        ofEpochMilli(order.getTs()))
+                .execute();
+
+        return count == 1;
+    }
+
     public Record9<Long, String, OrderMessageSide, OrderMessageType, String, String, String, OrderMessageState, Instant>
     fetchOrderMessage(final long id, final String symbol) {
 

@@ -236,6 +236,150 @@ public final class Handlers implements Responder {
         }
     }
 
+    public void handleIOCBuyLimitOrder(final Connection connection) {
+        try {
+            // TODO: Validate incoming message.
+            logMessage(connection);
+            final var buyLimitOrder = BuyLimitOrder.decode(connection.segment());
+            if (context().config().loadBoolean("matching.engine.store_orders") &&
+                    !context().dataBase().insertIOCLimitOrder(buyLimitOrder, BUY)) {
+
+                write(connection, INTERNAL_SERVER_ERROR);
+                return;
+            }
+
+            final var iocBuyLimitOrder = new IOCBuyLimitOrder(
+                    buyLimitOrder.getId(),
+                    buyLimitOrder.getTs(),
+                    buyLimitOrder.getSymbol(),
+                    buyLimitOrder.getQuantity(),
+                    buyLimitOrder.getPrice());
+
+            context().matchingEngines().offer(iocBuyLimitOrder);
+            // Write the same received message.
+            write(connection);
+        } catch (DataAccessException ex) {
+            if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
+                write(connection, ORDER_ALREADY_EXISTS);
+                return;
+            }
+
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public void handleIOCSellLimitOrder(final Connection connection) {
+        try {
+            // TODO: Validate incoming message.
+            logMessage(connection);
+            final var sellLimitOrder = SellLimitOrder.decode(connection.segment());
+            if (context().config().loadBoolean("matching.engine.store_orders") &&
+                    !context().dataBase().insertIOCLimitOrder(sellLimitOrder, SELL)) {
+
+                write(connection, INTERNAL_SERVER_ERROR);
+                return;
+            }
+
+            final var iocSellLimitOrder = new IOCSellLimitOrder(
+                    sellLimitOrder.getId(),
+                    sellLimitOrder.getTs(),
+                    sellLimitOrder.getSymbol(),
+                    sellLimitOrder.getQuantity(),
+                    sellLimitOrder.getPrice());
+
+            context().matchingEngines().offer(iocSellLimitOrder);
+            // Write the same received message.
+            write(connection);
+        } catch (DataAccessException ex) {
+            if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
+                write(connection, ORDER_ALREADY_EXISTS);
+                return;
+            }
+
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public void handleFOKBuyLimitOrder(final Connection connection) {
+        try {
+            // TODO: Validate incoming message.
+            logMessage(connection);
+            final var buyLimitOrder = BuyLimitOrder.decode(connection.segment());
+            if (context().config().loadBoolean("matching.engine.store_orders") &&
+                    !context().dataBase().insertFOKLimitOrder(buyLimitOrder, BUY)) {
+
+                write(connection, INTERNAL_SERVER_ERROR);
+                return;
+            }
+
+            final var fokBuyLimitOrder = new FOKBuyLimitOrder(
+                    buyLimitOrder.getId(),
+                    buyLimitOrder.getTs(),
+                    buyLimitOrder.getSymbol(),
+                    buyLimitOrder.getQuantity(),
+                    buyLimitOrder.getPrice());
+
+            context().matchingEngines().offer(fokBuyLimitOrder);
+            // Write the same received message.
+            write(connection);
+        } catch (DataAccessException ex) {
+            if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
+                write(connection, ORDER_ALREADY_EXISTS);
+                return;
+            }
+
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public void handleFOKSellLimitOrder(final Connection connection) {
+        try {
+            // TODO: Validate incoming message.
+            logMessage(connection);
+            final var sellLimitOrder = SellLimitOrder.decode(connection.segment());
+            if (context().config().loadBoolean("matching.engine.store_orders") &&
+                    !context().dataBase().insertFOKLimitOrder(sellLimitOrder, SELL)) {
+
+                write(connection, INTERNAL_SERVER_ERROR);
+                return;
+            }
+
+            final var fokSellLimitOrder = new FOKSellLimitOrder(
+                    sellLimitOrder.getId(),
+                    sellLimitOrder.getTs(),
+                    sellLimitOrder.getSymbol(),
+                    sellLimitOrder.getQuantity(),
+                    sellLimitOrder.getPrice());
+
+            context().matchingEngines().offer(fokSellLimitOrder);
+            // Write the same received message.
+            write(connection);
+        } catch (DataAccessException ex) {
+            if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
+                write(connection, ORDER_ALREADY_EXISTS);
+                return;
+            }
+
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        }
+    }
+
     private void logMessage(final Connection connection) {
         context().messagesLogFile().ifPresentOrElse(file ->
                 file.append(connection.copyMessageForLog().asByteBuffer()), doNothing);
