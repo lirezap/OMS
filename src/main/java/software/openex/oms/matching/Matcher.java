@@ -20,7 +20,6 @@ package software.openex.oms.matching;
 import org.slf4j.Logger;
 import software.openex.oms.binary.order.LimitOrder;
 import software.openex.oms.binary.trade.Trade;
-import software.openex.oms.binary.trade.TradeBinaryRepresentation;
 import software.openex.oms.matching.event.MatchEvent;
 import software.openex.oms.storage.ThreadSafeAtomicFile;
 
@@ -29,10 +28,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
 import static java.lang.String.format;
-import static java.lang.foreign.Arena.ofConfined;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
 import static org.slf4j.LoggerFactory.getLogger;
+import static software.openex.oms.matching.Util.append;
 
 /**
  * An orders matcher as a runnable to be submitted into engine's single threaded executor.
@@ -106,7 +105,7 @@ public final class Matcher implements Runnable {
                 format("bor:%s;sor:%s", ZERO, ZERO),
                 now.toEpochMilli());
 
-        append(trade);
+        append(trade, tradesFile);
         buyOrder.set_remaining(ZERO);
         sellOrder.set_remaining(ZERO);
         buyOrders.poll();
@@ -130,7 +129,7 @@ public final class Matcher implements Runnable {
                 format("bor:%s;sor:%s", remaining.stripTrailingZeros(), ZERO),
                 now.toEpochMilli());
 
-        append(trade);
+        append(trade, tradesFile);
         buyOrder.set_remaining(remaining);
         sellOrder.set_remaining(ZERO);
         sellOrders.poll();
@@ -152,20 +151,11 @@ public final class Matcher implements Runnable {
                 format("bor:%s;sor:%s", ZERO, remaining.stripTrailingZeros()),
                 now.toEpochMilli());
 
-        append(trade);
+        append(trade, tradesFile);
         buyOrder.set_remaining(ZERO);
         sellOrder.set_remaining(remaining);
         buyOrders.poll();
 
         logger.trace("poll: buy: {}", buyOrder);
-    }
-
-    private void append(final Trade trade) {
-        try (final var arena = ofConfined()) {
-            final var binary = new TradeBinaryRepresentation(arena, trade);
-            binary.encodeV1();
-
-            tradesFile.append(binary.segment());
-        }
     }
 }

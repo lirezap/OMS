@@ -32,13 +32,14 @@ import static java.lang.String.format;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
 import static org.slf4j.LoggerFactory.getLogger;
+import static software.openex.oms.matching.Util.append;
 
 /**
  * A market order matcher as a runnable to be submitted into engine's single threaded executor.
  *
  * @author Alireza Pourtaghi
  */
-public final class SellMarketOrderMatcher extends IOCMatcher implements Runnable {
+public final class SellMarketOrderMatcher implements Runnable {
     private static final Logger logger = getLogger(SellMarketOrderMatcher.class);
 
     private final PriorityQueue<LimitOrder> buyOrders;

@@ -26,28 +26,27 @@ import software.openex.oms.storage.AtomicFile;
 import static java.lang.foreign.Arena.ofConfined;
 
 /**
- * Base IOC matcher class.
+ * Package level utility class.
  *
  * @author Alireza Pourtaghi
  */
-public sealed class IOCMatcher permits
-        BuyMarketOrderMatcher, SellMarketOrderMatcher, BuyLimitOrderMatcher, SellLimitOrderMatcher {
+final class Util {
 
-    protected void append(final Trade trade, final AtomicFile tradesFile) {
+    static void append(final Trade trade, final AtomicFile file) {
         try (final var arena = ofConfined()) {
             final var binary = new TradeBinaryRepresentation(arena, trade);
             binary.encodeV1();
 
-            tradesFile.append(binary.segment());
+            file.append(binary.segment());
         }
     }
 
-    protected void append(final CancelOrder cancelOrder, final AtomicFile tradesFile) {
+    static void append(final CancelOrder cancelOrder, final AtomicFile file) {
         try (final var arena = ofConfined()) {
             final var binary = new OrderBinaryRepresentation(arena, cancelOrder);
             binary.encodeV1();
 
-            tradesFile.append(binary.segment());
+            file.append(binary.segment());
         }
     }
 }

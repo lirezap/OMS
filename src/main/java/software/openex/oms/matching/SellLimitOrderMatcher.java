@@ -29,13 +29,14 @@ import static java.lang.String.format;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
 import static org.slf4j.LoggerFactory.getLogger;
+import static software.openex.oms.matching.Util.append;
 
 /**
  * An IOC limit order matcher as a runnable to be submitted into engine's single threaded executor.
  *
  * @author Alireza Pourtaghi
  */
-public final class SellLimitOrderMatcher extends IOCMatcher implements Runnable {
+public final class SellLimitOrderMatcher implements Runnable {
     private static final Logger logger = getLogger(SellLimitOrderMatcher.class);
 
     private final PriorityQueue<LimitOrder> buyOrders;

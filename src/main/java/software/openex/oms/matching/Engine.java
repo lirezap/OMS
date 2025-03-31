@@ -34,7 +34,6 @@ import java.util.concurrent.ExecutorService;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static java.lang.foreign.Arena.ofConfined;
 import static java.math.BigDecimal.ZERO;
 import static java.nio.file.Path.of;
 import static java.time.Duration.ofSeconds;
@@ -42,6 +41,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.slf4j.LoggerFactory.getLogger;
 import static software.openex.oms.context.AppContext.context;
+import static software.openex.oms.matching.Util.append;
 
 /**
  * A buy/sell orders matching engine.
@@ -217,7 +217,7 @@ public final class Engine implements Closeable {
                                   final Order buyOrder, final Event event) {
 
         try {
-            append(order);
+            append(order, eventsFile);
             future.complete(TRUE);
             event.end();
             event.commit();
@@ -234,7 +234,7 @@ public final class Engine implements Closeable {
                                            final Order buyOrder, final Event event) {
 
         try {
-            append(order);
+            append(order, eventsFile);
             future.complete(TRUE);
             event.end();
             event.commit();
@@ -251,7 +251,7 @@ public final class Engine implements Closeable {
                                    final Order sellOrder, final Event event) {
 
         try {
-            append(order);
+            append(order, eventsFile);
             future.complete(TRUE);
             event.end();
             event.commit();
@@ -268,7 +268,7 @@ public final class Engine implements Closeable {
                                             final Order sellOrder, final Event event) {
 
         try {
-            append(order);
+            append(order, eventsFile);
             future.complete(TRUE);
             event.end();
             event.commit();
@@ -317,15 +317,6 @@ public final class Engine implements Closeable {
         }
 
         return asks;
-    }
-
-    private void append(final CancelOrder cancelOrder) {
-        try (final var arena = ofConfined()) {
-            final var binary = new OrderBinaryRepresentation(arena, cancelOrder);
-            binary.encodeV1();
-
-            eventsFile.append(binary.segment());
-        }
     }
 
     private ThreadSafeAtomicFile eventsFile(final String symbol) {
