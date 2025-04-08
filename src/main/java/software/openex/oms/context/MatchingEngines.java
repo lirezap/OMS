@@ -106,6 +106,16 @@ public final class MatchingEngines implements Closeable {
                 .offer(order);
     }
 
+    public void offer(final FOKBuyMarketOrder order) {
+        engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, initialCap, true))
+                .offer(order);
+    }
+
+    public void offer(final FOKSellMarketOrder order) {
+        engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, initialCap, true))
+                .offer(order);
+    }
+
     public CompletableFuture<Boolean> cancel(final CancelOrder order) {
         return engines.computeIfAbsent(order.getSymbol(), symbol -> new Engine(symbol, initialCap, true))
                 .cancel(order);

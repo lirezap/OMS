@@ -24,7 +24,7 @@ import static software.openex.oms.binary.BinaryRepresentable.*;
 /**
  * @author Alireza Pourtaghi
  */
-public final class SellMarketOrder extends MarketOrder {
+public sealed class SellMarketOrder extends MarketOrder permits FOKSellMarketOrder {
 
     public SellMarketOrder(final long id, final long ts, final String symbol, final String quantity) {
         super(id, ts, symbol, quantity);

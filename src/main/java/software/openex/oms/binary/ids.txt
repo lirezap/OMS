@@ -14,3 +14,5 @@ IOCBuyLimitOrder: 109
 IOCSellLimitOrder: 110
 FOKBuyLimitOrder: 111
 FOKSellLimitOrder: 112
+FOKBuyMarketOrder: 113
+FOKSellMarketOrder: 114

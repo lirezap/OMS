@@ -3,6 +3,7 @@ package software.openex.oms.matching;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import software.openex.oms.binary.order.BuyLimitOrder;
+import software.openex.oms.binary.order.FOKSellMarketOrder;
 import software.openex.oms.binary.order.SellMarketOrder;
 import software.openex.oms.binary.order.book.FetchOrderBook;
 import software.openex.oms.binary.trade.Trade;
@@ -120,6 +121,61 @@ public class SellMarketOrderMatcherTest {
         assertTrue(tradeExistsAndIsValid(new Trade(3000 + 9, 3000 + 12, "BTC|USDT", "2", "100002", "0", "bor:0;sor:5.75", currentTimeMillis())));
         assertTrue(tradeExistsAndIsValid(new Trade(3000 + 10, 3000 + 12, "BTC|USDT", "4.75", "100001", "0", "bor:0;sor:1", currentTimeMillis())));
         assertTrue(tradeExistsAndIsValid(new Trade(3000 + 11, 3000 + 12, "BTC|USDT", "1.00", "100000", "0", "bor:4;sor:0", currentTimeMillis())));
+    }
+
+    @Test
+    public void testFOKEqualityMatching() throws Exception {
+        var blo1 = new BuyLimitOrder(3000 + 13, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var smo = new FOKSellMarketOrder(3000 + 14, currentTimeMillis(), "BTC|USDT", "1");
+
+        context.matchingEngines().offer(blo1).get();
+        context.matchingEngines().offer(smo);
+
+        sleep(100);
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
+
+        assertEquals(ZERO, blo1.get_remaining());
+        assertEquals(ZERO, smo.get_remaining());
+        assertEquals(0, orderBook.getBids().size());
+
+        sleep(500);
+        assertTrue(tradeExistsAndIsValid(new Trade(3000 + 13, 3000 + 14, "BTC|USDT", "1", "100000", "0", "bor:0;sor:0", currentTimeMillis())));
+    }
+
+    @Test
+    public void testFOKGreaterThanMatching() throws Exception {
+        var blo1 = new BuyLimitOrder(3000 + 15, currentTimeMillis(), "BTC|USDT", "1", "100000");
+        var smo = new FOKSellMarketOrder(3000 + 16, currentTimeMillis(), "BTC|USDT", "2");
+
+        context.matchingEngines().offer(blo1).get();
+        context.matchingEngines().offer(smo);
+
+        sleep(100);
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
+
+        assertEquals(1, orderBook.getBids().size());
+    }
+
+    @Test
+    public void testFOKLessThanMatching() throws Exception {
+        var blo1 = new BuyLimitOrder(3000 + 17, currentTimeMillis(), "BTC|USDT", "2", "100000");
+        var smo = new FOKSellMarketOrder(3000 + 18, currentTimeMillis(), "BTC|USDT", "1");
+
+        context.matchingEngines().offer(blo1).get();
+        context.matchingEngines().offer(smo);
+
+        sleep(100);
+        var orderBook = context.matchingEngines()
+                .orderBook(new FetchOrderBook("BTC|USDT", 10)).get();
+
+        assertEquals(new BigDecimal("1"), blo1.get_remaining());
+        assertEquals(ZERO, smo.get_remaining());
+        assertEquals(1, orderBook.getBids().size());
+
+        sleep(500);
+        tradeExistsAndIsValid(new Trade(3000 + 17, 3000 + 18, "BTC|USDT", "1", "100000", "0", "bor:1;sor:0", currentTimeMillis()));
     }
 
     private boolean tradeExistsAndIsValid(Trade trade) {

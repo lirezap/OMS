@@ -18,10 +18,7 @@
 package software.openex.oms.matching;
 
 import org.slf4j.Logger;
-import software.openex.oms.binary.order.BuyLimitOrder;
-import software.openex.oms.binary.order.CancelOrder;
-import software.openex.oms.binary.order.LimitOrder;
-import software.openex.oms.binary.order.SellMarketOrder;
+import software.openex.oms.binary.order.*;
 import software.openex.oms.binary.trade.Trade;
 import software.openex.oms.matching.event.MatchEvent;
 import software.openex.oms.storage.ThreadSafeAtomicFile;
@@ -56,6 +53,32 @@ public final class SellMarketOrderMatcher implements Runnable {
 
     @Override
     public void run() {
+        if (sellMarketOrder instanceof FOKSellMarketOrder) {
+            handleFOK();
+        } else {
+            handle();
+        }
+    }
+
+    private void handleFOK() {
+        final var buyOrdersHead = buyOrders.peek();
+        if (buyOrdersHead != null &&
+                sellMarketOrder.get_remaining().compareTo(buyOrdersHead.get_remaining()) <= 0) {
+
+            trade((BuyLimitOrder) buyOrdersHead);
+        } else {
+            final var cancelOrder = new CancelOrder(
+                    sellMarketOrder.getId(),
+                    sellMarketOrder.getTs(),
+                    sellMarketOrder.getSymbol(),
+                    // Set ZERO to cancel all remaining.
+                    ZERO.toPlainString());
+
+            append(cancelOrder, tradesFile);
+        }
+    }
+
+    private void handle() {
         for (; ; ) {
             final var buyOrdersHead = buyOrders.peek();
             if (sellMarketOrder.get_remaining().compareTo(ZERO) > 0 && buyOrdersHead != null) {
