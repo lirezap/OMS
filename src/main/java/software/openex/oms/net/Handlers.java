@@ -380,6 +380,76 @@ public final class Handlers implements Responder {
         }
     }
 
+    public void handleFOKBuyMarketOrder(final Connection connection) {
+        try {
+            // TODO: Validate incoming message.
+            logMessage(connection);
+            final var buyMarketOrder = BuyMarketOrder.decode(connection.segment());
+            if (context().config().loadBoolean("matching.engine.store_orders") &&
+                    !context().dataBase().insertFOKMarketOrder(buyMarketOrder, BUY)) {
+
+                write(connection, INTERNAL_SERVER_ERROR);
+                return;
+            }
+
+            final var fokBuyMarketOrder = new FOKBuyMarketOrder(
+                    buyMarketOrder.getId(),
+                    buyMarketOrder.getTs(),
+                    buyMarketOrder.getSymbol(),
+                    buyMarketOrder.getQuantity());
+
+            context().matchingEngines().offer(fokBuyMarketOrder);
+            // Write the same received message.
+            write(connection);
+        } catch (DataAccessException ex) {
+            if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
+                write(connection, ORDER_ALREADY_EXISTS);
+                return;
+            }
+
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public void handleFOKSellMarketOrder(final Connection connection) {
+        try {
+            // TODO: Validate incoming message.
+            logMessage(connection);
+            final var sellMarketOrder = SellMarketOrder.decode(connection.segment());
+            if (context().config().loadBoolean("matching.engine.store_orders") &&
+                    !context().dataBase().insertFOKMarketOrder(sellMarketOrder, SELL)) {
+
+                write(connection, INTERNAL_SERVER_ERROR);
+                return;
+            }
+
+            final var fokSellMarketOrder = new FOKSellMarketOrder(
+                    sellMarketOrder.getId(),
+                    sellMarketOrder.getTs(),
+                    sellMarketOrder.getSymbol(),
+                    sellMarketOrder.getQuantity());
+
+            context().matchingEngines().offer(fokSellMarketOrder);
+            // Write the same received message.
+            write(connection);
+        } catch (DataAccessException ex) {
+            if (ex.getMessage().contains("(id, symbol)") && ex.getMessage().contains("already exists")) {
+                write(connection, ORDER_ALREADY_EXISTS);
+                return;
+            }
+
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        }
+    }
+
     private void logMessage(final Connection connection) {
         context().messagesLogFile().ifPresentOrElse(file ->
                 file.append(connection.copyMessageForLog().asByteBuffer()), doNothing);

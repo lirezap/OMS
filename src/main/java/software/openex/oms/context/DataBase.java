@@ -162,6 +162,30 @@ public final class DataBase {
         return count == 1;
     }
 
+    public boolean insertFOKMarketOrder(final MarketOrder order, final OrderMessageSide side) {
+        final var count = postgresql()
+                .insertInto(ORDER_MESSAGE)
+                .columns(ORDER_MESSAGE.ID,
+                        ORDER_MESSAGE.SYMBOL,
+                        ORDER_MESSAGE.SIDE,
+                        ORDER_MESSAGE.TYPE,
+                        ORDER_MESSAGE.QUANTITY,
+                        ORDER_MESSAGE.REMAINING,
+                        ORDER_MESSAGE.METADATA,
+                        ORDER_MESSAGE.TS)
+                .values(order.getId(),
+                        order.getSymbol(),
+                        side,
+                        MARKET,
+                        order.getQuantity(),
+                        order.getQuantity(),
+                        "aon:true",
+                        ofEpochMilli(order.getTs()))
+                .execute();
+
+        return count == 1;
+    }
+
     public Record10<Long, String, OrderMessageSide, OrderMessageType, String, String, String, OrderMessageState, String, Instant>
     fetchOrderMessage(final long id, final String symbol) {
 
