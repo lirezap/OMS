@@ -16,3 +16,7 @@ FOKBuyLimitOrder: 111
 FOKSellLimitOrder: 112
 FOKBuyMarketOrder: 113
 FOKSellMarketOrder: 114
+BuyStopOrder: 115
+SellStopOrder: 116
+BuyStopLimitOrder: 117
+SellStopLimitOrder: 118
