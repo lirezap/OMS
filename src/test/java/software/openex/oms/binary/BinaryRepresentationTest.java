@@ -458,6 +458,56 @@ public class BinaryRepresentationTest {
         }
     }
 
+    @Test
+    public void testBuyStopLimitOrder() {
+        var order = new BuyStopLimitOrder(1, currentTimeMillis(), "BTC/USDT", "1", "100000", "99000");
+        try (var binaryRepresentation = new StopLimitOrderBinaryRepresentation(order)) {
+            binaryRepresentation.encodeV1();
+
+            assertEquals(117, BinaryRepresentable.id(binaryRepresentation.segment()));
+            assertEquals(56, binaryRepresentation.size());
+            assertEquals(66, binaryRepresentation.representationSize());
+
+            var decoded = BuyStopLimitOrder.decode(binaryRepresentation.segment());
+            assertEquals(order.getId(), decoded.getId());
+            assertEquals(order.getTs(), decoded.getTs());
+            assertEquals(order.getSymbol(), decoded.getSymbol());
+            assertEquals(order.getQuantity(), decoded.getQuantity());
+            assertEquals(order.getPrice(), decoded.getPrice());
+            assertEquals(order.getStopPrice(), decoded.getStopPrice());
+            assertEquals(new BigDecimal(order.getQuantity()), decoded.get_quantity());
+            assertEquals(new BigDecimal(order.getQuantity()), decoded.get_remaining());
+            assertEquals(new BigDecimal(order.getPrice()), decoded.get_price());
+            assertEquals(new BigDecimal(order.getStopPrice()), decoded.get_stopPrice());
+            assertEquals(order, decoded);
+        }
+    }
+
+    @Test
+    public void testSellStopLimitOrder() {
+        var order = new SellStopLimitOrder(1, currentTimeMillis(), "BTC/USDT", "1", "100000", "101000");
+        try (var binaryRepresentation = new StopLimitOrderBinaryRepresentation(order)) {
+            binaryRepresentation.encodeV1();
+
+            assertEquals(118, BinaryRepresentable.id(binaryRepresentation.segment()));
+            assertEquals(57, binaryRepresentation.size());
+            assertEquals(67, binaryRepresentation.representationSize());
+
+            var decoded = SellStopLimitOrder.decode(binaryRepresentation.segment());
+            assertEquals(order.getId(), decoded.getId());
+            assertEquals(order.getTs(), decoded.getTs());
+            assertEquals(order.getSymbol(), decoded.getSymbol());
+            assertEquals(order.getQuantity(), decoded.getQuantity());
+            assertEquals(order.getPrice(), decoded.getPrice());
+            assertEquals(order.getStopPrice(), decoded.getStopPrice());
+            assertEquals(new BigDecimal(order.getQuantity()), decoded.get_quantity());
+            assertEquals(new BigDecimal(order.getQuantity()), decoded.get_remaining());
+            assertEquals(new BigDecimal(order.getPrice()), decoded.get_price());
+            assertEquals(new BigDecimal(order.getStopPrice()), decoded.get_stopPrice());
+            assertEquals(order, decoded);
+        }
+    }
+
     private void assertEquality(LimitOrder expected, LimitOrder actual) {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getTs(), actual.getTs());
