@@ -20,3 +20,5 @@ BuyStopOrder: 115
 SellStopOrder: 116
 BuyStopLimitOrder: 117
 SellStopLimitOrder: 118
+FetchOrderRecord: 119
+OrderRecord: 120

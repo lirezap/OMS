@@ -10,6 +10,10 @@ import software.openex.oms.binary.order.book.FetchOrderBook;
 import software.openex.oms.binary.order.book.FetchOrderBookBinaryRepresentation;
 import software.openex.oms.binary.order.book.OrderBook;
 import software.openex.oms.binary.order.book.OrderBookBinaryRepresentation;
+import software.openex.oms.binary.order.record.FetchOrderRecord;
+import software.openex.oms.binary.order.record.FetchOrderRecordBinaryRepresentation;
+import software.openex.oms.binary.order.record.OrderRecord;
+import software.openex.oms.binary.order.record.OrderRecordBinaryRepresentation;
 import software.openex.oms.binary.trade.Trade;
 import software.openex.oms.binary.trade.TradeBinaryRepresentation;
 
@@ -505,6 +509,46 @@ public class BinaryRepresentationTest {
             assertEquals(new BigDecimal(order.getPrice()), decoded.get_price());
             assertEquals(new BigDecimal(order.getStopPrice()), decoded.get_stopPrice());
             assertEquals(order, decoded);
+        }
+    }
+
+    @Test
+    public void testFetchOrderRecord() {
+        var fetchOrderRecord = new FetchOrderRecord("BTC/USDT", 1);
+        try (var binaryRepresentation = new FetchOrderRecordBinaryRepresentation(fetchOrderRecord)) {
+            binaryRepresentation.encodeV1();
+
+            assertEquals(119, BinaryRepresentable.id(binaryRepresentation.segment()));
+            assertEquals(21, binaryRepresentation.size());
+            assertEquals(31, binaryRepresentation.representationSize());
+
+            var decoded = FetchOrderRecordBinaryRepresentation.decode(binaryRepresentation.segment());
+            assertEquals(fetchOrderRecord.getSymbol(), decoded.getSymbol());
+            assertEquals(fetchOrderRecord.getId(), decoded.getId());
+        }
+    }
+
+    @Test
+    public void testOrderRecord() {
+        var orderRecord = new OrderRecord(1, "BTC/USDT", "BUY", "LIMIT", "1", "110000", "0.75", "ACTIVE", "", 1);
+        try (var binaryRepresentation = new OrderRecordBinaryRepresentation(orderRecord)) {
+            binaryRepresentation.encodeV1();
+
+            assertEquals(120, BinaryRepresentable.id(binaryRepresentation.segment()));
+            assertEquals(89, binaryRepresentation.size());
+            assertEquals(99, binaryRepresentation.representationSize());
+
+            var decoded = OrderRecord.decode(binaryRepresentation.segment());
+            assertEquals(orderRecord.getId(), decoded.getId());
+            assertEquals(orderRecord.getSymbol(), decoded.getSymbol());
+            assertEquals(orderRecord.getSide(), decoded.getSide());
+            assertEquals(orderRecord.getType(), decoded.getType());
+            assertEquals(orderRecord.getQuantity(), decoded.getQuantity());
+            assertEquals(orderRecord.getPrice(), decoded.getPrice());
+            assertEquals(orderRecord.getRemaining(), decoded.getRemaining());
+            assertEquals(orderRecord.getState(), decoded.getState());
+            assertEquals(orderRecord.getMetadata(), decoded.getMetadata());
+            assertEquals(orderRecord.getTs(), decoded.getTs());
         }
     }
 
