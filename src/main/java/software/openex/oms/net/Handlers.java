@@ -24,6 +24,9 @@ import software.openex.oms.binary.order.*;
 import software.openex.oms.binary.order.book.FetchOrderBookBinaryRepresentation;
 import software.openex.oms.binary.order.book.OrderBook;
 import software.openex.oms.binary.order.book.OrderBookBinaryRepresentation;
+import software.openex.oms.binary.order.record.FetchOrderRecordBinaryRepresentation;
+import software.openex.oms.binary.order.record.OrderRecord;
+import software.openex.oms.binary.order.record.OrderRecordBinaryRepresentation;
 
 import java.util.ArrayList;
 
@@ -444,6 +447,32 @@ public final class Handlers implements Responder {
 
             logger.error("{}", ex.getMessage());
             write(connection, INTERNAL_SERVER_ERROR);
+        } catch (Exception ex) {
+            logger.error("{}", ex.getMessage());
+            write(connection, INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public void handleFetchOrderRecord(final Connection connection) {
+        try {
+            // TODO: Validate incoming message.
+            logMessage(connection);
+            final var fetchOrderRecord = FetchOrderRecordBinaryRepresentation.decode(connection.segment());
+
+            var record = context().dataBase().fetchOrderMessage(fetchOrderRecord.getId(), fetchOrderRecord.getSymbol());
+            if (record == null) {
+                write(connection, ORDER_NOT_FOUND);
+            } else {
+                final var arena = ofShared();
+                final var orderRecord = new OrderRecord(record.component1(), record.component2(),
+                        record.component3().getLiteral(), record.component4().getLiteral(), record.component5(),
+                        record.component6(), record.component7(), record.component8().getLiteral(), record.component9(),
+                        record.component10().toEpochMilli());
+
+                final var response = new OrderRecordBinaryRepresentation(arena, orderRecord);
+                response.encodeV1();
+                write(connection, response);
+            }
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
             write(connection, INTERNAL_SERVER_ERROR);

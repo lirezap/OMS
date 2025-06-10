@@ -45,6 +45,7 @@ public final class Dispatcher implements Responder {
                     case 112 -> handlers.handleFOKSellLimitOrder(connection);
                     case 113 -> handlers.handleFOKBuyMarketOrder(connection);
                     case 114 -> handlers.handleFOKSellMarketOrder(connection);
+                    case 119 -> handlers.handleFetchOrderRecord(connection);
 
                     default -> write(connection, MESSAGE_NOT_SUPPORTED);
                 }

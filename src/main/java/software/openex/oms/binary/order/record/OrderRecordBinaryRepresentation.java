@@ -20,6 +20,7 @@ package software.openex.oms.binary.order.record;
 import software.openex.oms.binary.BinaryRepresentation;
 
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 
 /**
  * @author Alireza Pourtaghi
@@ -58,5 +59,64 @@ public final class OrderRecordBinaryRepresentation extends BinaryRepresentation<
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    public static OrderRecord decode(final MemorySegment segment) {
+        long position = RHS;
+
+        final var id = segment.get(LONG, position);
+        position += LONG.byteSize();
+
+        final var symbolSize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        final var symbol = segment.getString(position);
+        position += symbolSize;
+
+        final var sideSize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        final var side = segment.getString(position);
+        position += sideSize;
+
+        final var typeSize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        final var type = segment.getString(position);
+        position += typeSize;
+
+        final var quantitySize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        final var quantity = segment.getString(position);
+        position += quantitySize;
+
+        final var priceSize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        final var price = segment.getString(position);
+        position += priceSize;
+
+        final var remainingSize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        final var remaining = segment.getString(position);
+        position += remainingSize;
+
+        final var stateSize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        final var state = segment.getString(position);
+        position += stateSize;
+
+        final var metadataSize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        final var metadata = segment.getString(position);
+        position += metadataSize;
+
+        final var ts = segment.get(LONG, position);
+
+        return new OrderRecord(id, symbol, side, type, quantity, price, remaining, state, metadata, ts);
     }
 }

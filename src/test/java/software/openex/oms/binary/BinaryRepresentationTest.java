@@ -538,7 +538,7 @@ public class BinaryRepresentationTest {
             assertEquals(89, binaryRepresentation.size());
             assertEquals(99, binaryRepresentation.representationSize());
 
-            var decoded = OrderRecord.decode(binaryRepresentation.segment());
+            var decoded = OrderRecordBinaryRepresentation.decode(binaryRepresentation.segment());
             assertEquals(orderRecord.getId(), decoded.getId());
             assertEquals(orderRecord.getSymbol(), decoded.getSymbol());
             assertEquals(orderRecord.getSide(), decoded.getSide());
