@@ -20,6 +20,7 @@ package software.openex.oms.binary.base;
 import software.openex.oms.binary.BinaryRepresentation;
 
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 
 /**
  * @author Alireza Pourtaghi
@@ -50,5 +51,22 @@ public final class ErrorMessageBinaryRepresentation extends BinaryRepresentation
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    public static ErrorMessage decode(final MemorySegment segment) {
+        long position = RHS;
+
+        final var codeSize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        final var code = segment.getString(position);
+        position += codeSize;
+
+        final var messageSize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        final var message = segment.getString(position);
+
+        return new ErrorMessage(code, message);
     }
 }

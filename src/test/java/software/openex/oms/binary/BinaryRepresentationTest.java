@@ -38,7 +38,7 @@ public class BinaryRepresentationTest {
             assertEquals(21, binaryRepresentation.size());
             assertEquals(31, binaryRepresentation.representationSize());
 
-            var decoded = ErrorMessage.decode(binaryRepresentation.segment());
+            var decoded = ErrorMessageBinaryRepresentation.decode(binaryRepresentation.segment());
             assertEquals(message.getCode(), decoded.getCode());
             assertEquals(message.getMessage(), decoded.getMessage());
         }
