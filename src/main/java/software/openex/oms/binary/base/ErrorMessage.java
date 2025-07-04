@@ -17,7 +17,9 @@
  */
 package software.openex.oms.binary.base;
 
-import static software.openex.oms.binary.BinaryRepresentable.representationSize;
+import java.lang.foreign.MemorySegment;
+
+import static software.openex.oms.binary.BinaryRepresentable.*;
 
 /**
  * @author Alireza Pourtaghi
@@ -41,5 +43,22 @@ public final class ErrorMessage {
 
     public String getMessage() {
         return message;
+    }
+
+    public static ErrorMessage decode(final MemorySegment segment) {
+        long position = RHS;
+
+        final var codeSize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        final var code = segment.getString(position);
+        position += codeSize;
+
+        final var messageSize = segment.get(INT, position);
+        position += INT.byteSize();
+
+        final var message = segment.getString(position);
+
+        return new ErrorMessage(code, message);
     }
 }
