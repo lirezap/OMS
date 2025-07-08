@@ -73,31 +73,46 @@ public final class ReadHandler implements CompletionHandler<Integer, Connection>
         connection.buffer().flip();
         logger.trace("Buffer: {}", connection.buffer());
 
-        if (connection.buffer().limit() <= RHS) {
+        final var capacity = connection.buffer().capacity();
+        final var limit = connection.buffer().limit();
+        if (limit <= RHS) {
             write(connection, MESSAGE_FORMAT_NOT_VALID);
             return;
         }
 
-        if (connection.buffer().limit() > context().config().loadInt("server.max_message_size")) {
+        if (limit > context().config().loadInt("server.max_message_size")) {
             write(connection, MESSAGE_LENGTH_TOO_BIG);
             return;
         }
 
-        if (connection.buffer().limit() < connection.buffer().capacity()) {
-            // TODO: Check non complete read!
-            context().dispatcher().dispatch(connection);
+        final var requiredReadSize = RHS + size(connection.segment());
+        if (limit < capacity) {
+            if (limit < requiredReadSize) {
+                connection.buffer().position(limit);
+                connection.buffer().limit(capacity);
+                read(connection);
+                return;
+            }
+
+            if (limit == requiredReadSize) {
+                context().dispatcher().dispatch(connection);
+                return;
+            }
+
+            write(connection, MESSAGE_FORMAT_NOT_VALID);
             return;
         }
 
-        if (connection.buffer().limit() == connection.buffer().capacity()) {
-            if (connection.buffer().limit() == (RHS + size(connection.segment()))) {
+        if (limit == capacity) {
+            if (limit == requiredReadSize) {
                 context().dispatcher().dispatch(connection);
-            } else {
-                // Extended buffer size remains for connection.
-                final var readBufferSize = context().config().loadInt("server.read_buffer_size");
-                final var extendedSegmentConnection = extendSegment(connection, readBufferSize);
-                read(extendedSegmentConnection);
+                return;
             }
+
+            // Extended buffer size remains for connection.
+            final var readBufferSize = context().config().loadInt("server.read_buffer_size");
+            final var extendedSegmentConnection = extendSegment(connection, readBufferSize);
+            read(extendedSegmentConnection);
         }
     }
 
