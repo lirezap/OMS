@@ -9,8 +9,7 @@ import software.openex.oms.context.AppContext;
 import static java.lang.System.currentTimeMillis;
 import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.*;
-import static software.openex.oms.binary.BinaryRepresentable.RHS;
-import static software.openex.oms.binary.BinaryRepresentable.size;
+import static software.openex.oms.binary.BinaryRepresentable.*;
 import static software.openex.oms.context.AppContext.contextTest;
 
 /**
@@ -31,7 +30,7 @@ public class CompressionTest {
             assertTrue(binaryRepresentation.isCompressed(segment));
 
             var decompressionSize = context.compression().lz4()
-                    .decompressSafe(segment.asSlice(RHS), binaryRepresentation.segment().asSlice(RHS), size(segment), binaryRepresentation.size());
+                    .decompressSafe(segment.asSlice(RHS + 4), binaryRepresentation.segment().asSlice(RHS), size(segment) - 4, originalSize(segment));
 
             assertEquals(binaryRepresentation.size(), decompressionSize);
 

@@ -66,6 +66,10 @@ public interface BinaryRepresentable {
         return segment.get(INT, 6);
     }
 
+    static int originalSize(final MemorySegment segment) {
+        return segment.get(INT, RHS);
+    }
+
     default void setCompressed(final MemorySegment segment) {
         segment.set(BYTE, 1, (byte) (flags(segment) | 0b00000001));
     }

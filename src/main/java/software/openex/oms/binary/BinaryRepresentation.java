@@ -82,18 +82,19 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
                 throw new RuntimeException("could not compute compress bound!");
             }
 
-            final var memory = arena.allocate(RHS + neededMemorySize);
+            final var memory = arena.allocate(RHS + 4 + neededMemorySize);
             final var compressionSize = compression.lz4()
-                    .compressDefault(segment.asSlice(RHS), memory.asSlice(RHS), size, neededMemorySize);
+                    .compressDefault(segment.asSlice(RHS), memory.asSlice(RHS + 4), size, neededMemorySize);
 
             if (compressionSize <= 0) {
                 throw new RuntimeException("could not compress content!");
             }
 
             copy(segment, 0, memory, 0, 6);
-            memory.set(INT, 6, compressionSize);
             setCompressed(memory);
-            final var reinterpretMemory = memory.reinterpret(RHS + compressionSize);
+            memory.set(INT, 6, 4 + compressionSize);
+            memory.set(INT, RHS, size);
+            final var reinterpretMemory = memory.reinterpret(RHS + 4 + compressionSize);
 
             event.end();
             event.commit();
