@@ -54,17 +54,20 @@ public final class Dispatcher implements Responder {
     }
 
     private boolean isValid(final Connection connection) {
-        if (connection.buffer().limit() <= RHS) {
+        final var segment = connection.segment();
+        final var buffer = connection.buffer();
+
+        if (buffer.limit() <= RHS) {
             write(connection, MESSAGE_FORMAT_NOT_VALID);
             return false;
         }
 
-        if (version(connection.segment()) != 1) {
+        if (version(segment) != 1) {
             write(connection, MESSAGE_VERSION_NOT_SUPPORTED);
             return false;
         }
 
-        if (size(connection.segment()) != (connection.buffer().limit() - RHS)) {
+        if (size(segment) != (buffer.limit() - RHS)) {
             write(connection, MESSAGE_SIZE_NOT_VALID);
             return false;
         }
