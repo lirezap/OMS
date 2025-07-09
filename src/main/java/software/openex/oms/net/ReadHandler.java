@@ -73,7 +73,6 @@ public final class ReadHandler implements CompletionHandler<Integer, Connection>
         connection.buffer().flip();
         logger.trace("Buffer: {}", connection.buffer());
 
-        final var capacity = connection.buffer().capacity();
         final var limit = connection.buffer().limit();
         if (limit <= RHS) {
             write(connection, MESSAGE_FORMAT_NOT_VALID);
@@ -85,17 +84,18 @@ public final class ReadHandler implements CompletionHandler<Integer, Connection>
             return;
         }
 
+        final var capacity = connection.buffer().capacity();
         final var requiredReadSize = RHS + size(connection.segment());
         if (limit < capacity) {
+            if (limit == requiredReadSize) {
+                context().dispatcher().dispatch(connection);
+                return;
+            }
+
             if (limit < requiredReadSize) {
                 connection.buffer().position(limit);
                 connection.buffer().limit(capacity);
                 read(connection);
-                return;
-            }
-
-            if (limit == requiredReadSize) {
-                context().dispatcher().dispatch(connection);
                 return;
             }
 
