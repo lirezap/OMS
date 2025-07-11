@@ -355,6 +355,7 @@ public final class Engine implements Closeable {
             }
 
             eventsFile.close();
+            eventsSynchronizer.closeMetadataFile();
         } catch (Exception ex) {
             logger.error("{}", ex.getMessage());
         }

@@ -224,4 +224,8 @@ public final class EventsSynchronizer implements Runnable {
     public boolean isInSync() {
         return inSync;
     }
+
+    public void closeMetadataFile() throws IOException {
+        eventsMetadataFile.close();
+    }
 }
