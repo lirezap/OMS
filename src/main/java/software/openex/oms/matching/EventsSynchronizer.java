@@ -52,7 +52,7 @@ public final class EventsSynchronizer implements Runnable {
     private static final Logger logger = getLogger(EventsSynchronizer.class);
     private static final FileHeaderBinaryRepresentation fileHeader = new FileHeaderBinaryRepresentation(new FileHeader(0));
 
-    private boolean inSync;
+    private volatile boolean inSync;
     private final ExecutorService executor;
     private final ThreadSafeAtomicFile eventsFile;
     private final AtomicFile eventsMetadataFile;
