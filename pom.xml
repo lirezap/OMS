@@ -14,7 +14,7 @@
 
     <groupId>software.openex</groupId>
     <artifactId>oms</artifactId>
-    <version>0.0.21</version>
+    <version>0.0.22</version>
     <name>oms</name>
     <description>Seriously Safe, Efficient and Fast Order Matching System</description>
 
