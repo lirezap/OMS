@@ -67,6 +67,8 @@ one-core per multiple symbols may affect these numbers.
 
 - Stop & StopLimit orders
 
+---
+
 ### Restful API server
 
 See [Gate](https://github.com/lirezap/Gate) for more information about restful API server and its usage.
