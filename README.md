@@ -67,13 +67,6 @@ one-core per multiple symbols may affect these numbers.
 
 - Stop & StopLimit orders
 
-### Non-Open Source Features
+### Restful API server
 
-- Restful API server
-
----
-
-### Contact
-
-If you have any question about the project, or want to try OMS in a sandbox, or use in production, you can reach us at
-contact[at]openex[dot]software.
+See [Gate](https://github.com/lirezap/Gate) for more information about restful API server and its usage.
