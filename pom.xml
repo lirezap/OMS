@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.4</version>
+        <version>3.5.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -20,18 +20,18 @@
 
     <properties>
         <!-- Java Version -->
-        <java.version>23</java.version>
+        <java.version>24</java.version>
 
         <!-- Dependencies Versioning -->
         <lightbend.config.version>1.4.3</lightbend.config.version>
-        <postgresql.jdbc.driver.version>42.7.3</postgresql.jdbc.driver.version>
+        <postgresql.jdbc.driver.version>42.7.7</postgresql.jdbc.driver.version>
         <hikaricp.version>5.1.0</hikaricp.version>
         <flyway.version>9.22.3</flyway.version>
-        <jooq.version>3.19.10</jooq.version>
-        <testcontainers.postgresql.version>1.19.8</testcontainers.postgresql.version>
+        <jooq.version>3.20.5</jooq.version>
+        <testcontainers.postgresql.version>1.21.3</testcontainers.postgresql.version>
 
         <!-- Plugins Versioning -->
-        <docker.maven.plugin.version>0.43.1</docker.maven.plugin.version>
+        <docker.maven.plugin.version>0.46.0</docker.maven.plugin.version>
 
         <!-- Plugins Properties -->
         <postgresql.image>postgres:16</postgresql.image>
@@ -237,6 +237,7 @@
                 </configuration>
             </plugin>
 
+            <!-- Spring Boot Maven Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
