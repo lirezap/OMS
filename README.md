@@ -20,7 +20,7 @@ platform works well under heavy loads?! With how much cost and resource usage?
 #### Fast
 
 By being fast, I mean the processing of incoming orders, matching orders, persistence and fetching order books should
-all be fast and no bottleneck is acceptable. Why? Because you should compete with other platforms out there; Are your
+all be fast and no bottleneck is acceptable. Why? Because you should compete with other platforms out there. Are your
 customers happy with you?! Or they complain about your platform's being slow sometimes?!
 
 ---
@@ -40,15 +40,15 @@ working with files and file storage, including an atomic WAL implementation.
 
 #### CPU & Memory Level
 
-The project supports both one-core per symbol or one-core per multiple symbols architecture. The GC pressure is tried to
-be minimal, for example off-heap memory with manual control over allocation and de-allocation is nearly used all over
-the packages to gain better performance numbers.
+The project supports both one-symbol per core or multiple-symbols per core architecture. The GC pressure is tried to be
+minimal, for example off-heap memory with manual control over allocation and de-allocation is nearly used all over the
+packages to gain better performance numbers.
 
 #### What about performance numbers?
 
 The project is able to match 10000 crash-safe persisted orders per symbol (ex. BTC/USDT) per second. For example if you
-have two active symbols, on each symbol you easily can reach 10K matches, meaning 20K total. One-core per symbol or
-one-core per multiple symbols may affect these numbers.
+have two active symbols, on each symbol you easily can reach 10K matches, meaning 20K total. One-symbol per core or
+multiple-symbols per core may affect these numbers.
 
 ---
 
