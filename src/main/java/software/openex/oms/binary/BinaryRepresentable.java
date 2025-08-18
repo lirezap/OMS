@@ -25,13 +25,12 @@ import static java.nio.ByteOrder.BIG_ENDIAN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
- * A binary representable base interface including utility methods.
+ * {@link BinaryRepresentation} base interface including utility fields and methods.
  *
  * @author Alireza Pourtaghi
  */
 public interface BinaryRepresentable {
     OfByte BYTE = JAVA_BYTE.withOrder(BIG_ENDIAN);
-    OfShort SHORT = JAVA_SHORT_UNALIGNED.withOrder(BIG_ENDIAN);
     OfInt INT = JAVA_INT_UNALIGNED.withOrder(BIG_ENDIAN);
     OfLong LONG = JAVA_LONG_UNALIGNED.withOrder(BIG_ENDIAN);
 
@@ -49,6 +48,14 @@ public interface BinaryRepresentable {
 
     // Carriage Return
     byte CRT = 0x0D;
+
+    default void setCompressed(final MemorySegment segment) {
+        segment.set(BYTE, 1, (byte) (flags(segment) | 0b00000001));
+    }
+
+    default boolean isCompressed(final MemorySegment segment) {
+        return (flags(segment) & 0b00000001) == 0b00000001;
+    }
 
     static byte version(final MemorySegment segment) {
         return segment.get(BYTE, 0);
@@ -70,25 +77,20 @@ public interface BinaryRepresentable {
         return segment.get(INT, RHS);
     }
 
-    default void setCompressed(final MemorySegment segment) {
-        segment.set(BYTE, 1, (byte) (flags(segment) | 0b00000001));
-    }
-
-    default boolean isCompressed(final MemorySegment segment) {
-        return (flags(segment) & 0b00000001) == 0b00000001;
-    }
-
     static int representationSize(final String value) {
+        // TODO: Check possible arithmetic overflow.
         return 4 + value.getBytes(UTF_8).length + 1;
     }
 
     static int representationSize(final byte[] value) {
+        // TODO: Check possible arithmetic overflow.
         return 4 + value.length;
     }
 
-    static <T> int representationSize(final List<BinaryRepresentation<T>> values) {
+    static <T> int representationSize(final List<BinaryRepresentation<T>> brs) {
+        // TODO: Check possible arithmetic overflow.
         var size = 0;
-        for (final var br : values) {
+        for (final var br : brs) {
             size += (int) br.representationSize();
         }
 
