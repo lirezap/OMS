@@ -65,4 +65,9 @@ public final class SellStopOrder extends StopOrder {
 
         return new SellStopOrder(id, ts, symbol, quantity, stopPrice);
     }
+
+    @Override
+    public String toString() {
+        return "SellStopOrder{} " + super.toString();
+    }
 }

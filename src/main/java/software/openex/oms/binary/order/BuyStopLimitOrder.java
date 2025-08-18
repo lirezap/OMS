@@ -78,4 +78,9 @@ public final class BuyStopLimitOrder extends StopLimitOrder {
 
         return new BuyStopLimitOrder(id, ts, symbol, quantity, price, stopPrice);
     }
+
+    @Override
+    public String toString() {
+        return "BuyStopLimitOrder{} " + super.toString();
+    }
 }

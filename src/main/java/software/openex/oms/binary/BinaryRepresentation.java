@@ -17,9 +17,9 @@
  */
 package software.openex.oms.binary;
 
-import software.openex.oms.binary.event.CompressEvent;
-import software.openex.oms.binary.event.EncodeEvent;
 import software.openex.oms.context.Compression;
+import software.openex.oms.event.binary.CompressEvent;
+import software.openex.oms.event.binary.EncodeEvent;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;

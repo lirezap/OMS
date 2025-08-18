@@ -25,4 +25,9 @@ public abstract sealed class MarketOrder extends Order permits BuyMarketOrder, S
     public MarketOrder(final long id, final long ts, final String symbol, final String quantity) {
         super(id, ts, symbol, quantity);
     }
+
+    @Override
+    public String toString() {
+        return "MarketOrder{} " + super.toString();
+    }
 }

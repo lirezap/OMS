@@ -76,4 +76,9 @@ public sealed class BuyLimitOrder extends LimitOrder permits IOCBuyLimitOrder {
 
         return new BuyLimitOrder(id, ts, symbol, quantity, price);
     }
+
+    @Override
+    public String toString() {
+        return "BuyLimitOrder{} " + super.toString();
+    }
 }

@@ -38,4 +38,9 @@ public final class FOKSellLimitOrder extends IOCSellLimitOrder {
     public int representationId() {
         return 112;
     }
+
+    @Override
+    public String toString() {
+        return "FOKSellLimitOrder{} " + super.toString();
+    }
 }

@@ -57,4 +57,9 @@ public sealed class BuyMarketOrder extends MarketOrder permits FOKBuyMarketOrder
 
         return new BuyMarketOrder(id, ts, symbol, quantity);
     }
+
+    @Override
+    public String toString() {
+        return "BuyMarketOrder{} " + super.toString();
+    }
 }

@@ -41,11 +41,19 @@ public abstract sealed class StopLimitOrder extends LimitOrder permits BuyStopLi
         return super.size() + representationSize(stopPrice);
     }
 
-    public String getStopPrice() {
+    public final String getStopPrice() {
         return stopPrice;
     }
 
-    public BigDecimal get_stopPrice() {
+    public final BigDecimal get_stopPrice() {
         return _stopPrice;
+    }
+
+    @Override
+    public String toString() {
+        return "StopLimitOrder{" +
+                "stopPrice='" + stopPrice + '\'' +
+                ", _stopPrice=" + _stopPrice +
+                "} " + super.toString();
     }
 }

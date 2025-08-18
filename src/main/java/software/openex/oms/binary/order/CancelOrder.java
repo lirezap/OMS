@@ -57,4 +57,9 @@ public final class CancelOrder extends Order {
 
         return new CancelOrder(id, ts, symbol, quantity);
     }
+
+    @Override
+    public String toString() {
+        return "CancelOrder{} " + super.toString();
+    }
 }

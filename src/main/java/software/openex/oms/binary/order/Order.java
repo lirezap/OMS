@@ -29,7 +29,6 @@ public abstract sealed class Order permits LimitOrder, CancelOrder, MarketOrder 
     private final long ts;
     private final String symbol;
     private final String quantity;
-
     private final BigDecimal _quantity;
     private BigDecimal _remaining;
 
@@ -42,7 +41,6 @@ public abstract sealed class Order permits LimitOrder, CancelOrder, MarketOrder 
         this.ts = ts;
         this.symbol = symbol == null ? "" : symbol;
         this.quantity = quantity == null ? "" : quantity;
-
         this._quantity = new BigDecimal(this.quantity);
         this._remaining = new BigDecimal(remaining);
     }

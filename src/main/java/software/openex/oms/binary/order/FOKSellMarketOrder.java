@@ -30,4 +30,9 @@ public final class FOKSellMarketOrder extends SellMarketOrder {
     public int representationId() {
         return 114;
     }
+
+    @Override
+    public String toString() {
+        return "FOKSellMarketOrder{} " + super.toString();
+    }
 }

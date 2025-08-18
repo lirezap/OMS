@@ -38,4 +38,9 @@ public sealed class IOCSellLimitOrder extends SellLimitOrder permits FOKSellLimi
     public int representationId() {
         return 110;
     }
+
+    @Override
+    public String toString() {
+        return "IOCSellLimitOrder{} " + super.toString();
+    }
 }

@@ -41,11 +41,19 @@ public abstract sealed class StopOrder extends MarketOrder permits BuyStopOrder,
         return super.size() + representationSize(stopPrice);
     }
 
-    public String getStopPrice() {
+    public final String getStopPrice() {
         return stopPrice;
     }
 
-    public BigDecimal get_stopPrice() {
+    public final BigDecimal get_stopPrice() {
         return _stopPrice;
+    }
+
+    @Override
+    public String toString() {
+        return "StopOrder{" +
+                "stopPrice='" + stopPrice + '\'' +
+                ", _stopPrice=" + _stopPrice +
+                "} " + super.toString();
     }
 }

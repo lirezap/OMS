@@ -15,7 +15,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-package software.openex.oms.binary.event;
+package software.openex.oms.event.binary;
 
 import jdk.jfr.Description;
 import jdk.jfr.Label;
@@ -27,7 +27,7 @@ import software.openex.oms.event.OMSEvent;
  */
 @Description("Event that is used to measure encoding duration of a model into native memory.")
 @Label("Encoding Duration")
-@Name("software.openex.oms.binary.event.EncodeEvent")
+@Name("software.openex.oms.event.binary.EncodeEvent")
 public final class EncodeEvent extends OMSEvent {
     @Label("Model ID")
     private final int id;

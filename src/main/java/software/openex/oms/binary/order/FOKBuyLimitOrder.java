@@ -38,4 +38,9 @@ public final class FOKBuyLimitOrder extends IOCBuyLimitOrder {
     public int representationId() {
         return 111;
     }
+
+    @Override
+    public String toString() {
+        return "FOKBuyLimitOrder{} " + super.toString();
+    }
 }

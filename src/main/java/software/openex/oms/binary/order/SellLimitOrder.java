@@ -78,4 +78,9 @@ public sealed class SellLimitOrder extends LimitOrder permits IOCSellLimitOrder 
 
         return new SellLimitOrder(id, ts, symbol, quantity, price);
     }
+
+    @Override
+    public String toString() {
+        return "SellLimitOrder{} " + super.toString();
+    }
 }

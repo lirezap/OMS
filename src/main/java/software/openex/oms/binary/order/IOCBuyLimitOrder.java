@@ -38,4 +38,9 @@ public sealed class IOCBuyLimitOrder extends BuyLimitOrder permits FOKBuyLimitOr
     public int representationId() {
         return 109;
     }
+
+    @Override
+    public String toString() {
+        return "IOCBuyLimitOrder{} " + super.toString();
+    }
 }

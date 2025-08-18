@@ -57,4 +57,9 @@ public sealed class SellMarketOrder extends MarketOrder permits FOKSellMarketOrd
 
         return new SellMarketOrder(id, ts, symbol, quantity);
     }
+
+    @Override
+    public String toString() {
+        return "SellMarketOrder{} " + super.toString();
+    }
 }
