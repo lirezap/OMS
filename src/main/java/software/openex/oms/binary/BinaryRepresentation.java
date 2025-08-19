@@ -67,24 +67,18 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
     }
 
     public final MemorySegment compressLZ4(final Compression compression) {
+        // TODO: Check possible arithmetic overflow.
         try {
             final var event = new CompressEvent(id());
             event.begin();
 
-            final var neededMemorySize = compression.lz4()
-                    .compressBound(size);
-
-            if (neededMemorySize <= 0) {
-                throw new RuntimeException("could not compute compress bound!");
-            }
+            final var neededMemorySize = compression.lz4().compressBound(size);
+            if (neededMemorySize <= 0) throw new RuntimeException("could not compute compress bound!");
 
             final var memory = arena.allocate(RHS + 4 + neededMemorySize);
-            final var compressionSize = compression.lz4()
-                    .compressDefault(segment.asSlice(RHS), memory.asSlice(RHS + 4), size, neededMemorySize);
-
-            if (compressionSize <= 0) {
-                throw new RuntimeException("could not compress content!");
-            }
+            final var compressionSize = compression.lz4().compressDefault(
+                    segment.asSlice(RHS), memory.asSlice(RHS + 4), size, neededMemorySize);
+            if (compressionSize <= 0) throw new RuntimeException("could not compress content!");
 
             copy(segment, 0, memory, 0, 6);
             setCompressed(memory);
