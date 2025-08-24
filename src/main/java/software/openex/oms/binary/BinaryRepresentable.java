@@ -21,6 +21,7 @@ import java.lang.foreign.MemorySegment;
 import java.util.List;
 
 import static java.lang.Math.addExact;
+import static java.lang.Math.incrementExact;
 import static java.lang.foreign.ValueLayout.*;
 import static java.nio.ByteOrder.BIG_ENDIAN;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -79,7 +80,7 @@ public interface BinaryRepresentable {
     }
 
     static int representationSize(final String value) {
-        return addExact(addExact(4, value.getBytes(UTF_8).length), 1);
+        return incrementExact(addExact(4, value.getBytes(UTF_8).length));
     }
 
     static int representationSize(final byte[] value) {
