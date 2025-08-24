@@ -19,6 +19,7 @@ package software.openex.oms.binary.order;
 
 import java.math.BigDecimal;
 
+import static java.lang.Math.addExact;
 import static software.openex.oms.binary.BinaryRepresentable.representationSize;
 
 /**
@@ -46,7 +47,7 @@ public abstract sealed class Order permits LimitOrder, CancelOrder, MarketOrder 
     }
 
     public int size() {
-        return 8 + 8 + representationSize(symbol) + representationSize(quantity);
+        return addExact(8, addExact(8, addExact(representationSize(symbol), representationSize(quantity))));
     }
 
     public abstract int representationId();

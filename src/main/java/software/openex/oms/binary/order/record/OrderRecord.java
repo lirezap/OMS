@@ -17,6 +17,7 @@
  */
 package software.openex.oms.binary.order.record;
 
+import static java.lang.Math.addExact;
 import static software.openex.oms.binary.BinaryRepresentable.representationSize;
 
 /**
@@ -51,9 +52,15 @@ public final class OrderRecord {
     }
 
     public int size() {
-        return 8 + representationSize(symbol) + representationSize(side) + representationSize(type) +
-                representationSize(quantity) + representationSize(price) + representationSize(remaining) +
-                representationSize(state) + representationSize(metadata) + 8;
+        return addExact(8,
+                addExact(representationSize(symbol),
+                        addExact(representationSize(side),
+                                addExact(representationSize(type),
+                                        addExact(representationSize(quantity),
+                                                addExact(representationSize(price),
+                                                        addExact(representationSize(remaining),
+                                                                addExact(representationSize(state),
+                                                                        addExact(representationSize(metadata), 8)))))))));
     }
 
     public long getId() {

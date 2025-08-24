@@ -22,6 +22,7 @@ import software.openex.oms.binary.order.LimitOrder;
 
 import java.util.List;
 
+import static java.lang.Math.addExact;
 import static java.util.Collections.emptyList;
 import static software.openex.oms.binary.BinaryRepresentable.representationSize;
 
@@ -40,7 +41,7 @@ public final class OrderBook {
     }
 
     public int size() {
-        return representationSize(bids) + representationSize(asks);
+        return addExact(representationSize(bids), representationSize(asks));
     }
 
     public List<BinaryRepresentation<LimitOrder>> getBids() {

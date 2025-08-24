@@ -17,6 +17,7 @@
  */
 package software.openex.oms.binary.trade;
 
+import static java.lang.Math.addExact;
 import static software.openex.oms.binary.BinaryRepresentable.representationSize;
 
 /**
@@ -46,8 +47,13 @@ public final class Trade {
     }
 
     public int size() {
-        return 8 + 8 + representationSize(symbol) + representationSize(quantity) + representationSize(buyPrice) +
-                representationSize(sellPrice) + representationSize(metadata) + 8;
+        return addExact(8,
+                addExact(8,
+                        addExact(representationSize(symbol),
+                                addExact(representationSize(quantity),
+                                        addExact(representationSize(buyPrice),
+                                                addExact(representationSize(sellPrice),
+                                                        addExact(representationSize(metadata), 8)))))));
     }
 
     public long getBuyOrderId() {

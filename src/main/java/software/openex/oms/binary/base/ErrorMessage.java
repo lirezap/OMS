@@ -17,6 +17,7 @@
  */
 package software.openex.oms.binary.base;
 
+import static java.lang.Math.addExact;
 import static software.openex.oms.binary.BinaryRepresentable.representationSize;
 
 /**
@@ -32,7 +33,7 @@ public final class ErrorMessage {
     }
 
     public int size() {
-        return representationSize(code) + representationSize(message);
+        return addExact(representationSize(code), representationSize(message));
     }
 
     public String getCode() {
