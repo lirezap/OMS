@@ -47,7 +47,7 @@ public abstract sealed class Order permits LimitOrder, CancelOrder, MarketOrder 
     }
 
     public int size() {
-        return addExact(8, addExact(8, addExact(representationSize(symbol), representationSize(quantity))));
+        return addExact(16, addExact(representationSize(symbol), representationSize(quantity)));
     }
 
     public abstract int representationId();

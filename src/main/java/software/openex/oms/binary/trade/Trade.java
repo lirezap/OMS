@@ -47,13 +47,12 @@ public final class Trade {
     }
 
     public int size() {
-        return addExact(8,
-                addExact(8,
-                        addExact(representationSize(symbol),
-                                addExact(representationSize(quantity),
-                                        addExact(representationSize(buyPrice),
-                                                addExact(representationSize(sellPrice),
-                                                        addExact(representationSize(metadata), 8)))))));
+        return addExact(16,
+                addExact(representationSize(symbol),
+                        addExact(representationSize(quantity),
+                                addExact(representationSize(buyPrice),
+                                        addExact(representationSize(sellPrice),
+                                                addExact(representationSize(metadata), 8))))));
     }
 
     public long getBuyOrderId() {
