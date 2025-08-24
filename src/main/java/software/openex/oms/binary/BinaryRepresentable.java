@@ -20,6 +20,7 @@ package software.openex.oms.binary;
 import java.lang.foreign.MemorySegment;
 import java.util.List;
 
+import static java.lang.Math.addExact;
 import static java.lang.foreign.ValueLayout.*;
 import static java.nio.ByteOrder.BIG_ENDIAN;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -78,22 +79,19 @@ public interface BinaryRepresentable {
     }
 
     static int representationSize(final String value) {
-        // TODO: Check possible arithmetic overflow.
-        return 4 + value.getBytes(UTF_8).length + 1;
+        return addExact(addExact(4, value.getBytes(UTF_8).length), 1);
     }
 
     static int representationSize(final byte[] value) {
-        // TODO: Check possible arithmetic overflow.
-        return 4 + value.length;
+        return addExact(4, value.length);
     }
 
     static <T> int representationSize(final List<BinaryRepresentation<T>> brs) {
-        // TODO: Check possible arithmetic overflow.
         var size = 0;
         for (final var br : brs) {
-            size += (int) br.representationSize();
+            size = addExact(size, (int) br.representationSize());
         }
 
-        return 4 + size;
+        return addExact(4, size);
     }
 }

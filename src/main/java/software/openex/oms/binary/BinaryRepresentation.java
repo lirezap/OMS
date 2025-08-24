@@ -26,6 +26,7 @@ import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import static java.lang.Math.addExact;
 import static java.lang.foreign.Arena.ofShared;
 import static java.lang.foreign.MemorySegment.copy;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -67,7 +68,6 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
     }
 
     public final MemorySegment compressLZ4(final Compression compression) {
-        // TODO: Check possible arithmetic overflow.
         try {
             final var event = new CompressEvent(id());
             event.begin();
@@ -82,7 +82,7 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
 
             copy(segment, 0, memory, 0, 6);
             setCompressed(memory);
-            memory.set(INT, 6, 4 + compressionSize);
+            memory.set(INT, 6, addExact(4, compressionSize));
             memory.set(INT, RHS, size);
             final var reinterpretMemory = memory.reinterpret(RHS + 4 + compressionSize);
 
@@ -95,52 +95,45 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
     }
 
     protected final void putByte(final byte value) {
-        // TODO: Check possible arithmetic overflow.
         segment.set(BYTE, position, value);
-        position += BYTE.byteSize();
+        position = addExact(position, BYTE.byteSize());
     }
 
     protected final void putInt(final int value) {
-        // TODO: Check possible arithmetic overflow.
         segment.set(INT, position, value);
-        position += INT.byteSize();
+        position = addExact(position, INT.byteSize());
     }
 
     protected final void putLong(final long value) {
-        // TODO: Check possible arithmetic overflow.
         segment.set(LONG, position, value);
-        position += LONG.byteSize();
+        position = addExact(position, LONG.byteSize());
     }
 
     protected final void putString(final String value) {
-        // TODO: Check possible arithmetic overflow.
         var length = value.getBytes(UTF_8).length;
-        if (length == Integer.MAX_VALUE) throw new IllegalArgumentException("size of string value is too big!");
 
         // Null terminated
-        length++;
+        length = addExact(length, 1);
         putInt(length);
         segment.setString(position, value);
-        position += length;
+        position = addExact(position, length);
     }
 
     protected final void putBytes(final byte[] bytes) {
-        // TODO: Check possible arithmetic overflow.
         final var length = bytes.length;
 
         putInt(length);
         copy(bytes, 0, segment, BYTE, position, length);
-        position += length;
+        position = addExact(position, length);
     }
 
     protected final <C> void putBinaryRepresentations(final List<BinaryRepresentation<C>> brs) {
-        // TODO: Check possible arithmetic overflow.
         putInt(brs.size());
 
         for (final var br : brs) {
             final var brSegmentSize = br.segment().byteSize();
             copy(br.segment(), 0, segment, position, brSegmentSize);
-            position += brSegmentSize;
+            position = addExact(position, brSegmentSize);
         }
     }
 
@@ -161,7 +154,7 @@ public abstract class BinaryRepresentation<T> implements BinaryRepresentable, Au
     }
 
     public final long representationSize() {
-        return RHS + size;
+        return addExact(RHS, size);
     }
 
     @Override
