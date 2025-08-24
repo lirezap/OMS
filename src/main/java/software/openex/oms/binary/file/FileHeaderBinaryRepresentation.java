@@ -21,6 +21,8 @@ import software.openex.oms.binary.BinaryRepresentation;
 
 import java.lang.foreign.Arena;
 
+import static java.lang.Math.addExact;
+
 /**
  * @author Alireza Pourtaghi
  */
@@ -57,6 +59,6 @@ public final class FileHeaderBinaryRepresentation extends BinaryRepresentation<F
 
     public void incrementDurabilitySize(final long inc) {
         // TODO: Check possible arithmetic overflow.
-        LONG.varHandle().set(segment(), RHS, durabilitySize() + inc);
+        LONG.varHandle().set(segment(), RHS, addExact(durabilitySize(), inc));
     }
 }
