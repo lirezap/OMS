@@ -58,7 +58,6 @@ public final class FileHeaderBinaryRepresentation extends BinaryRepresentation<F
     }
 
     public void incrementDurabilitySize(final long inc) {
-        // TODO: Check possible arithmetic overflow.
         LONG.varHandle().set(segment(), RHS, addExact(durabilitySize(), inc));
     }
 }
