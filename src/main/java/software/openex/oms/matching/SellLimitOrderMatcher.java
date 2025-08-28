@@ -20,7 +20,7 @@ package software.openex.oms.matching;
 import org.slf4j.Logger;
 import software.openex.oms.binary.order.*;
 import software.openex.oms.binary.trade.Trade;
-import software.openex.oms.matching.event.MatchEvent;
+import software.openex.oms.event.matching.MatchEvent;
 import software.openex.oms.storage.ThreadSafeAtomicFile;
 
 import java.util.PriorityQueue;

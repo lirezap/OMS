@@ -20,9 +20,9 @@ package software.openex.oms.storage;
 import org.slf4j.Logger;
 import software.openex.oms.binary.file.FileHeader;
 import software.openex.oms.binary.file.FileHeaderBinaryRepresentation;
-import software.openex.oms.storage.event.AtomicFileAppendEvent;
-import software.openex.oms.storage.event.AtomicFileReadEvent;
-import software.openex.oms.storage.event.AtomicFileWriteEvent;
+import software.openex.oms.event.storage.AtomicFileAppendEvent;
+import software.openex.oms.event.storage.AtomicFileReadEvent;
+import software.openex.oms.event.storage.AtomicFileWriteEvent;
 
 import java.io.Closeable;
 import java.io.IOException;

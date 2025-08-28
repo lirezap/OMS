@@ -15,7 +15,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-package software.openex.oms.matching.event;
+package software.openex.oms.event.matching;
 
 import jdk.jfr.Description;
 import jdk.jfr.Label;
@@ -25,8 +25,8 @@ import software.openex.oms.event.OMSEvent;
 /**
  * @author Alireza Pourtaghi
  */
-@Description("Event that is used to measure order book fetching.")
-@Label("Order Book Fetching Duration")
-@Name("software.openex.oms.matching.engine.FetchOrderBookEvent")
-public final class FetchOrderBookEvent extends OMSEvent {
+@Description("Event that is used to measure syncing of a trade from events file into database.")
+@Label("Trade Syncing Duration")
+@Name("software.openex.oms.event.matching.SyncTradeEvent")
+public final class SyncTradeEvent extends OMSEvent {
 }

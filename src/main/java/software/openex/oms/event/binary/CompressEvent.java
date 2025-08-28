@@ -25,7 +25,7 @@ import software.openex.oms.event.OMSEvent;
 /**
  * @author Alireza Pourtaghi
  */
-@Description("Event that is used to measure LZ4 compression duration of a binary representation.")
+@Description("Event that is used to measure compressing duration of a binary representation.")
 @Label("Compressing Duration")
 @Name("software.openex.oms.event.binary.CompressEvent")
 public final class CompressEvent extends OMSEvent {

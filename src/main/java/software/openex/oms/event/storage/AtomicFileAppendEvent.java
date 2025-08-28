@@ -15,7 +15,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-package software.openex.oms.storage.event;
+package software.openex.oms.event.storage;
 
 import jdk.jfr.Description;
 import jdk.jfr.Label;
@@ -27,6 +27,6 @@ import software.openex.oms.event.OMSEvent;
  */
 @Description("Event that is used to measure atomic file append operation.")
 @Label("Atomic File Append Duration")
-@Name("software.openex.oms.storage.event.AtomicFileAppendEvent")
+@Name("software.openex.oms.event.storage.AtomicFileAppendEvent")
 public final class AtomicFileAppendEvent extends OMSEvent {
 }

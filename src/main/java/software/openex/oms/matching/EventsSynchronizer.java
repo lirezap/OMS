@@ -25,8 +25,8 @@ import software.openex.oms.binary.order.CancelOrder;
 import software.openex.oms.binary.order.Order;
 import software.openex.oms.binary.trade.Trade;
 import software.openex.oms.binary.trade.TradeBinaryRepresentation;
-import software.openex.oms.matching.event.SyncCanceledOrderEvent;
-import software.openex.oms.matching.event.SyncTradeEvent;
+import software.openex.oms.event.matching.SyncCanceledOrderEvent;
+import software.openex.oms.event.matching.SyncTradeEvent;
 import software.openex.oms.storage.AtomicFile;
 import software.openex.oms.storage.ThreadSafeAtomicFile;
 

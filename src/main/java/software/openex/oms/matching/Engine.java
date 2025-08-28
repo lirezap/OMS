@@ -21,8 +21,8 @@ import jdk.jfr.Event;
 import org.slf4j.Logger;
 import software.openex.oms.binary.order.*;
 import software.openex.oms.binary.order.book.FetchOrderBook;
-import software.openex.oms.matching.event.CancelOrderEvent;
-import software.openex.oms.matching.event.FetchOrderBookEvent;
+import software.openex.oms.event.matching.CancelOrderEvent;
+import software.openex.oms.event.matching.FetchOrderBookEvent;
 import software.openex.oms.storage.ThreadSafeAtomicFile;
 
 import java.io.Closeable;

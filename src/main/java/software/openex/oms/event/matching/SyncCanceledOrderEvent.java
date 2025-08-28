@@ -15,7 +15,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-package software.openex.oms.storage.event;
+package software.openex.oms.event.matching;
 
 import jdk.jfr.Description;
 import jdk.jfr.Label;
@@ -25,8 +25,8 @@ import software.openex.oms.event.OMSEvent;
 /**
  * @author Alireza Pourtaghi
  */
-@Description("Event that is used to measure atomic file write operation.")
-@Label("Atomic File Write Duration")
-@Name("software.openex.oms.storage.event.AtomicFileWriteEvent")
-public final class AtomicFileWriteEvent extends OMSEvent {
+@Description("Event that is used to measure syncing of a canceled order from events file into database.")
+@Label("Canceled Order Syncing Duration")
+@Name("software.openex.oms.event.matching.SyncCanceledOrderEvent")
+public final class SyncCanceledOrderEvent extends OMSEvent {
 }

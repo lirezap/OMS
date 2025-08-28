@@ -15,7 +15,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-package software.openex.oms.matching.event;
+package software.openex.oms.event.matching;
 
 import jdk.jfr.Description;
 import jdk.jfr.Label;
@@ -27,6 +27,6 @@ import software.openex.oms.event.OMSEvent;
  */
 @Description("Event that is used to measure order cancellation.")
 @Label("Order Cancelling Duration")
-@Name("software.openex.oms.matching.engine.CancelOrderEvent")
+@Name("software.openex.oms.event.matching.CancelOrderEvent")
 public final class CancelOrderEvent extends OMSEvent {
 }
