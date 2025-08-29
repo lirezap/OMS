@@ -17,8 +17,12 @@
  */
 package software.openex.oms.binary.order.record;
 
+import software.openex.oms.binary.order.LimitOrder;
+
 import static java.lang.Math.addExact;
 import static software.openex.oms.binary.BinaryRepresentable.representationSize;
+import static software.openex.oms.models.enums.OrderMessageState.ACTIVE;
+import static software.openex.oms.models.enums.OrderMessageType.LIMIT;
 
 /**
  * @author Alireza Pourtaghi
@@ -34,6 +38,19 @@ public final class OrderRecord {
     private final String state;
     private final String metadata;
     private final long ts;
+
+    public OrderRecord(final LimitOrder limitOrder) {
+        this(limitOrder.getId(),
+                limitOrder.getSymbol(),
+                "",
+                LIMIT.getLiteral(),
+                limitOrder.getQuantity(),
+                limitOrder.getPrice(),
+                limitOrder.get_remaining().toPlainString(),
+                ACTIVE.getLiteral(),
+                "",
+                limitOrder.getTs());
+    }
 
     public OrderRecord(final long id, final String symbol, final String side, final String type, final String quantity,
                        final String price, final String remaining, final String state, final String metadata,

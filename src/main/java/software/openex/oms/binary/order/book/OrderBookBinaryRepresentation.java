@@ -19,8 +19,8 @@ package software.openex.oms.binary.order.book;
 
 import software.openex.oms.binary.BinaryRepresentable;
 import software.openex.oms.binary.BinaryRepresentation;
-import software.openex.oms.binary.order.BuyLimitOrder;
-import software.openex.oms.binary.order.SellLimitOrder;
+import software.openex.oms.binary.order.record.OrderRecord;
+import software.openex.oms.binary.order.record.OrderRecordBinaryRepresentation;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -58,23 +58,23 @@ public final class OrderBookBinaryRepresentation extends BinaryRepresentation<Or
         }
     }
 
-    public static List<BuyLimitOrder> bids(final MemorySegment segment) {
+    public static List<OrderRecord> bids(final MemorySegment segment) {
         long position = RHS;
 
         final var bidsSize = segment.get(INT, position);
         position += INT.byteSize();
 
-        final var bids = new ArrayList<BuyLimitOrder>(bidsSize);
+        final var bids = new ArrayList<OrderRecord>(bidsSize);
         for (int i = 1; i <= bidsSize; i++) {
             final var size = RHS + BinaryRepresentable.size(segment.asSlice(position));
-            bids.add(BuyLimitOrder.decode(segment.asSlice(position, size)));
+            bids.add(OrderRecordBinaryRepresentation.decode(segment.asSlice(position, size)));
             position += size;
         }
 
         return bids;
     }
 
-    public static List<SellLimitOrder> asks(final MemorySegment segment) {
+    public static List<OrderRecord> asks(final MemorySegment segment) {
         long position = RHS;
 
         final var bidsSize = segment.get(INT, position);
@@ -87,10 +87,10 @@ public final class OrderBookBinaryRepresentation extends BinaryRepresentation<Or
         final var asksSize = segment.get(INT, position);
         position += INT.byteSize();
 
-        final var asks = new ArrayList<SellLimitOrder>(asksSize);
+        final var asks = new ArrayList<OrderRecord>(asksSize);
         for (int i = 1; i <= asksSize; i++) {
             final var size = RHS + BinaryRepresentable.size(segment.asSlice(position));
-            asks.add(SellLimitOrder.decode(segment.asSlice(position, size)));
+            asks.add(OrderRecordBinaryRepresentation.decode(segment.asSlice(position, size)));
             position += size;
         }
 

@@ -152,16 +152,16 @@ public final class Handlers implements Responder {
             context().matchingEngines().orderBook(fetchOrderBook)
                     .thenAcceptAsync(orderBook -> {
                         final var arena = ofShared();
-                        final var bids = new ArrayList<BinaryRepresentation<LimitOrder>>();
-                        final var asks = new ArrayList<BinaryRepresentation<LimitOrder>>();
+                        final var bids = new ArrayList<BinaryRepresentation<OrderRecord>>();
+                        final var asks = new ArrayList<BinaryRepresentation<OrderRecord>>();
 
                         orderBook.getBids().stream()
-                                .map(bid -> new LimitOrderBinaryRepresentation(arena, bid))
+                                .map(bid -> new OrderRecordBinaryRepresentation(arena, new OrderRecord(bid)))
                                 .peek(BinaryRepresentation::encodeV1)
                                 .forEach(bids::add);
 
                         orderBook.getAsks().stream()
-                                .map(ask -> new LimitOrderBinaryRepresentation(arena, ask))
+                                .map(ask -> new OrderRecordBinaryRepresentation(arena, new OrderRecord(ask)))
                                 .peek(BinaryRepresentation::encodeV1)
                                 .forEach(asks::add);
 

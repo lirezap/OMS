@@ -18,7 +18,7 @@
 package software.openex.oms.binary.order.book;
 
 import software.openex.oms.binary.BinaryRepresentation;
-import software.openex.oms.binary.order.LimitOrder;
+import software.openex.oms.binary.order.record.OrderRecord;
 
 import java.util.List;
 
@@ -30,11 +30,11 @@ import static software.openex.oms.binary.BinaryRepresentable.representationSize;
  * @author Alireza Pourtaghi
  */
 public final class OrderBook {
-    private final List<BinaryRepresentation<LimitOrder>> bids;
-    private final List<BinaryRepresentation<LimitOrder>> asks;
+    private final List<BinaryRepresentation<OrderRecord>> bids;
+    private final List<BinaryRepresentation<OrderRecord>> asks;
 
-    public OrderBook(final List<BinaryRepresentation<LimitOrder>> bids,
-                     final List<BinaryRepresentation<LimitOrder>> asks) {
+    public OrderBook(final List<BinaryRepresentation<OrderRecord>> bids,
+                     final List<BinaryRepresentation<OrderRecord>> asks) {
 
         this.bids = bids == null ? emptyList() : bids;
         this.asks = asks == null ? emptyList() : asks;
@@ -44,11 +44,11 @@ public final class OrderBook {
         return addExact(representationSize(bids), representationSize(asks));
     }
 
-    public List<BinaryRepresentation<LimitOrder>> getBids() {
+    public List<BinaryRepresentation<OrderRecord>> getBids() {
         return bids;
     }
 
-    public List<BinaryRepresentation<LimitOrder>> getAsks() {
+    public List<BinaryRepresentation<OrderRecord>> getAsks() {
         return asks;
     }
 }

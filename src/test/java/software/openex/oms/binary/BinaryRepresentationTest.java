@@ -204,30 +204,30 @@ public class BinaryRepresentationTest {
 
     @Test
     public void testOrderBook() {
-        var bo1 = new BuyLimitOrder(1, currentTimeMillis(), "BTC/USDT", "1", "100000");
-        var bo2 = new BuyLimitOrder(2, currentTimeMillis(), "BTC/USDT", "2", "200000");
-        var bo3 = new BuyLimitOrder(3, currentTimeMillis(), "BTC/USDT", "3", "300000");
-        var so4 = new SellLimitOrder(4, currentTimeMillis(), "BTC/USDT", "4", "400000");
-        var so5 = new SellLimitOrder(5, currentTimeMillis(), "BTC/USDT", "5", "500000");
+        var or1 = new OrderRecord(1, "BTC/USDT", "BUY", "LIMIT", "1", "1000", "1.75", "ACTIVE", "", currentTimeMillis());
+        var or2 = new OrderRecord(2, "BTC/USDT", "BUY", "LIMIT", "2", "2000", "2.75", "ACTIVE", "", currentTimeMillis());
+        var or3 = new OrderRecord(3, "BTC/USDT", "BUY", "LIMIT", "3", "3000", "3.75", "ACTIVE", "", currentTimeMillis());
+        var or4 = new OrderRecord(4, "BTC/USDT", "SELL", "LIMIT", "4", "4000", "4.75", "ACTIVE", "", currentTimeMillis());
+        var or5 = new OrderRecord(5, "BTC/USDT", "SELL", "LIMIT", "5", "5000", "5.75", "ACTIVE", "", currentTimeMillis());
 
-        try (var bo1br = new LimitOrderBinaryRepresentation(bo1);
-             var bo2br = new LimitOrderBinaryRepresentation(bo2);
-             var bo3br = new LimitOrderBinaryRepresentation(bo3);
-             var so4br = new LimitOrderBinaryRepresentation(so4);
-             var so5br = new LimitOrderBinaryRepresentation(so5)) {
+        try (var or1br = new OrderRecordBinaryRepresentation(or1);
+             var or2br = new OrderRecordBinaryRepresentation(or2);
+             var or3br = new OrderRecordBinaryRepresentation(or3);
+             var or4br = new OrderRecordBinaryRepresentation(or4);
+             var or5br = new OrderRecordBinaryRepresentation(or5)) {
 
-            bo1br.encodeV1();
-            bo2br.encodeV1();
-            bo3br.encodeV1();
-            so4br.encodeV1();
-            so5br.encodeV1();
-            var orderBook = new OrderBook(of(bo1br, bo2br, bo3br), of(so4br, so5br));
+            or1br.encodeV1();
+            or2br.encodeV1();
+            or3br.encodeV1();
+            or4br.encodeV1();
+            or5br.encodeV1();
+            var orderBook = new OrderBook(of(or1br, or2br, or3br), of(or4br, or5br));
             try (var binaryRepresentation = new OrderBookBinaryRepresentation(orderBook)) {
                 binaryRepresentation.encodeV1();
 
                 assertEquals(106, BinaryRepresentable.id(binaryRepresentation.segment()));
-                assertEquals(288, binaryRepresentation.size());
-                assertEquals(298, binaryRepresentation.representationSize());
+                assertEquals(495, binaryRepresentation.size());
+                assertEquals(505, binaryRepresentation.representationSize());
 
                 var bids = OrderBookBinaryRepresentation.bids(binaryRepresentation.segment());
                 var asks = OrderBookBinaryRepresentation.asks(binaryRepresentation.segment());
@@ -235,11 +235,11 @@ public class BinaryRepresentationTest {
                 assertEquals(3, bids.size());
                 assertEquals(2, asks.size());
 
-                assertEquality(bo1, bids.get(0));
-                assertEquality(bo2, bids.get(1));
-                assertEquality(bo3, bids.get(2));
-                assertEquality(so4, asks.get(0));
-                assertEquality(so5, asks.get(1));
+                assertEquality(or1, bids.get(0));
+                assertEquality(or2, bids.get(1));
+                assertEquality(or3, bids.get(2));
+                assertEquality(or4, asks.get(0));
+                assertEquality(or5, asks.get(1));
             }
         }
     }
@@ -543,24 +543,20 @@ public class BinaryRepresentationTest {
             assertEquals(99, binaryRepresentation.representationSize());
 
             var decoded = OrderRecordBinaryRepresentation.decode(binaryRepresentation.segment());
-            assertEquals(orderRecord.getId(), decoded.getId());
-            assertEquals(orderRecord.getSymbol(), decoded.getSymbol());
-            assertEquals(orderRecord.getSide(), decoded.getSide());
-            assertEquals(orderRecord.getType(), decoded.getType());
-            assertEquals(orderRecord.getQuantity(), decoded.getQuantity());
-            assertEquals(orderRecord.getPrice(), decoded.getPrice());
-            assertEquals(orderRecord.getRemaining(), decoded.getRemaining());
-            assertEquals(orderRecord.getState(), decoded.getState());
-            assertEquals(orderRecord.getMetadata(), decoded.getMetadata());
-            assertEquals(orderRecord.getTs(), decoded.getTs());
+            assertEquality(orderRecord, decoded);
         }
     }
 
-    private void assertEquality(LimitOrder expected, LimitOrder actual) {
+    private void assertEquality(OrderRecord expected, OrderRecord actual) {
         assertEquals(expected.getId(), actual.getId());
-        assertEquals(expected.getTs(), actual.getTs());
         assertEquals(expected.getSymbol(), actual.getSymbol());
+        assertEquals(expected.getSide(), actual.getSide());
+        assertEquals(expected.getType(), actual.getType());
         assertEquals(expected.getQuantity(), actual.getQuantity());
         assertEquals(expected.getPrice(), actual.getPrice());
+        assertEquals(expected.getRemaining(), actual.getRemaining());
+        assertEquals(expected.getState(), actual.getState());
+        assertEquals(expected.getMetadata(), actual.getMetadata());
+        assertEquals(expected.getTs(), actual.getTs());
     }
 }
