@@ -289,12 +289,12 @@ public final class Engine implements Closeable {
         }
     }
 
-    private ArrayList<BuyLimitOrder> bidsReferences(final int size) {
-        final var bids = new ArrayList<BuyLimitOrder>(size);
+    private ArrayList<LimitOrder> bidsReferences(final int size) {
+        final var bids = new ArrayList<LimitOrder>(size);
         try {
             for (int i = 1; i <= size; i++) {
                 if (buyOrders.peek() != null) {
-                    bids.add((BuyLimitOrder) buyOrders.poll());
+                    bids.add(buyOrders.poll());
                 } else {
                     break;
                 }
@@ -308,12 +308,12 @@ public final class Engine implements Closeable {
         return bids;
     }
 
-    private ArrayList<SellLimitOrder> asksReferences(final int size) {
-        final var asks = new ArrayList<SellLimitOrder>(size);
+    private ArrayList<LimitOrder> asksReferences(final int size) {
+        final var asks = new ArrayList<LimitOrder>(size);
         try {
             for (int i = 1; i <= size; i++) {
                 if (sellOrders.peek() != null) {
-                    asks.add((SellLimitOrder) sellOrders.poll());
+                    asks.add(sellOrders.poll());
                 } else {
                     break;
                 }
@@ -365,19 +365,19 @@ public final class Engine implements Closeable {
      * @author Alireza Pourtaghi
      */
     public static final class OrderBook {
-        private final ArrayList<BuyLimitOrder> bids;
-        private final ArrayList<SellLimitOrder> asks;
+        private final ArrayList<LimitOrder> bids;
+        private final ArrayList<LimitOrder> asks;
 
-        public OrderBook(final ArrayList<BuyLimitOrder> bids, final ArrayList<SellLimitOrder> asks) {
+        public OrderBook(final ArrayList<LimitOrder> bids, final ArrayList<LimitOrder> asks) {
             this.bids = bids;
             this.asks = asks;
         }
 
-        public ArrayList<BuyLimitOrder> getBids() {
+        public ArrayList<LimitOrder> getBids() {
             return bids;
         }
 
-        public ArrayList<SellLimitOrder> getAsks() {
+        public ArrayList<LimitOrder> getAsks() {
             return asks;
         }
     }
