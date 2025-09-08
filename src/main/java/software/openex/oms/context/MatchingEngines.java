@@ -44,7 +44,7 @@ import static software.openex.oms.models.enums.OrderMessageSide.SELL;
 import static software.openex.oms.models.enums.OrderMessageType.LIMIT;
 
 /**
- * A component that holds all matching engines.
+ * A component that contains all matching engines.
  *
  * @author Alireza Pourtaghi
  */
@@ -55,7 +55,7 @@ public final class MatchingEngines implements Closeable {
     private final int initialCap;
     private final Path dataDirectoryPath;
 
-    public MatchingEngines(final Configuration configuration) {
+    MatchingEngines(final Configuration configuration) {
         this.engines = new ConcurrentHashMap<>();
         this.initialCap = configuration.loadInt("matching.engine.queues_initial_cap");
         this.dataDirectoryPath = of(configuration.loadString("matching.engine.data_directory_path"));

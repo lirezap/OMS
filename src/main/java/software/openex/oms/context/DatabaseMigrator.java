@@ -39,7 +39,7 @@ public final class DatabaseMigrator {
         final var username = configuration.loadString("db.postgresql.username");
         final var password = configuration.loadString("db.postgresql.password");
 
-        flyway = configure()
+        this.flyway = configure()
                 .dataSource(url, username, password)
                 .locations("db/migration/postgresql")
                 .executeInTransaction(TRUE)
