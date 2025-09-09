@@ -32,7 +32,7 @@ import static java.lang.foreign.ValueLayout.JAVA_INT;
 import static software.openex.oms.lib.std.CString.strlen;
 
 /**
- * Java FFM used wrapper of LZ4 C library functions.
+ * Java FFM wrapper of the LZ4 C library functions.
  *
  * @author Alireza Pourtaghi
  */
@@ -44,6 +44,12 @@ public final class LZ4 implements AutoCloseable {
     private final MethodHandle compressDefault;
     private final MethodHandle decompressSafe;
 
+    /**
+     * Creates memory allocator, native linker and library lookup instance to load the shared object (or dynamic) LZ4 C
+     * library from provided path.
+     *
+     * @param path the shared object (or dynamic) LZ4 C library's path
+     */
     public LZ4(final Path path) {
         this.memory = ofShared();
         final var linker = nativeLinker();
