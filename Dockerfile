@@ -9,4 +9,4 @@ WORKDIR /opt/app
 
 COPY target/oms-*.jar oms.jar
 
-CMD ["java", "-jar", "oms.jar"]
+CMD ["java", "-jar", "-XX:+UseCompactObjectHeaders", "oms.jar"]
