@@ -69,6 +69,39 @@ multiple-symbols per core may affect these numbers.
 
 ---
 
+### Development Setup (macOS)
+
+- JDK 25
+    - ```curl -s "https://get.sdkman.io" | bash```
+    - ```sdk install java 25-graalce```
+- LZ4 Compression Library
+    - ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"```
+    - ```brew install lz4```
+- Docker Engine (Docker Desktop)
+    - See https://www.docker.com to follow the installation instructions.
+
+First of all you need to start the docker engine (docker desktop). Then after, set the following environment variable:
+
+```bash
+export LIBRARIES_NATIVE_LZ4_PATH="/the/path/to/liblz4.dylib"
+```
+
+For example:
+
+```bash
+export LIBRARIES_NATIVE_LZ4_PATH="/opt/homebrew/Cellar/lz4/1.9.4/lib/liblz4.dylib"
+```
+
+At final step run:
+
+```bash
+./mvnw clean package
+```
+
+You are now ready to import the project into your IDE to develop/test further.
+
+---
+
 ### Restful API server
 
 See [Gate](https://github.com/lirezap/Gate) for more information about restful API server and its usage.
